@@ -83,7 +83,7 @@ To be decided once the findings are moved over.
 ## Code
 
 ::: {.pending data-tag="Repo"}
-github.com/your-username/melbourne-housing: the R Markdown file, the data source, and comments on each step.
+github.com/ducle26/melbourne-housing: the R Markdown file, the data source, and comments on each step.
 :::
 ::::
 :::::

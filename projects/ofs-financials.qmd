@@ -88,7 +88,7 @@ Pick a company and a date range, and compare how it tracks oil.
 ## Code
 
 ::: {.pending data-tag="Repo"}
-github.com/your-username/ofs-health-check: the R Markdown file, the data source, and comments on each step.
+github.com/ducle26/ofs-health-check: the R Markdown file, the data source, and comments on each step.
 :::
 ::::
 :::::

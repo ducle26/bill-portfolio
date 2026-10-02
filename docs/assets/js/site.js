@@ -170,19 +170,9 @@
   var tools = el("div", "nav-tools");
   var langBtn = el("button", "nav-tool", '<span data-l="en">EN</span> / <span data-l="vi">VI</span>');
   langBtn.type = "button"; langBtn.setAttribute("aria-label", "Switch language between English and Vietnamese");
-  var musicBtn = el("button", "nav-tool music-btn", '<span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="mlabel">Music</span>');
-  musicBtn.type = "button"; musicBtn.setAttribute("aria-pressed", "false"); musicBtn.setAttribute("aria-label", "Play or pause music");
-  var radioBtn = el("button", "nav-tool", "Radio ↗");
-  radioBtn.type = "button"; radioBtn.setAttribute("aria-label", "Open the full radio in a small window");
-  tools.appendChild(langBtn); tools.appendChild(musicBtn); tools.appendChild(radioBtn);
+  tools.appendChild(langBtn);
   var navTarget = document.querySelector(".quarto-navbar-tools") || document.querySelector("#navbarCollapse");
   if (navTarget) navTarget.insertBefore(tools, navTarget.firstChild);
-
-  radioBtn.addEventListener("click", function () {
-    var url = ROOT + "radio/index.html";
-    var w = window.open(url, "bill-radio", "width=420,height=680,menubar=no,toolbar=no,location=no");
-    if (!w) window.location.href = url; // popup blocked: open in this tab
-  });
 
   /* ---------- Language toggle ---------- */
   var viNodes = Array.prototype.slice.call(document.querySelectorAll("[data-vi]"));
@@ -200,14 +190,47 @@
   langBtn.addEventListener("click", function () { setLang(isVi() ? "en" : "vi"); });
   setLang(store.get("bl-lang") === "vi" ? "vi" : "en");
 
-  /* ---------- Music: starts softly a couple of seconds in ---------- */
+  /* ---------- Record player: music starts softly a couple of seconds in ---------- */
   // Browsers only allow sound after the visitor clicks, taps, or presses a key.
   // If they already have, music starts on time; otherwise it starts on their first click.
-  var music = { ctx: null, player: null, on: false, armed: false, saveTimer: null, firstShown: false };
+  // A-side: the site's own music (assets/js/field.js). B-side: Bill's picks on YouTube.
+  var PICKS = ["XutKfAL7wx8", "IuyJKdTCrE4", "kldpcaGtnb8", "T-U3jBF-Fac", "9FMFzHt5v6s", "FpAItpyVLUg"]; // YouTube video ids, in play order
+  var DEFAULT_VOL = 35;
+  var music = { ctx: null, player: null, on: false, armed: false, saveTimer: null, side: "a" };
   var bc = null, myId = Math.random().toString(36).slice(2);
   try { bc = new BroadcastChannel("bill-radio"); } catch (e) {}
+
+  var rp = el("div", "record-player");
+  rp.innerHTML =
+    '<button class="rp-deck music-btn" type="button" aria-pressed="false" aria-label="Play or pause music">' +
+      '<svg viewBox="0 0 80 80" aria-hidden="true">' +
+        '<rect class="rp-plinth" x="2" y="2" width="76" height="76" rx="7"/>' +
+        '<circle class="rp-mat" cx="34" cy="43" r="28"/>' +
+        '<g class="rp-disc"><circle class="rp-vinyl" cx="34" cy="43" r="25"/>' +
+          '<circle class="rp-groove" cx="34" cy="43" r="20"/><circle class="rp-groove" cx="34" cy="43" r="15.5"/>' +
+          '<circle class="rp-label" cx="34" cy="43" r="9.5"/><line class="rp-mark" x1="34" y1="43" x2="34" y2="35.5"/>' +
+          '<circle class="rp-hole" cx="34" cy="43" r="1.6"/></g>' +
+        '<g class="rp-arm"><line x1="67" y1="14" x2="52" y2="45"/><rect x="47.5" y="43" width="7" height="9" rx="1.5" transform="rotate(26 51 47)"/></g>' +
+        '<circle class="rp-pivot" cx="67" cy="14" r="5"/><circle class="rp-knob" cx="68" cy="60" r="3"/><circle class="rp-knob" cx="68" cy="70" r="3"/>' +
+      "</svg></button>" +
+    '<button class="rp-more" type="button" aria-label="Open music controls" aria-expanded="false">···</button>' +
+    '<div class="rp-now" aria-live="polite"></div>' +
+    '<div class="rp-panel" hidden>' +
+      '<div class="rp-head"><span class="label" data-rp="head">Bill\'s record player</span><button class="rp-close" type="button" aria-label="Close">×</button></div>' +
+      '<div class="rp-sides" role="group" aria-label="Record side"><button type="button" data-side="a" aria-pressed="true">A-side · Field</button><button type="button" data-side="b" aria-pressed="false">B-side · Bill\'s picks</button></div>' +
+      '<div class="rp-a"><div class="rp-title">Sunny side</div><div class="rp-sub label">Track 1</div>' +
+        '<div class="rp-ctl"><button type="button" data-act="prev" aria-label="Previous track">◀◀</button><button type="button" data-act="toggle" class="rp-play" aria-label="Play">▶</button><button type="button" data-act="next" aria-label="Next track">▶▶</button>' +
+        '<label class="rp-vol"><span class="label">Vol</span><input type="range" id="rp-vol" min="0" max="100" step="1" value="' + DEFAULT_VOL + '" aria-label="Volume"></label></div>' +
+        '<p class="rp-note" data-rp="a-note">Made live in your browser. The six tracks play in a loop.</p></div>' +
+      '<div class="rp-b" hidden><div class="rp-yt"></div><p class="rp-note"><span data-rp="b-note">My real favorites, played by YouTube.</span> <a class="rp-pop" href="' + ROOT + 'radio/index.html" target="bill-radio">Pop out ↗</a></p></div>' +
+    "</div>";
+  document.body.appendChild(rp);
+  var musicBtn = rp.querySelector(".rp-deck"), rpMore = rp.querySelector(".rp-more"), rpPanel = rp.querySelector(".rp-panel");
+  var rpNow = rp.querySelector(".rp-now"), rpVol = rp.querySelector("#rp-vol"), nowTimer = null;
+
   function musicPref() { return store.get("bl-music") !== "off"; }
   function radioAlive() { var t = +store.get("bl-radio-alive") || 0; return Date.now() - t < 4000; }
+  function getVol() { var v = parseInt(store.get("bl-vol"), 10); return isNaN(v) ? DEFAULT_VOL : Math.max(0, Math.min(100, v)); }
   function readPos() { try { return JSON.parse(store.get("bl-music-pos", true) || "{}"); } catch (e) { return {}; } }
   function savePos(on) {
     if (!music.player) return;
@@ -225,26 +248,39 @@
     if (!AC) return null;
     music.ctx = new AC();
     music.player = window.FieldEngine.create(music.ctx);
-    music.player.setVolume(0.5);
-    music.player.onTrack = function () { updateMusicUi(); toast((isVi() ? "Đang phát · " : "Now playing · ") + music.player.state().title, 3000); };
+    music.player.setVolume(getVol() / 100);
+    music.player.onTrack = function () { updateMusicUi(); showNow(); };
     return music.ctx;
   }
-  function updateMusicUi() {
-    musicBtn.classList.toggle("on", music.on);
-    musicBtn.setAttribute("aria-pressed", music.on ? "true" : "false");
-    musicBtn.title = music.on ? (isVi() ? "Đang phát: " : "Now playing: ") + music.player.state().title + (isVi() ? ". Bấm để tắt." : ". Press to pause.") : (isVi() ? "Bật nhạc" : "Play music");
+  function showNow() {
+    if (!music.player) return;
+    rpNow.textContent = "♪ " + music.player.state().title;
+    rpNow.classList.add("show");
+    clearTimeout(nowTimer); nowTimer = setTimeout(function () { rpNow.classList.remove("show"); }, 5000);
   }
-  function startMusic(fade, announce) {
-    if (music.on || !music.ctx) return;
+  function updateMusicUi() {
+    rp.classList.toggle("on", music.on);
+    musicBtn.setAttribute("aria-pressed", music.on ? "true" : "false");
+    var st = music.player ? music.player.state() : { title: "Sunny side", track: 0 };
+    var total = window.FieldEngine ? window.FieldEngine.TRACKS.length : 6;
+    musicBtn.title = music.on ? (isVi() ? "Đang phát: " : "Now playing: ") + st.title + (isVi() ? ". Bấm để dừng." : ". Press to pause.") : (isVi() ? "Bật nhạc" : "Play music");
+    rp.querySelector(".rp-title").textContent = st.title;
+    rp.querySelector(".rp-sub").textContent = (isVi() ? "Bài " : "Track ") + (st.track + 1) + (isVi() ? " trên " : " of ") + total;
+    var pb = rp.querySelector(".rp-play"); pb.textContent = music.on ? "❚❚" : "▶"; pb.setAttribute("aria-label", music.on ? "Pause" : "Play");
+    rp.querySelector('[data-rp="head"]').textContent = isVi() ? "Máy hát của Bill" : "Bill's record player";
+    rp.querySelector('[data-rp="a-note"]').textContent = isVi() ? "Nhạc được tạo trực tiếp trong trình duyệt. Sáu bài phát lặp lại." : "Made live in your browser. The six tracks play in a loop.";
+    rp.querySelector('[data-rp="b-note"]').textContent = isVi() ? "Những bài mình thích nhất, phát qua YouTube." : "My real favorites, played by YouTube.";
+  }
+  function startMusic(fade, announce, track) {
+    if (!music.ctx) return;
+    if (music.on && track == null) return;
     var pos = readPos();
-    music.player.play(pos.t || 0, pos.on ? pos.s : 0, fade);
+    if (track != null) music.player.play(track, 0, fade);
+    else music.player.play(pos.t || 0, pos.on ? pos.s : 0, fade);
     music.on = true; updateMusicUi(); savePos(true);
     clearInterval(music.saveTimer); music.saveTimer = setInterval(function () { savePos(true); }, 1000);
     if (bc) bc.postMessage({ type: "playing", id: myId });
-    if (announce) {
-      toast((isVi() ? "Đang phát · " : "Now playing · ") + music.player.state().title, 6000,
-        [{ label: isVi() ? "Tắt nhạc" : "Mute", run: function () { stopMusic(0.4); store.set("bl-music", "off"); } }]);
-    }
+    if (announce) showNow();
   }
   function stopMusic(fade) {
     if (!music.on) return;
@@ -255,10 +291,10 @@
     if (music.armed) return;
     music.armed = true;
     function go(e) {
-      if (e && e.target && e.target.closest && e.target.closest(".music-btn")) return; // the button handles itself
+      if (e && e.target && e.target.closest && e.target.closest(".record-player")) return; // the player handles itself
       ["pointerdown", "keydown", "touchend"].forEach(function (t) { window.removeEventListener(t, go, true); });
       music.armed = false;
-      if (!musicPref() || music.on || radioAlive()) return;
+      if (!musicPref() || music.on || radioAlive() || music.side === "b") return;
       music.ctx.resume().then(function () { startMusic(2.5, announce); });
     }
     ["pointerdown", "keydown", "touchend"].forEach(function (t) { window.addEventListener(t, go, true); });
@@ -267,22 +303,67 @@
     if (!musicPref() || radioAlive()) return;
     loadField(function () {
       if (!ensureCtx()) return;
-      var pos = readPos(), announce = !pos.on;
+      updateMusicUi();
+      var pos = readPos(), announce = true;
       if (music.ctx.state === "running") return startMusic(pos.on ? 1.2 : 2.5, announce);
       music.ctx.resume().then(function () { if (music.ctx.state === "running") startMusic(pos.on ? 1.2 : 2.5, announce); });
       setTimeout(function () { if (!music.on) armGesture(announce); }, 200);
     });
   }
-  musicBtn.addEventListener("click", function () {
-    loadField(function () {
-      if (!ensureCtx()) return;
+  function withAudio(fn) { loadField(function () { if (ensureCtx()) music.ctx.resume().then(fn, fn); }); }
+  function toggleMusic() {
+    withAudio(function () {
       if (music.on) { stopMusic(0.5); store.set("bl-music", "off"); }
-      else { store.set("bl-music", "on"); music.ctx.resume().then(function () { startMusic(1.5, false); }); }
+      else { setSide("a"); store.set("bl-music", "on"); startMusic(1.2, true); }
+    });
+  }
+  function skip(dir) {
+    withAudio(function () {
+      var n = window.FieldEngine.TRACKS.length, cur = music.player.state().track;
+      store.set("bl-music", "on");
+      startMusic(0.8, true, (cur + dir + n) % n);
+    });
+  }
+  function setSide(side) {
+    music.side = side;
+    rp.querySelectorAll("[data-side]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.side === side ? "true" : "false"); });
+    rp.querySelector(".rp-a").hidden = side !== "a"; rp.querySelector(".rp-b").hidden = side !== "b";
+    var yt = rp.querySelector(".rp-yt");
+    if (side === "b") {
+      stopMusic(0.4);
+      if (!yt.firstChild) {
+        var f = document.createElement("iframe");
+        f.src = "https://www.youtube-nocookie.com/embed/" + PICKS[0] + "?playlist=" + PICKS.slice(1).join(",") + "&loop=1&rel=0";
+        f.title = "Bill's picks on YouTube"; f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true;
+        yt.appendChild(f);
+      }
+    } else { yt.innerHTML = ""; }
+  }
+  function openPanel(open) {
+    rpPanel.hidden = !open; rpMore.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) { loadField(function () { updateMusicUi(); }); rpNow.classList.remove("show"); }
+  }
+  musicBtn.addEventListener("click", toggleMusic);
+  rpMore.addEventListener("click", function () { openPanel(rpPanel.hidden); });
+  rp.querySelector(".rp-close").addEventListener("click", function () { openPanel(false); });
+  rp.querySelectorAll("[data-side]").forEach(function (b) { b.addEventListener("click", function () { setSide(b.dataset.side); }); });
+  rp.querySelectorAll("[data-act]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var a = b.dataset.act;
+      if (a === "toggle") toggleMusic(); else skip(a === "next" ? 1 : -1);
     });
   });
+  rpVol.value = getVol();
+  rpVol.addEventListener("input", function () { store.set("bl-vol", this.value); if (music.player) music.player.setVolume(this.value / 100); });
+  rp.querySelector(".rp-pop").addEventListener("click", function (e) {
+    e.preventDefault(); setSide("a");
+    var w = window.open(this.href, "bill-radio", "width=420,height=700,menubar=no,toolbar=no,location=no");
+    if (!w) window.location.href = this.href;
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !rpPanel.hidden) openPanel(false); });
   if (bc) bc.onmessage = function (ev) { if (ev.data && ev.data.type === "playing" && ev.data.id !== myId) stopMusic(0.6); };
   window.addEventListener("pagehide", function () { savePos(music.on); });
-  document.addEventListener("bl:lang", function () { if (music.player) updateMusicUi(); });
+  document.addEventListener("bl:lang", function () { updateMusicUi(); });
   // Continue right away when coming from another page; otherwise wait about 2.5 seconds.
   setTimeout(tryAutoplay, readPos().on ? 150 : 2500);
   BL.music = { stop: stopMusic, isOn: function () { return music.on; } };
@@ -379,9 +460,10 @@
     });
   });
 
-  /* ---------- Home: the live drilling view ---------- */
-  if (document.getElementById("drill-canvas")) {
+  /* ---------- Page extras: live well view, journey map, career log ---------- */
+  [["drill-canvas", "drillview.js"], ["journey-map", "journeymap.js"], ["career-log", "careerlog.js"]].forEach(function (pair) {
+    if (!document.getElementById(pair[0])) return;
     var s = document.createElement("script");
-    s.src = ROOT + "assets/js/drillview.js"; document.body.appendChild(s);
-  }
+    s.src = ROOT + "assets/js/" + pair[1]; document.body.appendChild(s);
+  });
 })();

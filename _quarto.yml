@@ -9,6 +9,7 @@ project:
 website:
   title: "Duc (Bill) Le"
   description: "Supply chain and procurement for downhole tools. Analytics work in R."
+  site-url: https://ducle26.github.io/bill-portfolio/
   favicon: assets/img/favicon.svg
   page-navigation: false
   bread-crumbs: false
@@ -35,7 +36,7 @@ website:
         href: https://www.linkedin.com/in/duc-huy-le/
         aria-label: LinkedIn
       - icon: github
-        href: https://github.com/
+        href: https://github.com/ducle26
         aria-label: GitHub
   page-footer:
     left: "© 2026 Duc (Bill) Le · Built in R with Quarto"

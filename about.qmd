@@ -9,10 +9,8 @@ pagetitle: "About · Duc (Bill) Le"
 
 <div class="about-grid">
   <div class="headshot">
-    <div class="frame">
-      <!-- To add the headshot: save it as assets/img/headshot.jpg and replace the span below with
-           <img src="assets/img/headshot.jpg" alt="Duc (Bill) Le"> -->
-      <span class="mono">Photo coming</span>
+    <div class="frame" tabindex="0" title="Hover to see the photo in color">
+      <img src="assets/img/headshot.jpg" alt="Duc (Bill) Le" width="720" height="900">
     </div>
     <div class="dim-v"><span>Scale 1:1</span></div>
     <div class="dim dim-h">Duc (Bill) Le</div>
@@ -33,12 +31,13 @@ pagetitle: "About · Duc (Bill) Le"
 <h2>Specifications</h2>
 <table class="spec">
   <tr><th>Based in</th><td>Houston, Texas</td></tr>
-  <tr><th>Studying</th><td>MS, Supply Chain Management, University of Houston (May 2027)<br>BS, Supply Chain and Logistics Management, Oregon State University (2024)</td></tr>
-  <tr><th>Business interests</th><td>Supply chains for downhole and oilfield manufacturing · supplier quality and lead times · planning for long-lead parts · Vietnam's growing electronics and semiconductor supply chain</td></tr>
+  <tr><th>Studying</th><td>MS, Supply Chain Management, University of Houston (Aug 2025 to May 2027)<br>BS, Supply Chain and Logistics Management, Oregon State University (2024)</td></tr>
+  <tr><th>Route</th><td>Vietnam · Florida (high school at Windermere Preparatory School, 2018 to 2020) · Oregon · Houston</td></tr>
+  <tr><th>Business interests</th><td>Supply chains for downhole and oilfield manufacturing · supplier quality and lead times · planning for long-lead parts</td></tr>
   <tr><th>Analytics</th><td>R (tidyverse, ggplot2, tidyquant) · Excel modeling (Solver, @Risk, Monte Carlo simulation) · Power BI · Tableau · Python · JASP</td></tr>
   <tr><th>Systems</th><td>SAP Business One · SAP Concur · Power Automate · SharePoint</td></tr>
   <tr><th>Certificates</th><td>ASCM Supply Chain Procurement (2023) · ASCM Supply Chain Planning (2024) · AI for Supply Chains and Logistics (2026)</td></tr>
   <tr><th>Languages</th><td>English · Vietnamese</td></tr>
-  <tr><th>Also</th><td>Instructional assistant, SCM 4330 · Vice president, UH Supply Chain Club</td></tr>
+  <tr><th>Also</th><td>Instructional assistant, SCM 4330 (since Oct 2025) · Vice president, UH Supply Chain Club</td></tr>
 </table>
 ```

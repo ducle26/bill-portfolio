@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bill's radio</title>
+<title>Bill's record player</title>
 <link rel="icon" href="../assets/img/favicon.svg">
 <link rel="stylesheet" href="../assets/fonts/fonts.css">
 <script src="../assets/js/field.js"></script>
@@ -61,18 +61,18 @@
 </head>
 <body>
 <div class="radio" role="region" aria-label="Bill's radio">
-  <div class="head"><strong>Bill's radio</strong><span class="mono" id="freq">CH 1 · Field</span></div>
+  <div class="head"><strong>Bill's record player</strong><span class="mono" id="freq">A-side · Field</span></div>
 
   <div class="screen" aria-live="polite">
-    <div class="mono ch" id="ch-label">Channel 1 · Field</div>
+    <div class="mono ch" id="ch-label">A-side · Field</div>
     <div class="title" id="t-title">Press play</div>
     <div class="artist" id="t-artist">Easy, upbeat music for looking around</div>
     <canvas class="viz" id="viz" aria-hidden="true"></canvas>
   </div>
 
   <div class="channels" role="group" aria-label="Channels">
-    <button id="ch1" aria-pressed="true">Ch 1 · Field</button>
-    <button id="ch2" aria-pressed="false">Ch 2 · Bill's picks</button>
+    <button id="ch1" aria-pressed="true">A-side · Field</button>
+    <button id="ch2" aria-pressed="false">B-side · Bill's picks</button>
   </div>
 
   <div id="field-ui">
@@ -80,7 +80,7 @@
       <button class="ctl" id="prev" aria-label="Previous track">◀◀</button>
       <button class="ctl play" id="play" aria-label="Play">▶</button>
       <button class="ctl" id="next" aria-label="Next track">▶▶</button>
-      <label class="vol"><span class="mono">Vol</span><input type="range" id="vol" min="0" max="100" step="1" value="50" aria-label="Volume"></label>
+      <label class="vol"><span class="mono">Vol</span><input type="range" id="vol" min="0" max="100" step="1" value="35" aria-label="Volume"></label>
     </div>
     <div class="list" id="list"></div>
   </div>
@@ -92,15 +92,14 @@
 
 <script>
 /* ===================== Settings for Bill =====================
-   1. youtubePlaylistId: open your playlist on youtube.com, copy the part
-      after "list=" in the address bar, and paste it between the quotes.
-      The playlist must be public or unlisted.
-   2. fieldTracks: download royalty-free tracks from pixabay.com/music,
-      put the mp3 files in assets/audio/, and list them here. Until then,
-      the radio plays calm tones made in the browser.
+   1. youtubeVideos: the B-side. YouTube video ids, in play order. The id is
+      the part after "v=" in a video's address. Keep this list the same as
+      PICKS in assets/js/site.js.
+   2. fieldTracks: optional mp3 files for the A-side. Leave it empty and the
+      A-side plays the site's own music, made live in the browser.
    ============================================================ */
 var CONFIG = {
-  youtubePlaylistId: "",
+  youtubeVideos: ["XutKfAL7wx8", "IuyJKdTCrE4", "kldpcaGtnb8", "T-U3jBF-Fac", "9FMFzHt5v6s", "FpAItpyVLUg"],
   fieldTracks: [
     // { title: "Track name", artist: "Artist on Pixabay", file: "../assets/audio/track-1.mp3", source: "https://pixabay.com/music/..." }
   ]
@@ -220,17 +219,17 @@ var CONFIG = {
   function setChannel(ch) {
     $("ch1").setAttribute("aria-pressed", ch === 1); $("ch2").setAttribute("aria-pressed", ch === 2);
     $("field-ui").hidden = ch !== 1; $("yt-ui").hidden = ch !== 2; viz.hidden = ch !== 1;
-    $("freq").textContent = ch === 1 ? "CH 1 · Field" : "CH 2 · Bill's picks";
-    $("ch-label").textContent = ch === 1 ? "Channel 1 · Field" : "Channel 2 · Bill's picks";
+    $("freq").textContent = ch === 1 ? "A-side · Field" : "B-side · Bill's picks";
+    $("ch-label").textContent = ch === 1 ? "A-side · Field" : "B-side · Bill's picks";
     if (ch === 2) {
       stopAll();
       $("t-title").textContent = "Bill's picks";
-      $("t-artist").textContent = "A playlist from Bill's YouTube";
+      $("t-artist").textContent = "My real favorites, played by YouTube";
       var ui = $("yt-ui");
       if (!ui.firstChild) {
-        if (CONFIG.youtubePlaylistId) {
-          var f = document.createElement("iframe");
-          f.src = "https://www.youtube-nocookie.com/embed/videoseries?list=" + encodeURIComponent(CONFIG.youtubePlaylistId);
+        if (CONFIG.youtubeVideos.length) {
+          var f = document.createElement("iframe"), v = CONFIG.youtubeVideos;
+          f.src = "https://www.youtube-nocookie.com/embed/" + v[0] + "?playlist=" + v.slice(1).join(",") + "&loop=1&rel=0";
           f.title = "Bill's YouTube playlist"; f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true;
           ui.appendChild(f);
         } else {
@@ -252,7 +251,7 @@ var CONFIG = {
   if (CONFIG.fieldTracks.length) {
     foot.innerHTML = "Channel 1: royalty-free music from Pixabay. " + CONFIG.fieldTracks.map(function (t) { return t.source ? '<a href="' + t.source + '" target="_blank" rel="noopener">' + t.title + "</a>" : t.title; }).join(" · ");
   } else {
-    foot.textContent = "Channel 1 is made live in your browser: warm keys, soft bass, and a lazy beat. Channel 2 plays through YouTube's own player.";
+    foot.textContent = "The A-side is made live in your browser. The B-side plays through YouTube's own player.";
   }
   if (!embedded) foot.innerHTML += ' · <a href="../index.html" target="_blank" rel="noopener">Bill\'s site</a>';
 

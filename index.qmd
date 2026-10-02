@@ -45,7 +45,7 @@ body-classes: home
         <span class="muted" data-vi="Đi hết đường xuống. Có một trò chơi ở đáy giếng.">The whole way down. There's a game at the bottom.</span>
       </button>
     </div>
-    <p class="picker-note mono" data-vi="Nhạc nhẹ sẽ bật sau khi bạn chọn. Tắt bằng nút Music trên menu.">Soft music starts after you pick. Turn it off with the Music button up top.</p>
+    <p class="picker-note mono" data-vi="Nhạc nhẹ sẽ bật sau khi bạn chọn. Bấm vào máy hát ở góc màn hình để tắt.">Soft music starts after you pick. Press the record player in the corner to stop it.</p>
     <button class="skip" data-visitor-pick="skip" data-vi="Bỏ qua">Skip</button>
   </div>
 </div>
@@ -73,26 +73,30 @@ body-classes: home
     </div>
     <div data-for="explorer">
       <span class="label label-orange">Path C</span>
-      <p data-vi="Cứ từ từ đi xuống. Dưới đáy có <a href='play.html'>một trò chơi</a>, và nút Radio ở trên menu.">Take the long way down. There's <a href="play.html">a game</a> at the bottom, and a radio in the menu.</p>
+      <p data-vi="Cứ từ từ đi xuống. Dưới đáy có <a href='play.html'>một trò chơi</a>, và một máy hát ở góc màn hình.">Take the long way down. There's <a href="play.html">a game</a> at the bottom, and a record player in the corner.</p>
     </div>
     <a href="#" class="mono" data-open-picker data-vi="Đổi lối đi">Change path</a>
   </div>
 
-  <div class="route" aria-label="Route from Vietnam to Oregon to Houston">
+  <div class="route" aria-label="Route from Vietnam to Florida to Oregon to Houston">
     <svg viewBox="0 0 760 110" role="img">
-      <title>Vietnam, then Corvallis, Oregon, then Houston, Texas</title>
+      <title>Vietnam, then Florida, then Corvallis, Oregon, then Houston, Texas</title>
       <line class="r-dash" x1="30" y1="22" x2="30" y2="58"/>
-      <line class="r-dash" x1="380" y1="22" x2="380" y2="58"/>
+      <line class="r-dash" x1="263" y1="22" x2="263" y2="58"/>
+      <line class="r-dash" x1="497" y1="22" x2="497" y2="58"/>
       <line class="r-dash" x1="730" y1="22" x2="730" y2="58"/>
-      <text x="30" y="14" text-anchor="middle">Origin</text>
-      <text x="380" y="14" text-anchor="middle">BS · 2024</text>
-      <text x="730" y="14" text-anchor="middle">MS · 2027</text>
-      <path class="r-line" d="M30 70 C 150 70, 230 70, 380 70 S 610 70, 730 70"/>
+      <text x="30" y="14" text-anchor="start">Origin</text>
+      <text x="263" y="14" text-anchor="middle">2018 to 2020</text>
+      <text x="497" y="14" text-anchor="middle">BS · 2024</text>
+      <text x="730" y="14" text-anchor="end">MS · 2027</text>
+      <path class="r-line" d="M30 70 H730"/>
       <circle class="r-node" cx="30" cy="70" r="6"/>
-      <circle class="r-node" cx="380" cy="70" r="6"/>
+      <circle class="r-node" cx="263" cy="70" r="6"/>
+      <circle class="r-node" cx="497" cy="70" r="6"/>
       <circle class="r-node now" cx="730" cy="70" r="7"/>
       <text class="big" x="30" y="100" text-anchor="start">Vietnam</text>
-      <text class="big" x="380" y="100" text-anchor="middle">Corvallis, OR</text>
+      <text class="big" x="263" y="100" text-anchor="middle">Florida</text>
+      <text class="big" x="497" y="100" text-anchor="middle">Oregon</text>
       <text class="big" x="730" y="100" text-anchor="end">Houston, TX</text>
     </svg>
   </div>
@@ -109,7 +113,10 @@ body-classes: home
     <div class="reveal">
       <span class="label kicker">Detail A · About</span>
       <h2 data-vi="Đôi chút về mình">A bit about me</h2>
-      <p style="max-width:680px" data-vi="Mình tên Lê Đức Huy, mọi người hay gọi là Bill. Phần lớn công việc của mình là những thứ ít ai thấy: tìm xưởng gia công đúng bản vẽ, giữ đơn hàng khớp với từng lần sửa bản vẽ, và kiểm tra hàng về có đúng như đã đặt. Mình thích công việc này vì nó nằm giữa kỹ thuật, tài chính và nhà cung cấp, và một linh kiện trễ là một thiết bị trễ.">My name is Duc Le, and most people call me Bill. Most of my work is the part nobody sees: finding shops that can machine a part to print, keeping orders in step with drawing changes, and checking that what arrives is what we asked for. I like that the job sits between engineering, finance, and the supplier, and that a late part means a late tool.</p>
+      <div class="about-mini">
+        <div class="headshot"><div class="frame" tabindex="0"><img src="assets/img/headshot-small.jpg" alt="Duc (Bill) Le" width="240" height="300"></div><div class="dim dim-h">Fig. 1</div></div>
+        <p data-vi="Mình tên Lê Đức Huy, mọi người hay gọi là Bill. Phần lớn công việc của mình là những thứ ít ai thấy: tìm xưởng gia công đúng bản vẽ, giữ đơn hàng khớp với từng lần sửa bản vẽ, và kiểm tra hàng về có đúng như đã đặt. Mình thích công việc này vì nó nằm giữa kỹ thuật, tài chính và nhà cung cấp, và một linh kiện trễ là một thiết bị trễ.">My name is Duc Le, and most people call me Bill. Most of my work is the part nobody sees: finding shops that can machine a part to print, keeping orders in step with drawing changes, and checking that what arrives is what we asked for. I like that the job sits between engineering, finance, and the supplier, and that a late part means a late tool.</p>
+      </div>
       <a class="bp-btn-ghost" href="about.html" data-vi="Đọc thêm">More about me</a>
     </div>
   </section>
@@ -119,15 +126,19 @@ body-classes: home
     <div class="reveal">
       <span class="label kicker">Detail B · Journey</span>
       <h2 data-vi="Hành trình">How I got here</h2>
+      <div class="jmap" id="journey-map">
+        <div class="jmap-cap mono"><span class="jmap-legend" id="jmap-legend" aria-label="Stops"></span><button type="button" id="jmap-replay" data-vi="Phát lại">Replay</button></div>
+      </div>
       <ul class="log">
-        <li><span class="yr">Origin</span><h3>Vietnam</h3><p data-vi="Nơi bắt đầu.">Where it starts.</p></li>
-        <li><span class="yr">2023</span><h3>State of Oregon, Department of Administrative Services</h3><p data-vi="Trợ lý mua sắm và hợp đồng. Mua sắm công theo quy định của bang, và lần đầu làm việc với dữ liệu chi tiêu của hàng trăm nhà cung cấp.">Procurement and contract assistant. Public purchasing under state rules, and my first look at spend data across hundreds of vendors.</p></li>
-        <li><span class="yr">2023 to 2024</span><h3>Oregon State University</h3><p data-vi="Trợ lý dịch vụ tài chính. Xây dựng trang SharePoint cho nhân viên mới và chuyển quy trình duyệt chứng từ sang Power Automate. Cùng lúc, dự báo nhu cầu cho một nhà hàng địa phương.">Financial services assistant. Built a SharePoint onboarding hub and moved a paper approval process into Power Automate. On the side, forecast demand for a local restaurant as a class project.</p></li>
-        <li><span class="yr">2024</span><h3>BS, Supply Chain and Logistics Management</h3><p data-vi="Tốt nghiệp Oregon State. Chứng chỉ ASCM về mua hàng (2023) và hoạch định (2024).">Graduated from Oregon State. ASCM certificates in procurement (2023) and planning (2024).</p></li>
-        <li><span class="yr">2024 to 2025</span><h3>Oliden Technology, Stafford, TX</h3><p data-vi="Mua hàng linh kiện MWD/LWD. Xây hệ thống theo dõi đơn đặt hàng, xử lý tồn đọng cũ trong SAP, và chuẩn hóa quy trình duyệt nhà cung cấp theo ISO/API.">Procurement for MWD/LWD components. Built a PO tracking system, cleared an old backlog in SAP, and set up the approved supplier process to ISO and API standards.</p></li>
-        <li><span class="yr">2026</span><h3>Back at Oliden for a summer build</h3><p data-vi="Tìm nguồn linh kiện cho một đợt lắp ráp RSS và MWD/LWD với hạn chót cố định, và xử lý các vấn đề chất lượng với xưởng gia công.">Sourced parts for a rotary steerable and MWD/LWD build with a fixed assembly date, and worked quality issues with machine shops.</p></li>
-        <li class="now"><span class="yr">Now</span><h3>University of Houston, Bauer College of Business</h3><p data-vi="Thạc sĩ Quản lý Chuỗi cung ứng, tốt nghiệp tháng 5/2027. Trợ giảng môn SCM 4330 và phó chủ tịch CLB Chuỗi cung ứng.">MS in Supply Chain Management, finishing May 2027. Instructional assistant for SCM 4330 and vice president of the Supply Chain Club.</p></li>
-        <li><span class="yr">Next</span><h3 data-vi="Tiếp theo">What's next</h3><p data-vi="Mua hàng cho thiết bị khoan tại một công ty dịch vụ dầu khí. Xa hơn, góp phần xây chuỗi cung ứng bán dẫn của Việt Nam.">Downhole procurement at an oilfield services company. Further out, helping build Vietnam's semiconductor supply chain.</p></li>
+        <li data-stop="vn"><span class="yr">Origin</span><h3>Vietnam</h3><p data-vi="Nơi bắt đầu.">Where it starts.</p></li>
+        <li data-stop="fl"><span class="yr">2018 to 2020</span><h3>Windermere Preparatory School, Florida</h3><p data-vi="Hai năm trung học ở Florida.">Two years of high school in Florida.</p></li>
+        <li data-stop="or"><span class="yr">2023</span><h3>State of Oregon, Department of Administrative Services</h3><p data-vi="Trợ lý mua sắm và hợp đồng. Mua sắm công theo quy định của bang, và lần đầu làm việc với dữ liệu chi tiêu của hàng trăm nhà cung cấp.">Procurement and contract assistant. Public purchasing under state rules, and my first look at spend data across hundreds of vendors.</p></li>
+        <li data-stop="or"><span class="yr">2023 to 2024</span><h3>Oregon State University</h3><p data-vi="Trợ lý dịch vụ tài chính. Xây dựng trang SharePoint cho nhân viên mới và chuyển quy trình duyệt chứng từ sang Power Automate. Cùng lúc, dự báo nhu cầu cho một nhà hàng địa phương.">Financial services assistant. Built a SharePoint onboarding hub and moved a paper approval process into Power Automate. On the side, forecast demand for a local restaurant as a class project.</p></li>
+        <li data-stop="or"><span class="yr">2024</span><h3>BS, Supply Chain and Logistics Management</h3><p data-vi="Tốt nghiệp Oregon State. Chứng chỉ ASCM về mua hàng (2023) và hoạch định (2024).">Graduated from Oregon State. ASCM certificates in procurement (2023) and planning (2024).</p></li>
+        <li data-stop="tx"><span class="yr">2024 to 2025</span><h3>Oliden Technology, Stafford, TX</h3><p data-vi="Mua hàng linh kiện MWD/LWD. Xây hệ thống theo dõi đơn đặt hàng, xử lý tồn đọng cũ trong SAP, và chuẩn hóa quy trình duyệt nhà cung cấp theo ISO/API.">Procurement for MWD/LWD components. Built a PO tracking system, cleared an old backlog in SAP, and set up the approved supplier process to ISO and API standards.</p></li>
+        <li data-stop="tx"><span class="yr">2026</span><h3>Back at Oliden for a summer build</h3><p data-vi="Tìm nguồn linh kiện cho một đợt lắp ráp RSS và MWD/LWD với hạn chót cố định, và xử lý các vấn đề chất lượng với xưởng gia công.">Sourced parts for a rotary steerable and MWD/LWD build with a fixed assembly date, and worked quality issues with machine shops.</p></li>
+        <li class="now" data-stop="tx"><span class="yr">2025 to now</span><h3>University of Houston, Bauer College of Business</h3><p data-vi="Thạc sĩ Quản lý Chuỗi cung ứng, tốt nghiệp tháng 5/2027. Trợ giảng môn SCM 4330 từ tháng 10/2025 và phó chủ tịch CLB Chuỗi cung ứng.">MS in Supply Chain Management, finishing May 2027. Instructional assistant for SCM 4330 since October 2025, and vice president of the Supply Chain Club.</p></li>
+        <li><span class="yr">Next</span><h3 data-vi="Tiếp theo">What's next</h3><p data-vi="Mua hàng cho thiết bị khoan tại một công ty dịch vụ dầu khí.">Downhole procurement at an oilfield services company.</p></li>
       </ul>
     </div>
   </section>

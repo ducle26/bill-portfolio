@@ -308,7 +308,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/ducle26"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -405,8 +405,20 @@ ul.task-list li input[type="checkbox"] {
 <td>Drawn as a bottom-hole assembly: the string of tools right above the bit. Skills without proof yet are listed as parts on order.</td>
 </tr>
 <tr class="odd">
-<th data-quarto-table-cell-role="th">Music</th>
-<td>Made live in your browser with the Web Audio API: warm electric-piano chords, soft bass, a lazy beat, and a little vinyl crackle. No recordings, so nothing to license. Channel 2 on the radio is YouTube's own player, kept visible as YouTube requires.</td>
+<th data-quarto-table-cell-role="th">Record player</th>
+<td>The turntable in the corner runs the music. Press it to play or pause, and press the dots to flip the record. The A-side is made live in your browser with the Web Audio API: warm electric piano, soft bass, a lazy beat, and two slower tracks with strings and a plucked lead. Nothing is recorded, so there's nothing to license. The B-side is Bill's own favorites, played by YouTube's player.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Journey map</th>
+<td>The route on the home page draws itself when you reach it. Press a stop to light up that part of the timeline.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Career log</th>
+<td>On the resume, the same history is drawn as a strip log, the way a well log shows what's at each depth. Press a bar to jump to the entry.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">Headshot</th>
+<td>Printed in ink in light mode and as a cyanotype in dark mode, which is how real blueprints were made. Hover to see it in color.</td>
 </tr>
 </tbody>
 </table>
@@ -510,7 +522,7 @@ ul.task-list li input[type="checkbox"] {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/ducle26\.github\.io\/bill-portfolio\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

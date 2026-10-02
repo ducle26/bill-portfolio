@@ -6,20 +6,31 @@
   "use strict";
 
   // Each track: tempo, chords (2 bars each), and a pentatonic scale for the melody.
+  // style "lofi": electric piano, bass, lazy beat. style "court": soft strings, a plucked
+  // zither-like lead on a five-note scale, and a slow frame drum. Original music, written
+  // in the mood of the historical-drama soundtracks Bill likes. No melody is copied.
   var TRACKS = [
-    { title: "Sunny side", bpm: 84,
+    { title: "Sunny side", bpm: 84, style: "lofi",
       chords: [{ keys: [52, 55, 59, 62], bass: 36 }, { keys: [55, 59, 60, 64], bass: 33 },
                { keys: [53, 57, 60, 64], bass: 41 }, { keys: [55, 59, 62, 64], bass: 43 }],
       scale: [72, 74, 76, 79, 81, 84] },
-    { title: "Easy Sunday", bpm: 78,
+    { title: "Palace garden", bpm: 68, style: "court",
+      chords: [{ keys: [55, 59, 62, 69], bass: 43 }, { keys: [52, 55, 59, 64], bass: 40 },
+               { keys: [52, 55, 60, 64], bass: 36 }, { keys: [54, 57, 62, 64], bass: 38 }],
+      scale: [67, 69, 71, 74, 76, 79, 81] },
+    { title: "Easy Sunday", bpm: 78, style: "lofi",
       chords: [{ keys: [54, 57, 61, 64], bass: 38 }, { keys: [54, 57, 59, 62], bass: 35 },
                { keys: [55, 59, 62, 66], bass: 43 }, { keys: [57, 61, 64, 66], bass: 45 }],
       scale: [74, 76, 78, 81, 83, 86] },
-    { title: "Golden hour", bpm: 86,
+    { title: "Lantern road", bpm: 64, style: "court",
+      chords: [{ keys: [57, 60, 64, 67], bass: 45 }, { keys: [53, 57, 60, 64], bass: 41 },
+               { keys: [52, 55, 60, 64], bass: 36 }, { keys: [55, 59, 62, 67], bass: 43 }],
+      scale: [69, 72, 74, 76, 79, 81, 84] },
+    { title: "Golden hour", bpm: 86, style: "lofi",
       chords: [{ keys: [58, 62, 65, 69], bass: 34 }, { keys: [57, 60, 64, 67], bass: 33 },
                { keys: [55, 58, 62, 65], bass: 43 }, { keys: [52, 58, 62, 64], bass: 36 }],
       scale: [72, 74, 77, 79, 81, 84] },
-    { title: "Porch light", bpm: 76,
+    { title: "Porch light", bpm: 76, style: "lofi",
       chords: [{ keys: [51, 55, 58, 62], bass: 39 }, { keys: [51, 55, 58, 60], bass: 36 },
                { keys: [51, 55, 56, 60], bass: 44 }, { keys: [53, 55, 58, 62], bass: 34 }],
       scale: [70, 72, 75, 77, 79, 82] }
@@ -52,7 +63,7 @@
     for (var n = 0; n < nd.length; n++) nd[n] = Math.random() * 2 - 1;
 
     var vinyl = null;
-    var track = 0, step = 0, nextTime = 0, timer = null, playing = false, volume = 0.5;
+    var track = 0, step = 0, nextTime = 0, timer = null, playing = false, volume = 0.35, lead = 3;
     var nodes = []; // things to stop on pause
 
     function keysNote(midi, t, dur, vel, dest) {
@@ -79,6 +90,34 @@
       lfo.start(t); lfo.stop(t + dur + 1.3); nodes.push(lfo);
     }
 
+    // Soft string pad: two detuned saws through a dark filter, slow in and out
+    function padNote(midi, t, dur) {
+      var g = ctx.createGain(), lp = ctx.createBiquadFilter(), f = mtof(midi);
+      lp.type = "lowpass"; lp.frequency.value = 1100; lp.Q.value = 0.3;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.028, t + 1.4);
+      g.gain.setValueAtTime(0.028, t + dur - 0.4); g.gain.linearRampToValueAtTime(0, t + dur + 2.2);
+      [-7, 7].forEach(function (c) {
+        var o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = c;
+        o.connect(lp); o.start(t); o.stop(t + dur + 2.3); nodes.push(o);
+      });
+      lp.connect(g); g.connect(bus); g.connect(verbSend);
+    }
+
+    // Plucked string: quick attack, long ring, and a little bend-and-shake after the pluck
+    function pluck(midi, t, vel) {
+      var f = mtof(midi), o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+      o.type = "triangle"; o2.type = "sine"; o2.frequency.value = f * 2;
+      o.frequency.setValueAtTime(f * 0.985, t); o.frequency.linearRampToValueAtTime(f, t + 0.06);
+      var vib = ctx.createOscillator(), vibAmt = ctx.createGain();
+      vib.frequency.value = 5.2; vibAmt.gain.setValueAtTime(0, t); vibAmt.gain.linearRampToValueAtTime(f * 0.007, t + 0.5);
+      vib.connect(vibAmt); vibAmt.connect(o.frequency);
+      var g2 = ctx.createGain(); g2.gain.value = 0.2;
+      lp.type = "lowpass"; lp.frequency.setValueAtTime(4200, t); lp.frequency.exponentialRampToValueAtTime(900, t + 1.2);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.11 * vel, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.0);
+      o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(bus); g.connect(verbSend); g.connect(echo);
+      [o, o2, vib].forEach(function (n) { n.start(t); n.stop(t + 2.1); nodes.push(n); });
+    }
+
     function bassNote(midi, t, dur) {
       var o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
       o.type = "sine"; o2.type = "triangle"; o.frequency.value = mtof(midi); o2.frequency.value = mtof(midi);
@@ -90,10 +129,10 @@
       o.start(t); o2.start(t); o.stop(t + dur + 0.2); o2.stop(t + dur + 0.2); nodes.push(o, o2);
     }
 
-    function kick(t) {
+    function kick(t, level) {
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
-      g.gain.setValueAtTime(0.32, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
+      g.gain.setValueAtTime(level || 0.32, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
       o.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.4); nodes.push(o);
     }
     function noiseHit(t, type, freq, gain, decay) {
@@ -116,6 +155,23 @@
       var T = TRACKS[track], beat = 60 / T.bpm, eighth = beat / 2;
       var pos = s % 8, bar = Math.floor(s / 8), chord = T.chords[Math.floor(bar / 2) % T.chords.length];
       var swing = pos % 2 === 1 ? eighth * 0.16 : 0, tt = t + swing;
+      echo.delayTime.setValueAtTime(Math.min(1.4, beat * 0.75), t);
+
+      if (T.style === "court") {
+        // Strings hold each chord; the bass and a soft drum mark the bar
+        if (pos === 0 && bar % 2 === 0) chord.keys.forEach(function (k) { padNote(k, t, beat * 8); });
+        if (pos === 0) { bassNote(chord.bass, t, beat * 2.6); kick(t, 0.16); }
+        if (pos === 4) noiseHit(t, "bandpass", 900, 0.03, 0.2);
+        // Plucked lead: steps through the scale, leaving room to breathe
+        var phrase = bar % 4;
+        var chance = pos % 2 === 0 ? (phrase === 3 ? 0.25 : 0.55) : 0.12;
+        if (Math.random() < chance) {
+          lead = Math.max(0, Math.min(T.scale.length - 1, lead + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
+          pluck(T.scale[lead], t, pos === 0 ? 1 : 0.75);
+          if (pos === 0 && Math.random() < 0.3) pluck(T.scale[Math.max(0, lead - 2)], t + eighth * 0.5, 0.5);
+        }
+        return;
+      }
 
       // Keys: strike at the start of each chord, a lighter touch halfway, little pushes on the "and" of 4
       if (pos === 0 && bar % 2 === 0) chord.keys.forEach(function (k) { keysNote(k, tt, beat * 3.5, 1); });

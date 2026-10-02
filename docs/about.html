@@ -308,7 +308,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/ducle26"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -353,10 +353,8 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="about-grid">
   <div class="headshot">
-    <div class="frame">
-      <!-- To add the headshot: save it as assets/img/headshot.jpg and replace the span below with
-           <img src="assets/img/headshot.jpg" alt="Duc (Bill) Le"> -->
-      <span class="mono">Photo coming</span>
+    <div class="frame" tabindex="0" title="Hover to see the photo in color">
+      <img src="assets/img/headshot.jpg" alt="Duc (Bill) Le" width="720" height="900">
     </div>
     <div class="dim-v"><span>Scale 1:1</span></div>
     <div class="dim dim-h">Duc (Bill) Le</div>
@@ -388,32 +386,36 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">Studying</th>
-<td>MS, Supply Chain Management, University of Houston (May 2027)<br>
+<td>MS, Supply Chain Management, University of Houston (Aug 2025 to May 2027)<br>
 BS, Supply Chain and Logistics Management, Oregon State University (2024)</td>
 </tr>
 <tr class="odd">
-<th data-quarto-table-cell-role="th">Business interests</th>
-<td>Supply chains for downhole and oilfield manufacturing · supplier quality and lead times · planning for long-lead parts · Vietnam's growing electronics and semiconductor supply chain</td>
+<th data-quarto-table-cell-role="th">Route</th>
+<td>Vietnam · Florida (high school at Windermere Preparatory School, 2018 to 2020) · Oregon · Houston</td>
 </tr>
 <tr class="even">
+<th data-quarto-table-cell-role="th">Business interests</th>
+<td>Supply chains for downhole and oilfield manufacturing · supplier quality and lead times · planning for long-lead parts</td>
+</tr>
+<tr class="odd">
 <th data-quarto-table-cell-role="th">Analytics</th>
 <td>R (tidyverse, ggplot2, tidyquant) · Excel modeling (Solver, @Risk, Monte Carlo simulation) · Power BI · Tableau · Python · JASP</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">Systems</th>
 <td>SAP Business One · SAP Concur · Power Automate · SharePoint</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">Certificates</th>
 <td>ASCM Supply Chain Procurement (2023) · ASCM Supply Chain Planning (2024) · AI for Supply Chains and Logistics (2026)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">Languages</th>
 <td>English · Vietnamese</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">Also</th>
-<td>Instructional assistant, SCM 4330 · Vice president, UH Supply Chain Club</td>
+<td>Instructional assistant, SCM 4330 (since Oct 2025) · Vice president, UH Supply Chain Club</td>
 </tr>
 </tbody>
 </table>
@@ -515,7 +517,7 @@ BS, Supply Chain and Logistics Management, Oregon State University (2024)</td>
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/ducle26\.github\.io\/bill-portfolio\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

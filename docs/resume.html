@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.38">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,10 +12,13 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -39,14 +42,14 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-d90083ee0a8d595ff4e2cd403fd0b8fe.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-5a5428e1307cc269339ba8dd0dc669e4.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-d90083ee0a8d595ff4e2cd403fd0b8fe.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2e2479358b57d50f85921b0d78b82df8.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-d23825881ed671c0eca5df1c1b4b3458.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2e2479358b57d50f85921b0d78b82df8.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-17a55ffe286afeea670be74ce586ea54.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-14d028186f4f2587720990c225cf6748.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-17a55ffe286afeea670be74ce586ea54.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-466f0cba1309626277ae588fdf4fdd0a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-0202fccb893bb33ec76436383fb7d58d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-466f0cba1309626277ae588fdf4fdd0a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -305,7 +308,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img" aria-label="GitHub">
+    <a class="nav-link" href="https://github.com/ducle26"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -342,19 +345,21 @@ ul.task-list li input[type="checkbox"] {
   </div>
 </div>
 
+<div class="no-print"><span class="label">Career log · time runs left to right</span><div class="clog" id="career-log"></div></div>
+
 <p class="muted no-print" style="font-size:0.9rem">Press any role to see details.</p>
 
 <div class="r-sec">
   <span class="label">Education</span>
-  <div class="edu-row"><div><strong>University of Houston, C. T. Bauer College of Business</strong><br><span class="muted">MS, Supply Chain Management · GPA 3.81</span></div><div class="when">May 2027</div></div>
-  <div class="edu-row"><div><strong>Oregon State University, College of Business</strong><br><span class="muted">BS, Supply Chain and Logistics Management · GPA 3.62</span></div><div class="when">June 2024</div></div>
+  <div class="edu-row" id="edu-uh"><div><strong>University of Houston, C. T. Bauer College of Business</strong><br><span class="muted">MS, Supply Chain Management · GPA 3.81</span></div><div class="when">Aug 2025 to May 2027</div></div>
+  <div class="edu-row" id="edu-osu"><div><strong>Oregon State University, College of Business</strong><br><span class="muted">BS, Supply Chain and Logistics Management · GPA 3.62</span></div><div class="when">June 2024</div></div>
   <p class="muted" style="font-size:0.92rem;margin-top:0.4rem">Courses: Quantitative Analysis for Business Decisions, Supply Chain Analytics, Demand and Supply Integration, Logistics Management, Project Management</p>
 </div>
 
 <div class="r-sec" id="experience">
   <span class="label">Experience</span>
 
-  <details class="role">
+  <details class="role" id="role-oliden-2">
     <summary><span class="org">Oliden Technology, Stafford, TX</span><span class="when">June to Aug 2026</span><span class="what">Procurement Specialist</span><span class="toggle"></span></summary>
     <ul>
       <li>Sourced components for a rotary steerable (RSS) and MWD/LWD tool build, with orders placed across a wide supplier base ahead of a fixed assembly date</li>
@@ -364,7 +369,7 @@ ul.task-list li input[type="checkbox"] {
     </ul>
   </details>
 
-  <details class="role">
+  <details class="role" id="role-oliden-1">
     <summary><span class="org">Oliden Technology, Stafford, TX</span><span class="when">Sept 2024 to June 2025</span><span class="what">Procurement Specialist</span><span class="toggle"></span></summary>
     <ul>
       <li>Built a central PO tracking system for MWD/LWD components so delays surfaced early</li>
@@ -373,7 +378,7 @@ ul.task-list li input[type="checkbox"] {
     </ul>
   </details>
 
-  <details class="role">
+  <details class="role" id="role-osu">
     <summary><span class="org">Oregon State University, Corvallis, OR</span><span class="when">Nov 2023 to June 2024</span><span class="what">Financial Strategic Services Assistant</span><span class="toggle"></span></summary>
     <ul>
       <li>Built a SharePoint onboarding and reporting site that more of the team used</li>
@@ -382,7 +387,7 @@ ul.task-list li input[type="checkbox"] {
     </ul>
   </details>
 
-  <details class="role">
+  <details class="role" id="role-oregon">
     <summary><span class="org">State of Oregon, Department of Administrative Services, Salem, OR</span><span class="when">June to Sept 2023</span><span class="what">Procurement and Contract Assistant</span><span class="toggle"></span></summary>
     <ul>
       <li>Streamlined processing of quarterly Volume Sales Reports for hundreds of vendors</li>
@@ -394,8 +399,8 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="r-sec" id="teaching">
   <span class="label">Teaching and leadership</span>
-  <details class="role">
-    <summary><span class="org">University of Houston</span><span class="when">2026 to now</span><span class="what">Instructional Assistant, SCM 4330 Business Modeling and Decision Analysis</span><span class="toggle"></span></summary>
+  <details class="role" id="role-ia">
+    <summary><span class="org">University of Houston</span><span class="when">Oct 2025 to now</span><span class="what">Instructional Assistant, SCM 4330 Business Modeling and Decision Analysis</span><span class="toggle"></span></summary>
     <ul><li>Support students with spreadsheet modeling, Solver, @Risk, and Monte Carlo simulation</li></ul>
   </details>
   <div class="edu-row" style="border-bottom:1px dashed var(--grid-strong);padding:0.6rem 0"><div><span style="font-family:'Space Grotesk',sans-serif;font-size:1.08rem">UH Supply Chain Club</span><br><span class="muted">Vice President</span></div><div class="when">Now</div></div>
@@ -533,7 +538,7 @@ ul.task-list li input[type="checkbox"] {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/ducle26\.github\.io\/bill-portfolio\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

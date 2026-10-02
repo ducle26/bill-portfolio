@@ -20,7 +20,9 @@ A Quarto website, built in R. The finished site lives in the `docs/` folder, whi
 | Game | `play.qmd` and `assets/js/game.js` |
 | Live well view (home) | `assets/js/drillview.js` |
 | Music engine | `assets/js/field.js` (tracks, chords, tempo at the top) |
-| Radio | `radio/index.html` (settings are at the top of the script) |
+| Record player | `assets/js/site.js` (the corner player) and `radio/index.html` (the pop-out) |
+| Journey map (home) | `assets/js/journeymap.js` |
+| Career log (resume) | `assets/js/careerlog.js` |
 | Colors | `styles/light.scss` and `styles/dark.scss` |
 | Layout and look | `styles/site.css` |
 | Menu and footer | `_quarto.yml` |
@@ -29,12 +31,11 @@ Vietnamese text sits in `data-vi="..."` next to the English. Edit both when you 
 
 ## To-do list for Bill
 
-- **Headshot:** save it as `assets/img/headshot.jpg`, then follow the note in `about.qmd`.
-- **YouTube playlist:** paste the playlist ID into `radio/index.html` (`youtubePlaylistId`).
-- **Music:** the site plays its own chill music, made live in the browser (`assets/js/field.js`). It starts at half volume about 2.5 seconds in, or on the visitor's first click if the browser is still holding sound back. Visitors can turn it off with the Music button, and the site remembers. To add real tracks to the radio, put Pixabay mp3s in `assets/audio/` and list them in `fieldTracks` in `radio/index.html`.
-- **GitHub link:** replace `https://github.com/` in `_quarto.yml` with your profile.
-- **Check these facts:** the IA start date ("2026 to now"), the email shown, the Vietnam line in Journey, and the "Next" line.
+- **B-side songs:** the YouTube video ids are in two places, `PICKS` in `assets/js/site.js` and `youtubeVideos` in `radio/index.html`. Keep them the same.
+- **Music:** the A-side is the site's own music (`assets/js/field.js`). It starts at 35% volume about 2.5 seconds in, or on the visitor's first click if the browser is holding sound back. Pressing the record player stops it, and the site remembers.
 - **Personal page:** photos and a line for each place, plus hobbies.
+- **Notes:** the three note titles are placeholders.
+- **Projects:** each project page links to `github.com/ducle26/<repo>`. Create those repos as you finish each one.
 
 ## Adding R to a project page
 

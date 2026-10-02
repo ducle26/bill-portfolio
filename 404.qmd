@@ -13,6 +13,7 @@ pagetitle: "Dry hole · Duc (Bill) Le"
   <span class="label label-orange">Dry hole</span>
   <h1>Nothing down here</h1>
   <p class="muted">This page isn't where the log said it would be.</p>
-  <p><a class="bp-btn" href="/">Back to the surface</a></p>
+  <p><a class="bp-btn" id="home-link" href="/">Back to the surface</a></p>
+  <script>if (location.pathname.indexOf("/bill-portfolio/") === 0) document.getElementById("home-link").href = "/bill-portfolio/";</script>
 </div>
 ```

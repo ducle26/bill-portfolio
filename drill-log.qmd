@@ -22,7 +22,10 @@ pagetitle: "Drill log · Duc (Bill) Le"
   <tr><th>ROP</th><td>Rate of penetration, shown in the title block and the live view. Here it's how fast you scroll, in feet per second. A real rig in hard rock might make 50 to 100 feet in an hour, so you're doing fine.</td></tr>
   <tr><th>Sheet log</th><td>The title block counts the pages you've seen. Log all of them and this page opens on its own.</td></tr>
   <tr><th>Toolkit</th><td>Drawn as a bottom-hole assembly: the string of tools right above the bit. Skills without proof yet are listed as parts on order.</td></tr>
-  <tr><th>Music</th><td>Made live in your browser with the Web Audio API: warm electric-piano chords, soft bass, a lazy beat, and a little vinyl crackle. No recordings, so nothing to license. Channel 2 on the radio is YouTube's own player, kept visible as YouTube requires.</td></tr>
+  <tr><th>Record player</th><td>The turntable in the corner runs the music. Press it to play or pause, and press the dots to flip the record. The A-side is made live in your browser with the Web Audio API: warm electric piano, soft bass, a lazy beat, and two slower tracks with strings and a plucked lead. Nothing is recorded, so there's nothing to license. The B-side is Bill's own favorites, played by YouTube's player.</td></tr>
+  <tr><th>Journey map</th><td>The route on the home page draws itself when you reach it. Press a stop to light up that part of the timeline.</td></tr>
+  <tr><th>Career log</th><td>On the resume, the same history is drawn as a strip log, the way a well log shows what's at each depth. Press a bar to jump to the entry.</td></tr>
+  <tr><th>Headshot</th><td>Printed in ink in light mode and as a cyanotype in dark mode, which is how real blueprints were made. Hover to see it in color.</td></tr>
 </table>
 <p><a href="index.html">← Back to the surface</a></p>
 ```

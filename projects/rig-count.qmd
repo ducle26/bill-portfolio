@@ -89,7 +89,7 @@ Drag the forecast horizon and watch the range widen the further out you look.
 ## Code
 
 ::: {.pending data-tag="Repo"}
-github.com/your-username/rig-count-forecast: the R Markdown file, the data source, and comments on each step.
+github.com/ducle26/rig-count-forecast: the R Markdown file, the data source, and comments on each step.
 :::
 ::::
 :::::

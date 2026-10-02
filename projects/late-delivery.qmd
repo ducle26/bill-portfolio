@@ -89,7 +89,7 @@ Pick a shipping mode and a region, and see the predicted chance an order ships l
 ## Code
 
 ::: {.pending data-tag="Repo"}
-github.com/your-username/late-delivery-risk: the R Markdown file, the data source, and comments on each step.
+github.com/ducle26/late-delivery-risk: the R Markdown file, the data source, and comments on each step.
 :::
 ::::
 :::::

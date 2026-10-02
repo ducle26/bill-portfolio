@@ -516,3 +516,136 @@ body.playing .title-block-fixed > div:not(.tb-name):not(.tb-k-depth):not(.tb-dep
   .game-stats div:nth-last-child(-n+2) { border-bottom: 0; }
   .game-stats div:nth-last-child(-n+4):not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--grid-strong); }
 }
+
+/* =========================================================
+   Record player (corner music control)
+   ========================================================= */
+.record-player { position: fixed; left: 16px; bottom: 16px; z-index: 1200; width: 84px; view-transition-name: record-player; }
+@media (min-width: 1200px) { body.has-gauge .record-player { left: 92px; } }
+.rp-deck { display: block; width: 84px; height: 84px; padding: 0; border: 0; background: none; cursor: pointer; filter: drop-shadow(0 2px 0 var(--grid-strong)); transition: transform 150ms ease; }
+.rp-deck:hover { transform: translateY(-2px); }
+.rp-deck svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.rp-plinth { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.rp-mat { fill: none; stroke: var(--grid-strong); stroke-width: 1; }
+.rp-vinyl { fill: var(--ink); }
+.rp-groove { fill: none; stroke: var(--paper); stroke-width: 0.6; opacity: 0.35; }
+.rp-label { fill: var(--orange); }
+.rp-mark { stroke: var(--on-orange); stroke-width: 1.4; stroke-linecap: round; }
+.rp-hole { fill: var(--paper); }
+.rp-disc { transform-origin: 34px 43px; transform-box: view-box; }
+.record-player.on .rp-disc { animation: rp-spin 1.8s linear infinite; }
+@keyframes rp-spin { to { transform: rotate(360deg); } }
+.rp-arm { transform-origin: 67px 14px; transform-box: view-box; transform: rotate(-24deg); transition: transform 600ms cubic-bezier(.3,.8,.3,1); }
+.record-player.on .rp-arm { transform: rotate(0deg); }
+.rp-arm line { stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
+.rp-arm rect { fill: var(--ink); }
+.rp-pivot { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.rp-knob { fill: var(--paper); stroke: var(--ink); stroke-width: 1.2; }
+.rp-more {
+  position: absolute; top: -9px; right: -9px; width: 26px; height: 22px; border-radius: 11px; border: 1px solid var(--ink);
+  background: var(--paper); color: var(--ink); font-size: 0.7rem; line-height: 1; letter-spacing: 1px; cursor: pointer; padding: 0 0 4px;
+}
+.rp-more:hover, .rp-more[aria-expanded="true"] { background: var(--orange); border-color: var(--orange); color: var(--on-orange); }
+.rp-now {
+  position: absolute; left: 94px; bottom: 28px; white-space: nowrap; pointer-events: none;
+  font-family: "Space Mono", monospace; font-size: 0.72rem; letter-spacing: 0.03em; color: var(--paper); background: var(--ink);
+  padding: 5px 10px; border-radius: 2px; opacity: 0; transform: translateX(-8px); transition: opacity 300ms ease, transform 300ms ease;
+}
+.rp-now.show { opacity: 1; transform: none; }
+.rp-panel {
+  position: absolute; left: 0; bottom: 98px; width: min(310px, calc(100vw - 32px)); background: var(--paper); border: 1px solid var(--ink); padding: 12px 14px 12px;
+  animation: rp-up 220ms ease;
+}
+@keyframes rp-up { from { opacity: 0; transform: translateY(8px); } }
+.rp-panel::before { content: ""; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px; border: solid var(--orange); border-width: 2px 0 0 2px; }
+.rp-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.rp-close { background: none; border: 0; color: var(--ink); font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0 2px; }
+.rp-sides { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--ink); margin-bottom: 10px; }
+.rp-sides button { font-family: "Space Mono", monospace; font-size: 0.66rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 4px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.rp-sides button + button { border-left: 1px solid var(--ink); }
+.rp-sides button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.rp-title { font-family: "Space Grotesk", sans-serif; font-size: 1.25rem; line-height: 1.2; }
+.rp-ctl { display: flex; align-items: center; gap: 6px; margin: 10px 0 6px; }
+.rp-ctl button { width: 36px; height: 36px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; font-size: 0.75rem; display: grid; place-items: center; padding: 0; }
+.rp-ctl button:hover { border-color: var(--orange); color: var(--orange-ink); }
+.rp-ctl .rp-play { width: 44px; height: 44px; background: var(--orange); border-color: var(--orange); color: var(--on-orange); font-size: 0.95rem; }
+.rp-ctl .rp-play:hover { color: var(--on-orange); }
+.rp-vol { flex: 1; display: flex; align-items: center; gap: 6px; margin: 0 0 0 4px; min-width: 0; }
+.rp-vol input { width: 100%; min-width: 0; accent-color: var(--orange); }
+.rp-note { font-size: 0.8rem; color: var(--ink-2); margin: 6px 0 0; line-height: 1.45; }
+.rp-yt iframe { width: 100%; aspect-ratio: 16 / 9; min-height: 200px; border: 1px solid var(--ink); display: block; }
+@media (max-width: 767.98px) {
+  .record-player { left: 8px; bottom: 8px; width: 60px; }
+  .rp-deck { width: 60px; height: 60px; }
+  .rp-now { left: 68px; bottom: 18px; }
+  .rp-panel { bottom: 72px; }
+}
+@media print { .record-player, .toasts { display: none !important; } }
+
+/* Toasts move to the middle so they don't sit on the record player */
+.toasts { left: 50% !important; transform: translateX(-50%); align-items: center; bottom: 20px; }
+
+/* =========================================================
+   Headshot: ink print in light mode, cyanotype in dark. Hover to see it in color.
+   ========================================================= */
+.headshot .frame { background: var(--paper); cursor: zoom-in; }
+.headshot .frame img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.08); mix-blend-mode: multiply; transition: filter 500ms ease; }
+.headshot .frame:hover img, .headshot .frame:focus-visible img { filter: none; mix-blend-mode: normal; }
+body.quarto-dark .headshot .frame { background: #1B4A85; }
+body.quarto-dark .headshot .frame img { mix-blend-mode: luminosity; filter: contrast(1.05) brightness(0.92); }
+body.quarto-dark .headshot .frame:hover img { mix-blend-mode: normal; filter: none; }
+.headshot .hint { position: absolute; right: 18px; top: 2px; }
+.about-mini { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 1.5rem; align-items: start; max-width: 760px; }
+.about-mini .headshot { padding: 0 0 22px 0; }
+.about-mini .headshot .dim-h { left: 0; right: 0; bottom: 0; }
+@media (max-width: 575.98px) { .about-mini { grid-template-columns: 96px minmax(0, 1fr); gap: 1rem; } }
+
+/* =========================================================
+   Journey map
+   ========================================================= */
+.jmap { margin: 1.25rem 0 0.5rem; border: 1px solid var(--grid-strong); background: var(--paper); position: relative; max-width: 820px; }
+.jmap svg { display: block; width: 100%; height: auto; }
+.jmap .land { fill: var(--shade); stroke: var(--ink-3); stroke-width: 0.6; stroke-linejoin: round; }
+.jmap .grat { stroke: var(--grid-strong); stroke-width: 0.5; stroke-dasharray: 2 4; }
+.jmap .arc { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 5 4; opacity: 0.85; }
+.jmap .arc-live { fill: none; stroke: var(--orange); stroke-width: 2; stroke-linecap: round; }
+.jmap .stop circle { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; transition: r 150ms ease, fill 150ms ease; cursor: pointer; }
+.jmap .stop.active circle, .jmap .stop:hover circle { fill: var(--orange); stroke: var(--orange); r: 8; }
+.jmap .stop text { font-family: "Space Mono", monospace; font-size: 10.5px; fill: var(--ink); pointer-events: none; }
+.jmap .stop text.n { font-size: 8.5px; fill: var(--ink-3); }
+.jmap .plane { fill: var(--orange); }
+.jmap-cap { display: flex; justify-content: space-between; gap: 1rem; padding: 6px 10px; border-top: 1px solid var(--grid-strong); }
+.jmap-cap button { background: none; border: 0; padding: 0; color: var(--orange-ink); font: inherit; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; }
+.log li { transition: background-color 250ms ease; }
+.log li.hl { background: var(--shade); }
+.log li.hl::before { background: var(--orange); border-color: var(--orange); }
+
+/* =========================================================
+   Career log (resume)
+   ========================================================= */
+.clog { margin: 1rem 0 2rem; border: 1px solid var(--ink); background: var(--paper); overflow-x: auto; position: relative; }
+.clog svg { display: block; min-width: 720px; width: 100%; height: auto; }
+.clog .trk { stroke: var(--grid-strong); stroke-width: 1; }
+.clog .yr { stroke: var(--grid-strong); stroke-width: 1; stroke-dasharray: 2 4; }
+.clog text { font-family: "Space Mono", monospace; font-size: 10px; fill: var(--ink-3); }
+.clog text.trk-name { fill: var(--ink); text-transform: uppercase; letter-spacing: 0.5px; }
+.clog .bar rect { stroke: var(--ink); stroke-width: 1.2; cursor: pointer; transition: stroke 150ms ease; }
+.clog .bar:hover rect, .clog .bar:focus rect { stroke: var(--orange); stroke-width: 2; }
+.clog .bar text { fill: var(--ink); pointer-events: none; font-size: 10.5px; }
+.clog .mk { fill: var(--paper); stroke: var(--ink); stroke-width: 1.3; }
+.clog .today { stroke: var(--orange); stroke-width: 1.5; }
+.clog text.today-t { fill: var(--orange-ink); }
+.clog-tip { padding: 6px 10px; border-top: 1px solid var(--grid-strong); min-height: 2.2em; font-size: 0.85rem; color: var(--ink-2); }
+details.role.flash { animation: flash 1.4s ease; }
+@keyframes flash { 0%, 60% { background: var(--shade); } }
+@media print { .clog { display: none; } }
+
+/* Journey map legend and small-screen tweaks */
+.jmap .stop text { font-size: 13px; }
+.jmap-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.jmap-chip { font: inherit; text-transform: uppercase; letter-spacing: 0.05em; background: none; border: 1px solid var(--grid-strong); color: var(--ink) !important; padding: 2px 8px !important; cursor: pointer; }
+.jmap-chip:hover, .jmap-chip.active { border-color: var(--orange); background: var(--orange); color: var(--on-orange) !important; }
+.jmap-cap { align-items: center; flex-wrap: wrap; }
+@media (max-width: 600px) { .jmap .stop text { display: none; } .jmap .stop circle { r: 11; } .jmap .stop.active circle { r: 14; } }
+/* Scroll cue sits under the route instead of on top of it */
+.scroll-cue { position: static; margin-top: 2rem; }
