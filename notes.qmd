@@ -1,0 +1,23 @@
+---
+title: "Notes"
+pagetitle: "Notes · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="05" data-title="Notes" data-top="3600" data-bottom="4200" hidden></div>
+<span class="label">Sheet 05 · 3,600 to 4,200 ft</span>
+<p class="lede muted" style="font-size:1.15rem;max-width:680px;margin-top:0.75rem" data-vi="Những ghi chép ngắn về những gì mình học được khi làm mua hàng và phân tích dữ liệu.">Short notes on things I've learned doing procurement and learning analytics. Around 300 words each.</p>
+
+<h2 data-vi="Bây giờ">Now</h2>
+<ul class="now-list">
+  <li><span>Oct 2026</span><span data-vi="Xây trang web này cho môn BZAN 6351, bằng R và Quarto.">Building this site for BZAN 6351, in R and Quarto.</span></li>
+  <li><span>Oct 2026</span><span data-vi="Điều hành một công ty ngũ cốc muesli cùng nhóm trong game mô phỏng ERPsim.">Running a muesli company with my team in the ERPsim game.</span></li>
+  <li><span>Oct 2026</span><span data-vi="Trợ giảng Solver và @Risk cho môn SCM 4330.">Helping students with Solver and @Risk as an IA for SCM 4330.</span></li>
+</ul>
+
+<h2 data-vi="Ghi chép">Notes</h2>
+<div class="note-row"><span class="when">Draft</span><div><h3>What a late part costs when the tool has a ship date</h3><p>Why the price on the PO is rarely the real cost.</p></div><span class="status">Soon</span></div>
+<div class="note-row"><span class="when">Draft</span><div><h3>Check the drawing revision before you place the order</h3><p>A small habit that saves a lot of rework.</p></div><span class="status">Soon</span></div>
+<div class="note-row"><span class="when">Draft</span><div><h3>Learning R as a buyer</h3><p>What changed when I moved from Excel to code.</p></div><span class="status">Soon</span></div>
+<p class="muted" style="margin-top:1rem;font-size:0.9rem">These titles are placeholders. Swap in your own ideas.</p>
+```

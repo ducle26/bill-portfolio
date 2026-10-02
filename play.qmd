@@ -1,0 +1,51 @@
+---
+title: "Steer the bit"
+pagetitle: "Steer the bit · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="06" data-title="Play" data-top="4600" data-bottom="5000" hidden></div>
+<span class="label">Sheet 06 · 4,600 to 5,000 ft</span>
+<p class="lede muted" style="font-size:1.1rem;max-width:680px;margin-top:0.75rem" data-vi="Lái mũi khoan xuống qua các tầng đá và vào vùng mục tiêu ở độ sâu 5.000 ft. Nhặt linh kiện màu cam để tiếp tục khoan. Hết linh kiện thì phải chờ nhà cung cấp.">Steer a drill bit down through the rock and land it in the target zone at 5,000 ft. Pick up the orange parts to keep drilling. Run out, and you wait on a supplier.</p>
+<div class="keys">
+  <span><kbd>Space</kbd> or <kbd>→</kbd> <span class="muted" data-vi="giữ để lái sang phải">hold to steer right</span></span>
+  <span class="muted" data-vi="Thả ra để trôi sang trái">Let go to drift left</span>
+  <span class="muted" data-vi="Trên điện thoại: chạm và giữ">On a phone: touch and hold</span>
+</div>
+
+<div class="game-wrap" id="game">
+  <canvas id="game-canvas" width="720" height="480" aria-label="Drilling game"></canvas>
+  <div class="game-overlay" id="game-start">
+    <div class="inner">
+      <span class="label label-orange">Spud in</span>
+      <h2 data-vi="Lái mũi khoan">Steer the bit</h2>
+      <p class="muted" data-vi="Đá mềm khoan nhanh, đá cứng khoan chậm. Tránh các khối đá tảng. Đường khoan của bạn được vẽ lại phía sau.">Soft rock drills fast, hard rock drills slow. Steer around boulders. Your well path is drawn behind you.</p>
+      <button class="bp-btn" id="game-go" data-vi="Bắt đầu khoan">Start drilling</button>
+      <p class="mono" id="best-line" style="margin:0.8rem 0 0"></p>
+    </div>
+  </div>
+  <div class="game-overlay" id="game-end" hidden>
+    <div class="inner">
+      <span class="label label-orange" id="end-tag">Total depth</span>
+      <h2 id="end-title">You reached TD</h2>
+      <div class="game-stats">
+        <div>Time</div><div id="st-time">0.0 s</div>
+        <div>Parts picked up</div><div id="st-parts">0</div>
+        <div>Waits on suppliers</div><div id="st-waits">0</div>
+        <div>Target</div><div id="st-target">Hit</div>
+        <div>Your best</div><div id="st-best">None yet</div>
+      </div>
+      <p id="end-line"></p>
+      <p class="muted" data-vi="Mỗi thiết bị dưới lòng đất đều cần ai đó đưa linh kiện về đúng lúc. Đó là phần việc của mình.">Every tool down here needed someone to get its parts in on time. That's the part I do.</p>
+      <div class="btn-row" style="justify-content:center">
+        <button class="bp-btn" id="game-again" data-vi="Khoan lại">Drill again</button>
+        <a class="bp-btn-ghost" href="projects/index.html" data-vi="Xem dự án">See my work</a>
+        <a class="bp-btn-ghost" href="index.html#contact" data-vi="Liên hệ">Say hello</a>
+        <button class="bp-btn-ghost" id="game-share" type="button" data-vi="Sao chép kết quả">Copy score</button>
+      </div>
+      <p style="margin:0"><a href="drill-log.html" class="mono" data-vi="Bạn đã mở khóa nhật ký khoan →">You unlocked the drill log →</a></p>
+    </div>
+  </div>
+</div>
+<script src="assets/js/game.js"></script>
+```

@@ -1,0 +1,18 @@
+---
+pagetitle: "Dry hole · Duc (Bill) Le"
+---
+
+```{=html}
+<div class="dry-hole">
+  <svg viewBox="0 0 120 140" aria-hidden="true">
+    <line x1="10" y1="20" x2="110" y2="20"/>
+    <path d="M55 20 V110 M65 20 V110"/>
+    <path d="M55 110 Q60 122 65 110"/>
+    <line x1="40" y1="128" x2="80" y2="128" stroke-dasharray="3 4"/>
+  </svg>
+  <span class="label label-orange">Dry hole</span>
+  <h1>Nothing down here</h1>
+  <p class="muted">This page isn't where the log said it would be.</p>
+  <p><a class="bp-btn" href="/">Back to the surface</a></p>
+</div>
+```

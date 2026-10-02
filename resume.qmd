@@ -1,0 +1,96 @@
+---
+pagetitle: "Resume · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="03" data-title="Resume" data-top="1200" data-bottom="2400" hidden></div>
+
+<div class="resume-head">
+  <div>
+    <span class="label">Sheet 03 · 1,200 to 2,400 ft</span>
+    <h1>Duc (Bill) Le</h1>
+    <div class="muted">Houston, TX · <a href="mailto:lehuyduc2811@gmail.com">lehuyduc2811@gmail.com</a> · <a href="https://www.linkedin.com/in/duc-huy-le/">linkedin.com/in/duc-huy-le</a></div>
+  </div>
+  <div class="no-print">
+    <button class="bp-btn" data-print data-vi="In hoặc lưu PDF">Print or save as PDF</button>
+  </div>
+</div>
+
+<p class="muted no-print" style="font-size:0.9rem">Press any role to see details.</p>
+
+<div class="r-sec">
+  <span class="label">Education</span>
+  <div class="edu-row"><div><strong>University of Houston, C. T. Bauer College of Business</strong><br><span class="muted">MS, Supply Chain Management · GPA 3.81</span></div><div class="when">May 2027</div></div>
+  <div class="edu-row"><div><strong>Oregon State University, College of Business</strong><br><span class="muted">BS, Supply Chain and Logistics Management · GPA 3.62</span></div><div class="when">June 2024</div></div>
+  <p class="muted" style="font-size:0.92rem;margin-top:0.4rem">Courses: Quantitative Analysis for Business Decisions, Supply Chain Analytics, Demand and Supply Integration, Logistics Management, Project Management</p>
+</div>
+
+<div class="r-sec" id="experience">
+  <span class="label">Experience</span>
+
+  <details class="role">
+    <summary><span class="org">Oliden Technology, Stafford, TX</span><span class="when">June to Aug 2026</span><span class="what">Procurement Specialist</span><span class="toggle"></span></summary>
+    <ul>
+      <li>Sourced components for a rotary steerable (RSS) and MWD/LWD tool build, with orders placed across a wide supplier base ahead of a fixed assembly date</li>
+      <li>Kept a large bill of materials in step with engineering revisions, matching orders to current drawings, sub-assemblies, and specialty alloys</li>
+      <li>Resolved supplier quality issues on machined downhole parts through rejections, discrepancy reports, and RMAs</li>
+      <li>Set landed-cost terms (freight caps, duties, tariffs) on large orders and routed binding contracts for executive sign-off</li>
+    </ul>
+  </details>
+
+  <details class="role">
+    <summary><span class="org">Oliden Technology, Stafford, TX</span><span class="when">Sept 2024 to June 2025</span><span class="what">Procurement Specialist</span><span class="toggle"></span></summary>
+    <ul>
+      <li>Built a central PO tracking system for MWD/LWD components so delays surfaced early</li>
+      <li>Cleared a multi-year procurement backlog by closing out overdue POs in SAP</li>
+      <li>Standardized the approved supplier process (onboarding, remote and on-site audits, re-evaluation) to ISO and API standards, improving on-time delivery of critical components</li>
+    </ul>
+  </details>
+
+  <details class="role">
+    <summary><span class="org">Oregon State University, Corvallis, OR</span><span class="when">Nov 2023 to June 2024</span><span class="what">Financial Strategic Services Assistant</span><span class="toggle"></span></summary>
+    <ul>
+      <li>Built a SharePoint onboarding and reporting site that more of the team used</li>
+      <li>Redesigned the journal voucher process in Power Automate, cutting processing time</li>
+      <li>Ran quarterly financial analysis in SAP Concur</li>
+    </ul>
+  </details>
+
+  <details class="role">
+    <summary><span class="org">State of Oregon, Department of Administrative Services, Salem, OR</span><span class="when">June to Sept 2023</span><span class="what">Procurement and Contract Assistant</span><span class="toggle"></span></summary>
+    <ul>
+      <li>Streamlined processing of quarterly Volume Sales Reports for hundreds of vendors</li>
+      <li>Analyzed spend and revenue data to find savings opportunities</li>
+      <li>Ran public procurement processes under state policy and compliance rules</li>
+    </ul>
+  </details>
+</div>
+
+<div class="r-sec" id="teaching">
+  <span class="label">Teaching and leadership</span>
+  <details class="role">
+    <summary><span class="org">University of Houston</span><span class="when">2026 to now</span><span class="what">Instructional Assistant, SCM 4330 Business Modeling and Decision Analysis</span><span class="toggle"></span></summary>
+    <ul><li>Support students with spreadsheet modeling, Solver, @Risk, and Monte Carlo simulation</li></ul>
+  </details>
+  <div class="edu-row" style="border-bottom:1px dashed var(--grid-strong);padding:0.6rem 0"><div><span style="font-family:'Space Grotesk',sans-serif;font-size:1.08rem">UH Supply Chain Club</span><br><span class="muted">Vice President</span></div><div class="when">Now</div></div>
+</div>
+
+<div class="r-sec">
+  <span class="label">Projects</span>
+  <details class="role">
+    <summary><span class="org">Inventory optimization for Tacovore Mexican Restaurant</span><span class="when">Mar to June 2024</span><span class="what">Class project, Oregon State</span><span class="toggle"></span></summary>
+    <ul><li>Forecast seasonal demand with Prophet and Excel ETS, and built an automated inventory tool that reduced stockouts</li></ul>
+  </details>
+  <p class="muted" style="margin-top:0.6rem">R case studies: <a href="projects/index.html">core samples</a>.</p>
+</div>
+
+<div class="r-sec">
+  <span class="label">Skills and certificates</span>
+  <table class="spec">
+    <tr><th>Supply chain</th><td>Procurement and sourcing, supplier evaluation, negotiation, PO lifecycle management, inventory optimization, data analysis and reporting</td></tr>
+    <tr><th>Tools</th><td>SAP Business One, SAP Concur, Excel (Solver, @Risk), R, Python, Power BI, Tableau, MS Office</td></tr>
+    <tr><th>Certificates</th><td>ASCM Supply Chain Procurement (2023), ASCM Supply Chain Planning (2024), AI for Supply Chains and Logistics (2026)</td></tr>
+    <tr><th>Languages</th><td>English, Vietnamese</td></tr>
+  </table>
+</div>
+```

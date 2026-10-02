@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bill's radio</title>
+<link rel="icon" href="../assets/img/favicon.svg">
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<script src="../assets/js/field.js"></script>
+<style>
+  :root {
+    --paper: #F6F7F5; --paper-2: #EEF0EC; --grid: #E3E7EC; --grid-strong: #CDD4DC;
+    --ink: #13233A; --ink-2: #4A5A70; --ink-3: #5F6C7D; --orange: #F25C1F; --orange-ink: #B8410F; --on-orange: #13233A;
+  }
+  :root[data-theme="dark"] {
+    --paper: #0F2C52; --paper-2: #143661; --grid: rgba(234,241,251,.07); --grid-strong: rgba(234,241,251,.22);
+    --ink: #EAF1FB; --ink-2: #B9CBE3; --ink-3: #8EA6C6; --orange: #FF7A3D; --orange-ink: #FF9A66; --on-orange: #0F2C52;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Be Vietnam Pro", system-ui, sans-serif; color: var(--ink); background-color: var(--paper);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px; min-height: 100vh; padding: 16px; display: flex; justify-content: center; align-items: flex-start;
+  }
+  .radio { width: 100%; max-width: 420px; border: 1px solid var(--ink); background: var(--paper); position: relative; }
+  .radio::before, .radio::after { content: ""; position: absolute; width: 10px; height: 10px; border: solid var(--orange); }
+  .radio::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .radio::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  .mono { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+  .head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--ink); }
+  .head strong { font-family: "Space Grotesk", sans-serif; font-weight: 500; font-size: 17px; }
+  .screen { margin: 14px; border: 1px solid var(--ink); padding: 12px; background: var(--paper-2); }
+  .screen .ch { color: var(--orange-ink); }
+  .screen .title { font-family: "Space Grotesk", sans-serif; font-size: 20px; margin: 6px 0 2px; line-height: 1.2; }
+  .screen .artist { color: var(--ink-2); font-size: 14px; }
+  canvas.viz { display: block; width: 100%; height: 56px; margin-top: 10px; }
+  .channels { display: grid; grid-template-columns: 1fr 1fr; margin: 0 14px; border: 1px solid var(--ink); }
+  .channels button { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 10px 6px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+  .channels button + button { border-left: 1px solid var(--ink); }
+  .channels button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .controls { display: flex; align-items: center; gap: 10px; padding: 14px; }
+  .ctl { width: 42px; height: 42px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; font-size: 15px; display: grid; place-items: center; }
+  .ctl:hover { border-color: var(--orange); color: var(--orange-ink); }
+  .ctl.play { width: 54px; height: 54px; background: var(--orange); border-color: var(--orange); color: var(--on-orange); font-size: 18px; }
+  .vol { flex: 1; display: flex; align-items: center; gap: 8px; }
+  input[type=range] { width: 100%; accent-color: var(--orange); }
+  .yt { margin: 0 14px 14px; }
+  .yt iframe { width: 100%; aspect-ratio: 16 / 9; min-height: 200px; border: 1px solid var(--ink); display: block; }
+  .yt .empty { border: 1px dashed var(--grid-strong); padding: 14px; color: var(--ink-2); font-size: 14px; }
+  .list { margin: 0 14px 14px; border-top: 1px solid var(--grid-strong); }
+  .list button { display: flex; width: 100%; justify-content: space-between; gap: 8px; text-align: left; background: none; border: 0; border-bottom: 1px dashed var(--grid-strong); padding: 8px 2px; color: var(--ink); cursor: pointer; font: inherit; font-size: 14px; }
+  .list button.on { color: var(--orange-ink); }
+  .list button:hover { color: var(--orange-ink); }
+  .foot { padding: 0 14px 12px; font-size: 12px; color: var(--ink-3); }
+  .foot a { color: var(--ink-2); }
+  [hidden] { display: none !important; }
+  html.embed body { background-image: none; padding: 14px; }
+  :focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="radio" role="region" aria-label="Bill's radio">
+  <div class="head"><strong>Bill's radio</strong><span class="mono" id="freq">CH 1 · Field</span></div>
+
+  <div class="screen" aria-live="polite">
+    <div class="mono ch" id="ch-label">Channel 1 · Field</div>
+    <div class="title" id="t-title">Press play</div>
+    <div class="artist" id="t-artist">Easy, upbeat music for looking around</div>
+    <canvas class="viz" id="viz" aria-hidden="true"></canvas>
+  </div>
+
+  <div class="channels" role="group" aria-label="Channels">
+    <button id="ch1" aria-pressed="true">Ch 1 · Field</button>
+    <button id="ch2" aria-pressed="false">Ch 2 · Bill's picks</button>
+  </div>
+
+  <div id="field-ui">
+    <div class="controls">
+      <button class="ctl" id="prev" aria-label="Previous track">◀◀</button>
+      <button class="ctl play" id="play" aria-label="Play">▶</button>
+      <button class="ctl" id="next" aria-label="Next track">▶▶</button>
+      <label class="vol"><span class="mono">Vol</span><input type="range" id="vol" min="0" max="100" step="1" value="50" aria-label="Volume"></label>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+
+  <div class="yt" id="yt-ui" hidden></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* ===================== Settings for Bill =====================
+   1. youtubePlaylistId: open your playlist on youtube.com, copy the part
+      after "list=" in the address bar, and paste it between the quotes.
+      The playlist must be public or unlisted.
+   2. fieldTracks: download royalty-free tracks from pixabay.com/music,
+      put the mp3 files in assets/audio/, and list them here. Until then,
+      the radio plays calm tones made in the browser.
+   ============================================================ */
+var CONFIG = {
+  youtubePlaylistId: "",
+  fieldTracks: [
+    // { title: "Track name", artist: "Artist on Pixabay", file: "../assets/audio/track-1.mp3", source: "https://pixabay.com/music/..." }
+  ]
+};
+
+(function () {
+  "use strict";
+  var embedded = /embed=1/.test(location.search);
+  if (embedded) document.documentElement.classList.add("embed");
+
+  // Match the site's light or dark mode.
+  function applyTheme() {
+    var dark = false;
+    try { if (embedded && window.parent !== window) dark = window.parent.document.body.classList.contains("quarto-dark"); } catch (e) {}
+    if (!dark) {
+      try { var q = localStorage.getItem("quarto-color-scheme"); if (q) dark = q === "alternate"; else dark = matchMedia("(prefers-color-scheme: dark)").matches; } catch (e) { dark = matchMedia("(prefers-color-scheme: dark)").matches; }
+    }
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  }
+  applyTheme();
+  try { if (embedded) new window.parent.MutationObserver(applyTheme).observe(window.parent.document.body, { attributes: true, attributeFilter: ["class"] }); } catch (e) {}
+  window.addEventListener("storage", applyTheme);
+
+  /* ---------- Channel 1 tracks ---------- */
+  // Built-in tracks come from the shared Field engine (assets/js/field.js).
+  var TONES = window.FieldEngine.TRACKS.map(function (t, i) { return { title: t.title, artist: "Field · made in your browser", engineIndex: i }; });
+  var tracks = CONFIG.fieldTracks.length ? CONFIG.fieldTracks : TONES;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var actx = null, master = null, analyser = null, engine = null, audioEl = null, mediaSrc = null;
+  var idx = 0, playing = false, beat = null;
+  var bc = null, myId = Math.random().toString(36).slice(2);
+  try { bc = new BroadcastChannel("bill-radio"); } catch (e) {}
+
+  function ensureAudio() {
+    if (actx) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    actx = new AC();
+    engine = window.FieldEngine.create(actx);
+    engine.setVolume($("vol").value / 100);
+    engine.onTrack = function () { idx = engine.state().track; render(); };
+    master = actx.createGain(); master.gain.value = $("vol").value / 100;
+    analyser = engine.analyser;
+    master.connect(analyser);
+  }
+
+  function heartbeat(on) {
+    clearInterval(beat);
+    if (on) { var f = function () { try { localStorage.setItem("bl-radio-alive", String(Date.now())); } catch (e) {} }; f(); beat = setInterval(f, 1500); }
+  }
+
+  function stopAll() {
+    if (engine) engine.stop(0.4);
+    if (audioEl) audioEl.pause();
+    playing = false; heartbeat(false); render();
+  }
+
+  function play() {
+    ensureAudio();
+    if (actx.state === "suspended") actx.resume();
+    stopAll();
+    var tr = tracks[idx];
+    if (tr.engineIndex != null) engine.play(tr.engineIndex, 0, 1.2);
+    else {
+      if (!audioEl) {
+        audioEl = new Audio(); audioEl.crossOrigin = "anonymous";
+        mediaSrc = actx.createMediaElementSource(audioEl); mediaSrc.connect(master);
+        audioEl.addEventListener("ended", function () { next(); });
+      }
+      audioEl.src = tr.file; audioEl.play().catch(function () { $("t-artist").textContent = "Couldn't load this file"; });
+    }
+    playing = true; heartbeat(true); render(); drawViz();
+    if (bc) bc.postMessage({ type: "playing", id: myId });
+  }
+  if (bc) bc.onmessage = function (ev) { if (ev.data && ev.data.type === "playing" && ev.data.id !== myId && playing) stopAll(); };
+  window.addEventListener("pagehide", function () { heartbeat(false); try { localStorage.removeItem("bl-radio-alive"); } catch (e) {} });
+  function toggle() { if (playing) stopAll(); else play(); }
+  function next() { idx = (idx + 1) % tracks.length; play(); }
+  function prev() { idx = (idx - 1 + tracks.length) % tracks.length; play(); }
+
+  function render() {
+    var tr = tracks[idx];
+    $("t-title").textContent = playing || idx ? tr.title : "Press play";
+    $("t-artist").textContent = playing || idx ? tr.artist : "Easy, upbeat music for looking around";
+    $("play").textContent = playing ? "❚❚" : "▶";
+    $("play").setAttribute("aria-label", playing ? "Pause" : "Play");
+    Array.prototype.forEach.call($("list").children, function (b, i) { b.classList.toggle("on", i === idx); });
+  }
+
+  // Track list
+  tracks.forEach(function (tr, i) {
+    var b = document.createElement("button");
+    b.innerHTML = "<span>" + tr.title + "</span><span class='mono'>" + String(i + 1).padStart(2, "0") + "</span>";
+    b.addEventListener("click", function () { idx = i; play(); });
+    $("list").appendChild(b);
+  });
+
+  // Visualizer
+  var viz = $("viz"), vctx = viz.getContext("2d");
+  function drawViz() {
+    var dpr = Math.min(devicePixelRatio || 1, 2), w = viz.clientWidth, h = viz.clientHeight;
+    if (viz.width !== Math.round(w * dpr)) { viz.width = Math.round(w * dpr); viz.height = Math.round(h * dpr); }
+    vctx.setTransform(dpr, 0, 0, dpr, 0, 0); vctx.clearRect(0, 0, w, h);
+    var cs = getComputedStyle(document.documentElement), ink = cs.getPropertyValue("--ink").trim(), orange = cs.getPropertyValue("--orange").trim();
+    var n = 28, gap = 3, bw = (w - gap * (n - 1)) / n, data = new Uint8Array(analyser ? analyser.frequencyBinCount : n);
+    if (analyser && playing) analyser.getByteFrequencyData(data);
+    for (var i = 0; i < n; i++) {
+      var v = playing ? data[Math.min(data.length - 1, i + 1)] / 255 : 0;
+      var bh = Math.max(1, v * h);
+      vctx.fillStyle = v > 0.72 ? orange : ink;
+      vctx.fillRect(i * (bw + gap), h - bh, bw, bh);
+    }
+    if (playing) requestAnimationFrame(drawViz);
+  }
+
+  // Channels
+  function setChannel(ch) {
+    $("ch1").setAttribute("aria-pressed", ch === 1); $("ch2").setAttribute("aria-pressed", ch === 2);
+    $("field-ui").hidden = ch !== 1; $("yt-ui").hidden = ch !== 2; viz.hidden = ch !== 1;
+    $("freq").textContent = ch === 1 ? "CH 1 · Field" : "CH 2 · Bill's picks";
+    $("ch-label").textContent = ch === 1 ? "Channel 1 · Field" : "Channel 2 · Bill's picks";
+    if (ch === 2) {
+      stopAll();
+      $("t-title").textContent = "Bill's picks";
+      $("t-artist").textContent = "A playlist from Bill's YouTube";
+      var ui = $("yt-ui");
+      if (!ui.firstChild) {
+        if (CONFIG.youtubePlaylistId) {
+          var f = document.createElement("iframe");
+          f.src = "https://www.youtube-nocookie.com/embed/videoseries?list=" + encodeURIComponent(CONFIG.youtubePlaylistId);
+          f.title = "Bill's YouTube playlist"; f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true;
+          ui.appendChild(f);
+        } else {
+          ui.innerHTML = '<div class="empty">Bill hasn\'t plugged in his playlist yet. Check back soon.</div>';
+        }
+      }
+    } else { render(); drawViz(); }
+  }
+
+  $("ch1").addEventListener("click", function () { setChannel(1); });
+  $("ch2").addEventListener("click", function () { setChannel(2); });
+  $("play").addEventListener("click", toggle);
+  $("next").addEventListener("click", next);
+  $("prev").addEventListener("click", prev);
+  $("vol").addEventListener("input", function () { if (master) master.gain.value = this.value / 100; if (engine) engine.setVolume(this.value / 100); });
+
+  // Credits
+  var foot = $("foot");
+  if (CONFIG.fieldTracks.length) {
+    foot.innerHTML = "Channel 1: royalty-free music from Pixabay. " + CONFIG.fieldTracks.map(function (t) { return t.source ? '<a href="' + t.source + '" target="_blank" rel="noopener">' + t.title + "</a>" : t.title; }).join(" · ");
+  } else {
+    foot.textContent = "Channel 1 is made live in your browser: warm keys, soft bass, and a lazy beat. Channel 2 plays through YouTube's own player.";
+  }
+  if (!embedded) foot.innerHTML += ' · <a href="../index.html" target="_blank" rel="noopener">Bill\'s site</a>';
+
+  render(); drawViz();
+  // Opened from the site's Radio button: try to start right away.
+  if (!embedded) setTimeout(function () {
+    ensureAudio();
+    actx.resume().then(function () { if (actx.state === "running" && !playing) play(); });
+  }, 300);
+})();
+</script>
+</body>
+</html>

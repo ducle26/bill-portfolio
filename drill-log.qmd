@@ -1,0 +1,28 @@
+---
+title: "Drill log"
+pagetitle: "Drill log · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="08" data-title="Drill log" data-top="5000" data-bottom="5200" data-log="off" hidden></div>
+<span class="label">Sheet 08 · Below TD</span>
+<p class="lede muted" style="font-size:1.1rem;max-width:680px;margin-top:0.75rem">You made it past total depth. This page is for people who like to see how things are built.</p>
+
+<h2>How this site is built</h2>
+<table class="spec">
+  <tr><th>Made with</th><td>R and Quarto in RStudio, hosted on GitHub Pages. The case studies are R Markdown files rendered straight into the site.</td></tr>
+  <tr><th>The idea</th><td>The site is drawn like an engineering drawing of a well. You don't scroll down a page so much as drill down through it.</td></tr>
+  <tr><th>Depth gauge</th><td>The ruler on the left counts feet as you scroll. Each page covers its own depth range.</td></tr>
+  <tr><th>Title block</th><td>The box in the corner, like the one on every engineering drawing: name, sheet, depth, revision. Press it to shrink it.</td></tr>
+  <tr><th>Lithology column</th><td>The striped strip next to the well on the home page. On a real mud log it shows the rock type at each depth: dots for sandstone, lines for shale, bricks for limestone.</td></tr>
+  <tr><th>Mud pulse</th><td>The orange dash that travels down the well. MWD tools send data to the surface as pressure pulses in the drilling mud. The row of dots at the top of each new page is the same idea.</td></tr>
+  <tr><th>Color rule</th><td>Ink on drafting paper, and in dark mode, white lines on blueprint blue. Safety orange marks only things you can press.</td></tr>
+  <tr><th>Type</th><td>Space Grotesk for headings, Be Vietnam Pro for body text (made by Vietnamese designers, so every accent mark sits right), Space Mono for labels.</td></tr>
+  <tr><th>Live well view</th><td>On the home page, the cross-section on the right drills as you scroll. The orange dots running up the pipe are mud pulses, and the specks are cuttings. The well kicks off at 3,000 ft and builds angle toward the target, like a real directional well.</td></tr>
+  <tr><th>ROP</th><td>Rate of penetration, shown in the title block and the live view. Here it's how fast you scroll, in feet per second. A real rig in hard rock might make 50 to 100 feet in an hour, so you're doing fine.</td></tr>
+  <tr><th>Sheet log</th><td>The title block counts the pages you've seen. Log all of them and this page opens on its own.</td></tr>
+  <tr><th>Toolkit</th><td>Drawn as a bottom-hole assembly: the string of tools right above the bit. Skills without proof yet are listed as parts on order.</td></tr>
+  <tr><th>Music</th><td>Made live in your browser with the Web Audio API: warm electric-piano chords, soft bass, a lazy beat, and a little vinyl crackle. No recordings, so nothing to license. Channel 2 on the radio is YouTube's own player, kept visible as YouTube requires.</td></tr>
+</table>
+<p><a href="index.html">← Back to the surface</a></p>
+```

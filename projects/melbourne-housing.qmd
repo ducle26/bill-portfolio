@@ -1,0 +1,93 @@
+---
+title: "Melbourne housing"
+pagetitle: "CS-04 Melbourne housing · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="04" data-title="CS-04" data-top="3350" data-bottom="3600" hidden></div>
+<span class="label">Core sample CS-04 · 3,350 to 3,600 ft</span>
+<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">What drives house prices across Melbourne's suburbs?</p>
+<div class="sample-head">
+  <div><span class="label">Method</span><div class="v">Exploratory analysis</div></div>
+  <div><span class="label">Data</span><div class="v">Melbourne housing market (Kaggle, public)</div></div>
+  <div><span class="label">R packages</span><div class="v">tidyverse, ggplot2</div></div>
+  <div><span class="label">Status</span><div class="v"><span class="status">Done in class · moving over</span></div></div>
+</div>
+```
+
+::::: {.cs-sec}
+:::: {.num}
+01
+::::
+:::: {}
+## Project overview
+
+::: {.pending data-tag="To log"}
+Two or three sentences: the business question, what the analysis found, and what someone should do about it. Written last.
+:::
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+02
+::::
+:::: {}
+## Problem statement
+
+::: {.pending data-tag="To move over"}
+This was Project 1, presented in class on Sep 28. The business question from that project goes here.
+:::
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+03
+::::
+:::: {}
+## Approach
+
+::: {.pending data-tag="To move over"}
+The cleaning, exploration, and methods from Project 1 go here, with the R code.
+:::
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+04
+::::
+:::: {}
+## Results and impact
+
+::: {.pending data-tag="To log"}
+Key charts from Project 1 and what they mean. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.
+:::
+
+::: {.try-it}
+[Try it]{.label .label-orange}
+
+To be decided once the findings are moved over.
+
+[This panel goes live when the analysis is done.]{.muted}
+:::
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+05
+::::
+:::: {}
+## Code
+
+::: {.pending data-tag="Repo"}
+github.com/your-username/melbourne-housing: the R Markdown file, the data source, and comments on each step.
+:::
+::::
+:::::
+
+```{=html}
+<nav class="sample-nav"><a href="ofs-financials.html">← CS-03 · Oilfield services health check</a><a href="../play.html">Bottom of the well →</a></nav>
+```

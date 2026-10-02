@@ -1,0 +1,37 @@
+/*-- scss:defaults --*/
+// The print: blueprint blue, white lines
+$body-bg: #0F2C52;
+$body-color: #EAF1FB;
+$link-color: #EAF1FB;
+$primary: #FF7A3D;
+$secondary: #A9BEDA;
+$border-color: #3A5E8C;
+$font-family-sans-serif: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+$headings-font-family: "Space Grotesk", "Be Vietnam Pro", system-ui, sans-serif;
+$font-family-monospace: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+$headings-font-weight: 500;
+$navbar-bg: #0F2C52;
+$navbar-fg: #EAF1FB;
+$navbar-hl: #FF9A66;
+$footer-bg: #0F2C52;
+$footer-fg: #A9BEDA;
+$code-color: #EAF1FB;
+$code-bg: #163763;
+
+/*-- scss:rules --*/
+:root {
+  --paper: #0F2C52;
+  --paper-2: #143661;
+  --paper-3: #18406F;
+  --grid: rgba(234, 241, 251, 0.07);
+  --grid-strong: rgba(234, 241, 251, 0.22);
+  --ink: #EAF1FB;
+  --ink-2: #B9CBE3;
+  --ink-3: #8EA6C6;
+  --orange: #FF7A3D;
+  --orange-ink: #FF9A66;
+  --on-orange: #0F2C52;
+  --hatch: rgba(234, 241, 251, 0.30);
+  --shade: rgba(234, 241, 251, 0.06);
+  --scrim: rgba(15, 44, 82, 0.92);
+}

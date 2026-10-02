@@ -1,0 +1,24 @@
+---
+title: "Off the clock"
+pagetitle: "Off the clock · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="07" data-title="Off the clock" data-top="4200" data-bottom="4600" hidden></div>
+<span class="label">Sheet 07 · 4,200 to 4,600 ft</span>
+<p class="lede muted" style="font-size:1.15rem;max-width:680px;margin-top:0.75rem" data-vi="Ngoài công việc và việc học. Mở radio, chọn một kênh, và cùng nghe nhạc.">The part of me outside work and school. Turn on the radio, pick a channel, and listen along.</p>
+
+<h2 data-vi="Radio">The radio</h2>
+<p class="muted" data-vi="Kênh 1 là nhạc nền nhẹ nhàng. Kênh 2 là danh sách nhạc của mình trên YouTube. Bấm Radio trên menu để mở trình phát nhỏ, nhạc vẫn chạy khi bạn xem các trang khác.">Channel 1 is calm background music. Channel 2 is my own YouTube playlist. Press Radio in the menu to open a small player that keeps playing while you look around the site.</p>
+<iframe class="radio-frame" src="radio/index.html?embed=1" title="Bill's radio" loading="lazy" allow="autoplay; encrypted-media"></iframe>
+
+<h2 data-vi="Những nơi mình gắn bó">Places</h2>
+<div class="place-grid">
+  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Vietnam</strong><span class="muted">A line from Bill goes here.</span></div></div>
+  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Corvallis, Oregon</strong><span class="muted">A line from Bill goes here.</span></div></div>
+  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Houston, Texas</strong><span class="muted">A line from Bill goes here.</span></div></div>
+</div>
+
+<h2 data-vi="Sở thích">Things I like</h2>
+<div class="pending" data-tag="From Bill">A few hobbies, with a photo or two.</div>
+```

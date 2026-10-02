@@ -1,0 +1,98 @@
+---
+title: "Oilfield services health check"
+pagetitle: "CS-03 Oilfield services health check · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="04" data-title="CS-03" data-top="3100" data-bottom="3350" hidden></div>
+<span class="label">Core sample CS-03 · 3,100 to 3,350 ft</span>
+<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">How closely do SLB, Halliburton, and Baker Hughes move with oil prices?</p>
+<div class="sample-head">
+  <div><span class="label">Method</span><div class="v">Financial analysis</div></div>
+  <div><span class="label">Data</span><div class="v">Stock and oil prices (tidyquant), annual reports</div></div>
+  <div><span class="label">R packages</span><div class="v">tidyquant, tidyverse, ggplot2</div></div>
+  <div><span class="label">Status</span><div class="v"><span class="status">Logging · Nov 2026</span></div></div>
+</div>
+```
+
+::::: {.cs-sec}
+:::: {.num}
+01
+::::
+:::: {}
+## Project overview
+
+::: {.pending data-tag="To log"}
+Two or three sentences: the business question, what the analysis found, and what someone should do about it. Written last.
+:::
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+02
+::::
+:::: {}
+## Problem statement
+
+SLB, Halliburton, and Baker Hughes are three of the largest oilfield services companies, and big buyers of downhole tools and parts. When oil prices fall, drilling slows, and so do their orders. For a supplier, or someone hoping to work for one, the question is: **how closely does each company move with oil prices, and which looks steadiest?**
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+03
+::::
+:::: {}
+## Approach
+
+::: {.pending data-tag="Planned"}
+Planned steps:
+
+1. Pull daily stock prices and WTI crude prices with tidyquant
+2. Compute returns and rolling correlations with oil
+3. Compare revenue and margins from annual reports
+4. Chart how each company held up through the 2020 oil price crash and since
+
+The R code, with comments, goes here. Each step becomes a short section with its code chunk and one line on why.
+:::
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+04
+::::
+:::: {}
+## Results and impact
+
+::: {.pending data-tag="To log"}
+How tightly each company tracks oil, how their margins compare, and what that suggests about steadiness. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.
+:::
+
+::: {.try-it}
+[Try it]{.label .label-orange}
+
+Pick a company and a date range, and compare how it tracks oil.
+
+[This panel goes live when the analysis is done.]{.muted}
+:::
+::::
+:::::
+
+::::: {.cs-sec}
+:::: {.num}
+05
+::::
+:::: {}
+## Code
+
+::: {.pending data-tag="Repo"}
+github.com/your-username/ofs-health-check: the R Markdown file, the data source, and comments on each step.
+:::
+::::
+:::::
+
+```{=html}
+<nav class="sample-nav"><a href="late-delivery.html">← CS-02 · Late delivery risk</a><a href="melbourne-housing.html">CS-04 · Melbourne housing →</a></nav>
+```

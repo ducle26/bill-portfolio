@@ -1,0 +1,15 @@
+<script>
+  // Find the site root from Quarto's offset tag, then load the shared script.
+  (function () {
+    var meta = document.querySelector('meta[name="quarto:offset"]');
+    var root = meta ? meta.getAttribute("content") : "";
+    if (!meta) {
+      var css = document.querySelector('link[href*="styles/site.css"]');
+      if (css) root = css.getAttribute("href").replace(/styles\/site\.css.*$/, "");
+    }
+    window.SITE_ROOT = root || "./";
+    var s = document.createElement("script");
+    s.src = window.SITE_ROOT + "assets/js/site.js";
+    document.body.appendChild(s);
+  })();
+</script>

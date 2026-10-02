@@ -1,0 +1,28 @@
+---
+title: "Core samples"
+pagetitle: "Core samples · Duc (Bill) Le"
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="04" data-title="Core samples" data-top="2400" data-bottom="2600" hidden></div>
+<span class="label">Sheet 04 · 2,400 to 3,600 ft</span>
+<p class="lede muted" style="font-size:1.15rem;max-width:680px;margin-top:0.75rem" data-vi="Mỗi dự án là một mẫu lõi lấy ở một độ sâu khác nhau: một câu hỏi kinh doanh, dữ liệu, phần phân tích bằng R, và ý nghĩa của kết quả.">Each project is a core pulled from a different depth: a business question, the data, the R work, and what the results mean. Every case study follows the same five parts: overview, problem, approach, results, and code.</p>
+<div class="cores">
+  <a class="core" href="rig-count.html">
+    <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>
+    <div><span class="label">CS-01 · 2,600 ft</span><h3>Rig count forecast</h3><p>How many rigs will be running in six months, and what does that mean for long-lead parts?</p><span class="status">Logging · Oct 2026</span></div>
+  </a>
+  <a class="core" href="late-delivery.html">
+    <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>
+    <div><span class="label">CS-02 · 2,850 ft</span><h3>Late delivery risk</h3><p>Which orders will ship late, and what drives it?</p><span class="status">Logging · Oct to Nov 2026</span></div>
+  </a>
+  <a class="core" href="ofs-financials.html">
+    <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>
+    <div><span class="label">CS-03 · 3,100 ft</span><h3>Oilfield services health check</h3><p>How closely do SLB, Halliburton, and Baker Hughes move with oil prices?</p><span class="status">Logging · Nov 2026</span></div>
+  </a>
+  <a class="core" href="melbourne-housing.html">
+    <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>
+    <div><span class="label">CS-04 · 3,350 ft</span><h3>Melbourne housing</h3><p>What drives house prices across Melbourne's suburbs?</p><span class="status live">Done in class · moving over</span></div>
+  </a>
+</div>
+```

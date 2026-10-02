@@ -1,0 +1,226 @@
+[
+  {
+    "objectID": "play.html",
+    "href": "play.html",
+    "title": "Steer the bit",
+    "section": "",
+    "text": "Sheet 06 · 4,600 to 5,000 ft\nSteer a drill bit down through the rock and land it in the target zone at 5,000 ft. Pick up the orange parts to keep drilling. Run out, and you wait on a supplier.\n\n  Space or → hold to steer right\n  Let go to drift left\n  On a phone: touch and hold\n\n\n\n  \n  \n    \n      Spud in\n      Steer the bit\n      Soft rock drills fast, hard rock drills slow. Steer around boulders. Your well path is drawn behind you.\n      Start drilling\n      \n    \n  \n  \n    \n      Total depth\n      You reached TD\n      \n        Time0.0 s\n        Parts picked up0\n        Waits on suppliers0\n        TargetHit\n        Your bestNone yet\n      \n      \n      Every tool down here needed someone to get its parts in on time. That's the part I do.\n      \n        Drill again\n        See my work\n        Say hello\n        Copy score\n      \n      You unlocked the drill log →"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Sheet 02 · 500 to 1,200 ft\n\n\n  \n    \n      \n      Photo coming\n    \n    Scale 1:1\n    Duc (Bill) Le\n  \n\n  \n    Hi, I'm Bill\n    My name is Duc Le, and most people call me Bill. I'm in my last year of an MS in Supply Chain Management at the University of Houston's Bauer College of Business, and I work in procurement at Oliden Technology in Stafford, which builds MWD/LWD and rotary steerable tools.\n    Most of my work is the part nobody sees: finding shops that can machine a part to print, keeping orders in step with drawing changes, and checking that what arrives is what we asked for. I like that the job sits between engineering, finance, and the supplier, and that a late part means a late tool.\n    At school I'm learning to back that work with data. This site collects what I've built, mostly in R.\n    \n      See the resume\n      See the projects\n    \n  \n\n\nSpecifications\n\n\n\n\n\n\n\n\nBased in\nHouston, Texas\n\n\nStudying\nMS, Supply Chain Management, University of Houston (May 2027)\nBS, Supply Chain and Logistics Management, Oregon State University (2024)\n\n\nBusiness interests\nSupply chains for downhole and oilfield manufacturing · supplier quality and lead times · planning for long-lead parts · Vietnam's growing electronics and semiconductor supply chain\n\n\nAnalytics\nR (tidyverse, ggplot2, tidyquant) · Excel modeling (Solver, @Risk, Monte Carlo simulation) · Power BI · Tableau · Python · JASP\n\n\nSystems\nSAP Business One · SAP Concur · Power Automate · SharePoint\n\n\nCertificates\nASCM Supply Chain Procurement (2023) · ASCM Supply Chain Planning (2024) · AI for Supply Chains and Logistics (2026)\n\n\nLanguages\nEnglish · Vietnamese\n\n\nAlso\nInstructional assistant, SCM 4330 · Vice president, UH Supply Chain Club"
+  },
+  {
+    "objectID": "notes.html",
+    "href": "notes.html",
+    "title": "Notes",
+    "section": "",
+    "text": "Sheet 05 · 3,600 to 4,200 ft\nShort notes on things I've learned doing procurement and learning analytics. Around 300 words each.\n\nNow\n\n  Oct 2026Building this site for BZAN 6351, in R and Quarto.\n  Oct 2026Running a muesli company with my team in the ERPsim game.\n  Oct 2026Helping students with Solver and @Risk as an IA for SCM 4330.\n\n\nNotes\nDraftWhat a late part costs when the tool has a ship dateWhy the price on the PO is rarely the real cost.Soon\nDraftCheck the drawing revision before you place the orderA small habit that saves a lot of rework.Soon\nDraftLearning R as a buyerWhat changed when I moved from Excel to code.Soon\nThese titles are placeholders. Swap in your own ideas."
+  },
+  {
+    "objectID": "resume.html",
+    "href": "resume.html",
+    "title": "Duc (Bill) Le",
+    "section": "",
+    "text": "Sheet 03 · 1,200 to 2,400 ft\n    Duc (Bill) Le\n    Houston, TX · lehuyduc2811@gmail.com · linkedin.com/in/duc-huy-le\n  \n  \n    Print or save as PDF\n  \n\n\nPress any role to see details.\n\n\n  Education\n  University of Houston, C. T. Bauer College of BusinessMS, Supply Chain Management · GPA 3.81May 2027\n  Oregon State University, College of BusinessBS, Supply Chain and Logistics Management · GPA 3.62June 2024\n  Courses: Quantitative Analysis for Business Decisions, Supply Chain Analytics, Demand and Supply Integration, Logistics Management, Project Management\n\n\n\n  Experience\n\n  \n    Oliden Technology, Stafford, TXJune to Aug 2026Procurement Specialist\n    \n      Sourced components for a rotary steerable (RSS) and MWD/LWD tool build, with orders placed across a wide supplier base ahead of a fixed assembly date\n      Kept a large bill of materials in step with engineering revisions, matching orders to current drawings, sub-assemblies, and specialty alloys\n      Resolved supplier quality issues on machined downhole parts through rejections, discrepancy reports, and RMAs\n      Set landed-cost terms (freight caps, duties, tariffs) on large orders and routed binding contracts for executive sign-off\n    \n  \n\n  \n    Oliden Technology, Stafford, TXSept 2024 to June 2025Procurement Specialist\n    \n      Built a central PO tracking system for MWD/LWD components so delays surfaced early\n      Cleared a multi-year procurement backlog by closing out overdue POs in SAP\n      Standardized the approved supplier process (onboarding, remote and on-site audits, re-evaluation) to ISO and API standards, improving on-time delivery of critical components\n    \n  \n\n  \n    Oregon State University, Corvallis, ORNov 2023 to June 2024Financial Strategic Services Assistant\n    \n      Built a SharePoint onboarding and reporting site that more of the team used\n      Redesigned the journal voucher process in Power Automate, cutting processing time\n      Ran quarterly financial analysis in SAP Concur\n    \n  \n\n  \n    State of Oregon, Department of Administrative Services, Salem, ORJune to Sept 2023Procurement and Contract Assistant\n    \n      Streamlined processing of quarterly Volume Sales Reports for hundreds of vendors\n      Analyzed spend and revenue data to find savings opportunities\n      Ran public procurement processes under state policy and compliance rules\n    \n  \n\n\n\n  Teaching and leadership\n  \n    University of Houston2026 to nowInstructional Assistant, SCM 4330 Business Modeling and Decision Analysis\n    Support students with spreadsheet modeling, Solver, @Risk, and Monte Carlo simulation\n  \n  UH Supply Chain ClubVice PresidentNow\n\n\n\n  Projects\n  \n    Inventory optimization for Tacovore Mexican RestaurantMar to June 2024Class project, Oregon State\n    Forecast seasonal demand with Prophet and Excel ETS, and built an automated inventory tool that reduced stockouts\n  \n  R case studies: core samples.\n\n\n\n  Skills and certificates\n  \n\n\n\nSupply chain\nProcurement and sourcing, supplier evaluation, negotiation, PO lifecycle management, inventory optimization, data analysis and reporting\n\n\nTools\nSAP Business One, SAP Concur, Excel (Solver, @Risk), R, Python, Power BI, Tableau, MS Office\n\n\nCertificates\nASCM Supply Chain Procurement (2023), ASCM Supply Chain Planning (2024), AI for Supply Chains and Logistics (2026)\n\n\nLanguages\nEnglish, Vietnamese"
+  },
+  {
+    "objectID": "projects/rig-count.html",
+    "href": "projects/rig-count.html",
+    "title": "Rig count forecast",
+    "section": "",
+    "text": "How many rigs will be running in six months, and what does that mean for long-lead parts?"
+  },
+  {
+    "objectID": "projects/rig-count.html#project-overview",
+    "href": "projects/rig-count.html#project-overview",
+    "title": "Rig count forecast",
+    "section": "Project overview",
+    "text": "Project overview\n\nTwo or three sentences: the business question, what the analysis found, and what someone should do about it. Written last."
+  },
+  {
+    "objectID": "projects/rig-count.html#problem-statement",
+    "href": "projects/rig-count.html#problem-statement",
+    "title": "Rig count forecast",
+    "section": "Problem statement",
+    "text": "Problem statement\nA company that builds downhole tools has to order some parts long before it needs them. Machined housings and specialty alloys can take months to arrive. How many tools customers want depends on how much drilling is going on, so a buyer planning those orders wants to know: how many rigs will be running six months from now, and how sure can we be?"
+  },
+  {
+    "objectID": "projects/rig-count.html#approach",
+    "href": "projects/rig-count.html#approach",
+    "title": "Rig count forecast",
+    "section": "Approach",
+    "text": "Approach\n\nPlanned steps:\n\nPull the weekly US rig count and roll it up to monthly\nPlot the trend and look for seasonal patterns with ggplot2\nFit and compare ETS and ARIMA models with the fable package\nTest accuracy on a held-back year of data\nTurn the forecast range into an ordering rule for long-lead parts\n\nThe R code, with comments, goes here. Each step becomes a short section with its code chunk and one line on why."
+  },
+  {
+    "objectID": "projects/rig-count.html#results-and-impact",
+    "href": "projects/rig-count.html#results-and-impact",
+    "title": "Rig count forecast",
+    "section": "Results and impact",
+    "text": "Results and impact\n\nThe forecast chart with its range, and what it means for when to place long-lead orders. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.\n\n\nTry it\nDrag the forecast horizon and watch the range widen the further out you look.\nThis panel goes live when the analysis is done."
+  },
+  {
+    "objectID": "projects/rig-count.html#code",
+    "href": "projects/rig-count.html#code",
+    "title": "Rig count forecast",
+    "section": "Code",
+    "text": "Code\n\ngithub.com/your-username/rig-count-forecast: the R Markdown file, the data source, and comments on each step."
+  },
+  {
+    "objectID": "projects/index.html",
+    "href": "projects/index.html",
+    "title": "Core samples",
+    "section": "",
+    "text": "Sheet 04 · 2,400 to 3,600 ft\nEach project is a core pulled from a different depth: a business question, the data, the R work, and what the results mean. Every case study follows the same five parts: overview, problem, approach, results, and code.\n\n  \n    \n    CS-01 · 2,600 ftRig count forecastHow many rigs will be running in six months, and what does that mean for long-lead parts?Logging · Oct 2026\n  \n  \n    \n    CS-02 · 2,850 ftLate delivery riskWhich orders will ship late, and what drives it?Logging · Oct to Nov 2026\n  \n  \n    \n    CS-03 · 3,100 ftOilfield services health checkHow closely do SLB, Halliburton, and Baker Hughes move with oil prices?Logging · Nov 2026\n  \n  \n    \n    CS-04 · 3,350 ftMelbourne housingWhat drives house prices across Melbourne's suburbs?Done in class · moving over"
+  },
+  {
+    "objectID": "projects/late-delivery.html",
+    "href": "projects/late-delivery.html",
+    "title": "Late delivery risk",
+    "section": "",
+    "text": "Which orders will ship late, and what drives it?"
+  },
+  {
+    "objectID": "projects/late-delivery.html#project-overview",
+    "href": "projects/late-delivery.html#project-overview",
+    "title": "Late delivery risk",
+    "section": "Project overview",
+    "text": "Project overview\n\nTwo or three sentences: the business question, what the analysis found, and what someone should do about it. Written last."
+  },
+  {
+    "objectID": "projects/late-delivery.html#problem-statement",
+    "href": "projects/late-delivery.html#problem-statement",
+    "title": "Late delivery risk",
+    "section": "Problem statement",
+    "text": "Problem statement\nOn-time delivery is one of the first things a buyer checks on a supplier. If you could tell which orders are likely to ship late before they do, you could expedite the right ones and stop chasing the rest. The question: which orders are likely to ship late, and what drives it?"
+  },
+  {
+    "objectID": "projects/late-delivery.html#approach",
+    "href": "projects/late-delivery.html#approach",
+    "title": "Late delivery risk",
+    "section": "Approach",
+    "text": "Approach\n\nPlanned steps:\n\nLoad the order data and clean dates, types, and missing values\nCompare late rates by shipping mode, region, and product category\nFit a logistic regression and a decision tree\nCompare the two with a confusion matrix and ROC curve\nTurn the strongest drivers into plain rules a buyer can use\n\nThe R code, with comments, goes here. Each step becomes a short section with its code chunk and one line on why."
+  },
+  {
+    "objectID": "projects/late-delivery.html#results-and-impact",
+    "href": "projects/late-delivery.html#results-and-impact",
+    "title": "Late delivery risk",
+    "section": "Results and impact",
+    "text": "Results and impact\n\nWhich factors matter most, how well the model catches late orders, and the rules that come out of it. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.\n\n\nTry it\nPick a shipping mode and a region, and see the predicted chance an order ships late.\nThis panel goes live when the analysis is done."
+  },
+  {
+    "objectID": "projects/late-delivery.html#code",
+    "href": "projects/late-delivery.html#code",
+    "title": "Late delivery risk",
+    "section": "Code",
+    "text": "Code\n\ngithub.com/your-username/late-delivery-risk: the R Markdown file, the data source, and comments on each step."
+  },
+  {
+    "objectID": "projects/melbourne-housing.html",
+    "href": "projects/melbourne-housing.html",
+    "title": "Melbourne housing",
+    "section": "",
+    "text": "What drives house prices across Melbourne's suburbs?"
+  },
+  {
+    "objectID": "projects/melbourne-housing.html#project-overview",
+    "href": "projects/melbourne-housing.html#project-overview",
+    "title": "Melbourne housing",
+    "section": "Project overview",
+    "text": "Project overview\n\nTwo or three sentences: the business question, what the analysis found, and what someone should do about it. Written last."
+  },
+  {
+    "objectID": "projects/melbourne-housing.html#problem-statement",
+    "href": "projects/melbourne-housing.html#problem-statement",
+    "title": "Melbourne housing",
+    "section": "Problem statement",
+    "text": "Problem statement\n\nThis was Project 1, presented in class on Sep 28. The business question from that project goes here."
+  },
+  {
+    "objectID": "projects/melbourne-housing.html#approach",
+    "href": "projects/melbourne-housing.html#approach",
+    "title": "Melbourne housing",
+    "section": "Approach",
+    "text": "Approach\n\nThe cleaning, exploration, and methods from Project 1 go here, with the R code."
+  },
+  {
+    "objectID": "projects/melbourne-housing.html#results-and-impact",
+    "href": "projects/melbourne-housing.html#results-and-impact",
+    "title": "Melbourne housing",
+    "section": "Results and impact",
+    "text": "Results and impact\n\nKey charts from Project 1 and what they mean. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.\n\n\nTry it\nTo be decided once the findings are moved over.\nThis panel goes live when the analysis is done."
+  },
+  {
+    "objectID": "projects/melbourne-housing.html#code",
+    "href": "projects/melbourne-housing.html#code",
+    "title": "Melbourne housing",
+    "section": "Code",
+    "text": "Code\n\ngithub.com/your-username/melbourne-housing: the R Markdown file, the data source, and comments on each step."
+  },
+  {
+    "objectID": "projects/ofs-financials.html",
+    "href": "projects/ofs-financials.html",
+    "title": "Oilfield services health check",
+    "section": "",
+    "text": "How closely do SLB, Halliburton, and Baker Hughes move with oil prices?"
+  },
+  {
+    "objectID": "projects/ofs-financials.html#project-overview",
+    "href": "projects/ofs-financials.html#project-overview",
+    "title": "Oilfield services health check",
+    "section": "Project overview",
+    "text": "Project overview\n\nTwo or three sentences: the business question, what the analysis found, and what someone should do about it. Written last."
+  },
+  {
+    "objectID": "projects/ofs-financials.html#problem-statement",
+    "href": "projects/ofs-financials.html#problem-statement",
+    "title": "Oilfield services health check",
+    "section": "Problem statement",
+    "text": "Problem statement\nSLB, Halliburton, and Baker Hughes are three of the largest oilfield services companies, and big buyers of downhole tools and parts. When oil prices fall, drilling slows, and so do their orders. For a supplier, or someone hoping to work for one, the question is: how closely does each company move with oil prices, and which looks steadiest?"
+  },
+  {
+    "objectID": "projects/ofs-financials.html#approach",
+    "href": "projects/ofs-financials.html#approach",
+    "title": "Oilfield services health check",
+    "section": "Approach",
+    "text": "Approach\n\nPlanned steps:\n\nPull daily stock prices and WTI crude prices with tidyquant\nCompute returns and rolling correlations with oil\nCompare revenue and margins from annual reports\nChart how each company held up through the 2020 oil price crash and since\n\nThe R code, with comments, goes here. Each step becomes a short section with its code chunk and one line on why."
+  },
+  {
+    "objectID": "projects/ofs-financials.html#results-and-impact",
+    "href": "projects/ofs-financials.html#results-and-impact",
+    "title": "Oilfield services health check",
+    "section": "Results and impact",
+    "text": "Results and impact\n\nHow tightly each company tracks oil, how their margins compare, and what that suggests about steadiness. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.\n\n\nTry it\nPick a company and a date range, and compare how it tracks oil.\nThis panel goes live when the analysis is done."
+  },
+  {
+    "objectID": "projects/ofs-financials.html#code",
+    "href": "projects/ofs-financials.html#code",
+    "title": "Oilfield services health check",
+    "section": "Code",
+    "text": "Code\n\ngithub.com/your-username/ofs-health-check: the R Markdown file, the data source, and comments on each step."
+  },
+  {
+    "objectID": "drill-log.html",
+    "href": "drill-log.html",
+    "title": "Drill log",
+    "section": "",
+    "text": "Sheet 08 · Below TD\nYou made it past total depth. This page is for people who like to see how things are built.\n\nHow this site is built\n\n\n\n\nMade with\nR and Quarto in RStudio, hosted on GitHub Pages. The case studies are R Markdown files rendered straight into the site.\n\n\nThe idea\nThe site is drawn like an engineering drawing of a well. You don't scroll down a page so much as drill down through it.\n\n\nDepth gauge\nThe ruler on the left counts feet as you scroll. Each page covers its own depth range.\n\n\nTitle block\nThe box in the corner, like the one on every engineering drawing: name, sheet, depth, revision. Press it to shrink it.\n\n\nLithology column\nThe striped strip next to the well on the home page. On a real mud log it shows the rock type at each depth: dots for sandstone, lines for shale, bricks for limestone.\n\n\nMud pulse\nThe orange dash that travels down the well. MWD tools send data to the surface as pressure pulses in the drilling mud. The row of dots at the top of each new page is the same idea.\n\n\nColor rule\nInk on drafting paper, and in dark mode, white lines on blueprint blue. Safety orange marks only things you can press.\n\n\nType\nSpace Grotesk for headings, Be Vietnam Pro for body text (made by Vietnamese designers, so every accent mark sits right), Space Mono for labels.\n\n\nLive well view\nOn the home page, the cross-section on the right drills as you scroll. The orange dots running up the pipe are mud pulses, and the specks are cuttings. The well kicks off at 3,000 ft and builds angle toward the target, like a real directional well.\n\n\nROP\nRate of penetration, shown in the title block and the live view. Here it's how fast you scroll, in feet per second. A real rig in hard rock might make 50 to 100 feet in an hour, so you're doing fine.\n\n\nSheet log\nThe title block counts the pages you've seen. Log all of them and this page opens on its own.\n\n\nToolkit\nDrawn as a bottom-hole assembly: the string of tools right above the bit. Skills without proof yet are listed as parts on order.\n\n\nMusic\nMade live in your browser with the Web Audio API: warm electric-piano chords, soft bass, a lazy beat, and a little vinyl crackle. No recordings, so nothing to license. Channel 2 on the radio is YouTube's own player, kept visible as YouTube requires.\n\n\n\n\n← Back to the surface"
+  },
+  {
+    "objectID": "personal.html",
+    "href": "personal.html",
+    "title": "Off the clock",
+    "section": "",
+    "text": "Sheet 07 · 4,200 to 4,600 ft\nThe part of me outside work and school. Turn on the radio, pick a channel, and listen along.\n\nThe radio\nChannel 1 is calm background music. Channel 2 is my own YouTube playlist. Press Radio in the menu to open a small player that keeps playing while you look around the site.\n\n\nPlaces\n\n  Photo pendingVietnamA line from Bill goes here.\n  Photo pendingCorvallis, OregonA line from Bill goes here.\n  Photo pendingHouston, TexasA line from Bill goes here.\n\n\nThings I like\nA few hobbies, with a photo or two."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Duc (Bill) Le",
+    "section": "",
+    "text": "Spud in · 0000 ft\n    Duc (Bill) Le\n    Press anywhere to skip\n  \n\n\n\n\n  \n    Before we go down\n    Who's coming down?\n    \n      \n        Path A · 2 min\n        Recruiter\n        Resume, top skills, and how to reach me.\n      \n      \n        Path B · 10 min\n        Classmate or professor\n        The R projects first, with code.\n      \n      \n        Path C · take your time\n        Just exploring\n        The whole way down. There's a game at the bottom.\n      \n    \n    Soft music starts after you pick. Turn it off with the Music button up top.\n    Skip\n  \n\n\n\n\n\n\n  0 ft · Surface · Sheet 01\n  Hello, I'm Bill.\n  I work on the supply side of downhole tools: finding the shops, placing the orders, and getting the right parts in on time for tools that steer and measure a well while it's being drilled. I'm also in my last year of a master's in supply chain management at the University of Houston.\n  \n    Start the descent ↓\n    Resume\n  \n\n  \n    \n      Path A\n      The short version: the resume (2 minutes), about me, then contact.\n    \n    \n      Path B\n      Start with the core samples. Each one is an R case study with the code on GitHub.\n    \n    \n      Path C\n      Take the long way down. There's a game at the bottom, and a radio in the menu.\n    \n    Change path\n  \n\n  \n    \n      Vietnam, then Corvallis, Oregon, then Houston, Texas\n      \n      \n      \n      Origin\n      BS · 2024\n      MS · 2027\n      \n      \n      \n      \n      Vietnam\n      Corvallis, OR\n      Houston, TX\n    \n  \n\n  Scroll to drill\n\n\n\n\n  \n\n  \n    500 ftSandstone\n    \n      Detail A · About\n      A bit about me\n      My name is Duc Le, and most people call me Bill. Most of my work is the part nobody sees: finding shops that can machine a part to print, keeping orders in step with drawing changes, and checking that what arrives is what we asked for. I like that the job sits between engineering, finance, and the supplier, and that a late part means a late tool.\n      More about me\n    \n  \n\n  \n    1,200 ftShale\n    \n      Detail B · Journey\n      How I got here\n      \n        OriginVietnamWhere it starts.\n        2023State of Oregon, Department of Administrative ServicesProcurement and contract assistant. Public purchasing under state rules, and my first look at spend data across hundreds of vendors.\n        2023 to 2024Oregon State UniversityFinancial services assistant. Built a SharePoint onboarding hub and moved a paper approval process into Power Automate. On the side, forecast demand for a local restaurant as a class project.\n        2024BS, Supply Chain and Logistics ManagementGraduated from Oregon State. ASCM certificates in procurement (2023) and planning (2024).\n        2024 to 2025Oliden Technology, Stafford, TXProcurement for MWD/LWD components. Built a PO tracking system, cleared an old backlog in SAP, and set up the approved supplier process to ISO and API standards.\n        2026Back at Oliden for a summer buildSourced parts for a rotary steerable and MWD/LWD build with a fixed assembly date, and worked quality issues with machine shops.\n        NowUniversity of Houston, Bauer College of BusinessMS in Supply Chain Management, finishing May 2027. Instructional assistant for SCM 4330 and vice president of the Supply Chain Club.\n        NextWhat's nextDownhole procurement at an oilfield services company. Further out, helping build Vietnam's semiconductor supply chain.\n      \n    \n  \n\n  \n    2,400 ftLimestone\n    \n      Detail C · Core samples\n      Core samples\n      Each project is a core pulled from a different depth: a business question, the data, the R work, and what the results mean. Logging is in progress.\n      \n        →CS-01 · ForecastingRig count forecastHow many rigs will be running in six months, and what that means for long-lead parts.\n        →CS-02 · ClassificationLate delivery riskWhich orders will ship late, and what drives it.\n        →CS-03 · Financial analysisOilfield services health checkHow SLB, Halliburton, and Baker Hughes move with oil prices.\n        →CS-04 · Exploratory analysisMelbourne housingWhat drives house prices across Melbourne's suburbs.\n      \n    \n  \n\n  \n    3,600 ftGranite\n    \n      Detail D · Toolkit\n      The tools I bring down the hole\n      A bottom-hole assembly is the string of tools that sits right above the bit. Here's mine: each skill is one part, and each part links to where I used it.\n      \n        \n          \n          \n          Heavy-weight pipePower Automate, SharePointProof: Oregon State →\n        \n        \n          \n          \n          JarSupplier qualification (ISO, API)Proof: Oliden →\n        \n        \n          \n          \n          Drill collarSAP Business One, SAP ConcurProof: Oliden →\n        \n        \n          \n          \n          StabilizerExcel Solver, @Risk, Monte CarloProof: Teaching SCM 4330 →\n        \n        \n          \n          \n          LWD toolFinancial analysisProof: CS-03 →\n        \n        \n          \n          \n          MWD toolClassification modelsProof: CS-02 →\n        \n        \n          \n          \n          Mud motorForecastingProof: CS-01 →\n        \n        \n          \n          \n          BitR (tidyverse, ggplot2)Proof: Core samples →\n        \n      \n      \n        Parts on order\n        Power BI, TableauOn order · ETA soon\n        PythonOn order · ETA soon\n      \n    \n  \n\n  \n    4,200 ftShale\n    \n      Detail E · Now\n      Now\n      What I'm working on this month.\n      \n        Oct 2026Building this site for BZAN 6351, in R and Quarto.\n        Oct 2026Running a muesli company with my team in the ERPsim game.\n        Oct 2026Helping students with Solver and @Risk as an IA for SCM 4330.\n      \n      Notes →\n    \n  \n\n  \n    4,600 ftTarget\n    \n      Detail F · Target zone\n      You made it to the bottom\n      \n        →Game · 1 minuteSteer the bitGuide a drill bit through rock, pick up parts, and land in the target.\n        \n          Say hello\n          Get in touch\n          Questions about work, the projects, or supply chain in general.\n          \n            Copy email\n            LinkedIn\n            Copied\n          \n        \n      \n      TD 5,000 ft · Total depth\n    \n  \n\n\n\n  Live viewScroll to drill\n  \n    \n    \n  \n  Press a rock layer to jump to it."
+  }
+]

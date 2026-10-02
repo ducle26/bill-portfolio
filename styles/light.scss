@@ -1,0 +1,37 @@
+/*-- scss:defaults --*/
+// Drafting sheet: paper, ink, safety orange
+$body-bg: #F6F7F5;
+$body-color: #13233A;
+$link-color: #13233A;
+$primary: #F25C1F;
+$secondary: #4A5A70;
+$border-color: #CDD4DC;
+$font-family-sans-serif: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+$headings-font-family: "Space Grotesk", "Be Vietnam Pro", system-ui, sans-serif;
+$font-family-monospace: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+$headings-font-weight: 500;
+$navbar-bg: #F6F7F5;
+$navbar-fg: #13233A;
+$navbar-hl: #B8410F;
+$footer-bg: #F6F7F5;
+$footer-fg: #4A5A70;
+$code-color: #13233A;
+$code-bg: #EEF0EC;
+
+/*-- scss:rules --*/
+:root {
+  --paper: #F6F7F5;
+  --paper-2: #EEF0EC;
+  --paper-3: #FFFFFF;
+  --grid: #E3E7EC;
+  --grid-strong: #CDD4DC;
+  --ink: #13233A;
+  --ink-2: #4A5A70;
+  --ink-3: #5F6C7D;
+  --orange: #F25C1F;
+  --orange-ink: #B8410F;
+  --on-orange: #13233A;
+  --hatch: rgba(19, 35, 58, 0.32);
+  --shade: rgba(19, 35, 58, 0.06);
+  --scrim: rgba(246, 247, 245, 0.92);
+}

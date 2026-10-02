@@ -1,0 +1,253 @@
+---
+pagetitle: "Duc (Bill) Le · Supply chain for downhole tools"
+page-layout: full
+body-classes: home
+---
+
+```{=html}
+<div id="sheet-meta" data-sheet="01" data-title="Surface" data-top="0" data-bottom="5000" data-gauge="off" hidden></div>
+
+<!-- Intro: the sheet draws itself, once per visit -->
+<div class="intro" id="intro" aria-hidden="true">
+  <svg class="intro-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
+    <rect class="i-frame" x="10" y="10" width="380" height="280"/>
+    <line class="i-surf" x1="40" y1="90" x2="360" y2="90"/>
+    <path class="i-rig" d="M180 90 L196 40 L204 40 L220 90 M186 72 H214 M191 56 H209"/>
+    <path class="i-well" d="M200 90 V200 Q200 250 250 270"/>
+    <circle class="i-bit" cx="250" cy="270" r="4"/>
+  </svg>
+  <div class="intro-text">
+    <div class="mono">Spud in · <span id="intro-ft">0000</span> ft</div>
+    <div class="intro-name">Duc (Bill) Le</div>
+    <div class="mono intro-skip">Press anywhere to skip</div>
+  </div>
+</div>
+
+<!-- Visitor picker: shows once per visit -->
+<div class="picker" id="picker" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+  <div class="sheet">
+    <span class="label" data-vi="Trước khi xuống">Before we go down</span>
+    <h2 id="picker-title" data-vi="Ai đang ghé thăm?">Who's coming down?</h2>
+    <div class="picker-grid">
+      <button class="picker-opt" data-visitor-pick="recruiter">
+        <span class="label">Path A · 2 min</span>
+        <strong data-vi="Nhà tuyển dụng">Recruiter</strong>
+        <span class="muted" data-vi="Hồ sơ, kỹ năng chính và cách liên hệ.">Resume, top skills, and how to reach me.</span>
+      </button>
+      <button class="picker-opt" data-visitor-pick="classmate">
+        <span class="label">Path B · 10 min</span>
+        <strong data-vi="Bạn học hoặc giáo sư">Classmate or professor</strong>
+        <span class="muted" data-vi="Các dự án R trước, kèm code.">The R projects first, with code.</span>
+      </button>
+      <button class="picker-opt" data-visitor-pick="explorer">
+        <span class="label">Path C · take your time</span>
+        <strong data-vi="Chỉ dạo xem">Just exploring</strong>
+        <span class="muted" data-vi="Đi hết đường xuống. Có một trò chơi ở đáy giếng.">The whole way down. There's a game at the bottom.</span>
+      </button>
+    </div>
+    <p class="picker-note mono" data-vi="Nhạc nhẹ sẽ bật sau khi bạn chọn. Tắt bằng nút Music trên menu.">Soft music starts after you pick. Turn it off with the Music button up top.</p>
+    <button class="skip" data-visitor-pick="skip" data-vi="Bỏ qua">Skip</button>
+  </div>
+</div>
+
+<!-- 0 ft: surface -->
+<div class="descent">
+<div class="descent-main">
+<section class="hero" data-depth="0">
+  <span class="label">0 ft · Surface · Sheet 01</span>
+  <div class="greet" role="heading" aria-level="1"><span class="word" data-words="Hello|Xin chào">Hello</span><span class="comma">,</span> <span class="name" data-vi="mình là Bill.">I'm Bill.</span></div>
+  <p class="lede" data-vi="Mình làm mảng cung ứng cho thiết bị khoan dưới lòng đất: tìm xưởng gia công, đặt hàng, và đảm bảo đúng linh kiện về đúng lúc cho những thiết bị định hướng và đo đạc giếng trong lúc khoan. Mình cũng đang học năm cuối thạc sĩ Quản lý Chuỗi cung ứng tại Đại học Houston.">I work on the supply side of downhole tools: finding the shops, placing the orders, and getting the right parts in on time for tools that steer and measure a well while it's being drilled. I'm also in my last year of a master's in supply chain management at the University of Houston.</p>
+  <div class="btn-row">
+    <a class="bp-btn" href="#about-me" data-vi="Bắt đầu đi xuống ↓">Start the descent ↓</a>
+    <a class="bp-btn-ghost" href="resume.html" data-vi="Hồ sơ">Resume</a>
+  </div>
+
+  <div class="route-card sheet">
+    <div data-for="recruiter">
+      <span class="label label-orange">Path A</span>
+      <p data-vi="Bản ngắn gọn: xem <a href='resume.html'>hồ sơ</a> (2 phút), <a href='about.html'>giới thiệu</a>, rồi <a href='#contact'>liên hệ</a>.">The short version: the <a href="resume.html">resume</a> (2 minutes), <a href="about.html">about me</a>, then <a href="#contact">contact</a>.</p>
+    </div>
+    <div data-for="classmate">
+      <span class="label label-orange">Path B</span>
+      <p data-vi="Bắt đầu với <a href='projects/index.html'>các mẫu lõi</a>. Mỗi mẫu là một case study bằng R, có code trên GitHub.">Start with the <a href="projects/index.html">core samples</a>. Each one is an R case study with the code on GitHub.</p>
+    </div>
+    <div data-for="explorer">
+      <span class="label label-orange">Path C</span>
+      <p data-vi="Cứ từ từ đi xuống. Dưới đáy có <a href='play.html'>một trò chơi</a>, và nút Radio ở trên menu.">Take the long way down. There's <a href="play.html">a game</a> at the bottom, and a radio in the menu.</p>
+    </div>
+    <a href="#" class="mono" data-open-picker data-vi="Đổi lối đi">Change path</a>
+  </div>
+
+  <div class="route" aria-label="Route from Vietnam to Oregon to Houston">
+    <svg viewBox="0 0 760 110" role="img">
+      <title>Vietnam, then Corvallis, Oregon, then Houston, Texas</title>
+      <line class="r-dash" x1="30" y1="22" x2="30" y2="58"/>
+      <line class="r-dash" x1="380" y1="22" x2="380" y2="58"/>
+      <line class="r-dash" x1="730" y1="22" x2="730" y2="58"/>
+      <text x="30" y="14" text-anchor="middle">Origin</text>
+      <text x="380" y="14" text-anchor="middle">BS · 2024</text>
+      <text x="730" y="14" text-anchor="middle">MS · 2027</text>
+      <path class="r-line" d="M30 70 C 150 70, 230 70, 380 70 S 610 70, 730 70"/>
+      <circle class="r-node" cx="30" cy="70" r="6"/>
+      <circle class="r-node" cx="380" cy="70" r="6"/>
+      <circle class="r-node now" cx="730" cy="70" r="7"/>
+      <text class="big" x="30" y="100" text-anchor="start">Vietnam</text>
+      <text class="big" x="380" y="100" text-anchor="middle">Corvallis, OR</text>
+      <text class="big" x="730" y="100" text-anchor="end">Houston, TX</text>
+    </svg>
+  </div>
+
+  <div class="scroll-cue"><span class="bit"></span><span class="mono" data-vi="Cuộn để khoan">Scroll to drill</span></div>
+</section>
+
+<!-- The well -->
+<div class="well">
+  <span class="mud-pulse" aria-hidden="true"></span>
+
+  <section class="stratum" id="about-me" data-depth="500">
+    <div class="depth"><b>500 ft</b>Sandstone</div><div class="litho sand"></div><div class="callout"></div>
+    <div class="reveal">
+      <span class="label kicker">Detail A · About</span>
+      <h2 data-vi="Đôi chút về mình">A bit about me</h2>
+      <p style="max-width:680px" data-vi="Mình tên Lê Đức Huy, mọi người hay gọi là Bill. Phần lớn công việc của mình là những thứ ít ai thấy: tìm xưởng gia công đúng bản vẽ, giữ đơn hàng khớp với từng lần sửa bản vẽ, và kiểm tra hàng về có đúng như đã đặt. Mình thích công việc này vì nó nằm giữa kỹ thuật, tài chính và nhà cung cấp, và một linh kiện trễ là một thiết bị trễ.">My name is Duc Le, and most people call me Bill. Most of my work is the part nobody sees: finding shops that can machine a part to print, keeping orders in step with drawing changes, and checking that what arrives is what we asked for. I like that the job sits between engineering, finance, and the supplier, and that a late part means a late tool.</p>
+      <a class="bp-btn-ghost" href="about.html" data-vi="Đọc thêm">More about me</a>
+    </div>
+  </section>
+
+  <section class="stratum" id="journey" data-depth="1200">
+    <div class="depth"><b>1,200 ft</b>Shale</div><div class="litho shale"></div><div class="callout"></div>
+    <div class="reveal">
+      <span class="label kicker">Detail B · Journey</span>
+      <h2 data-vi="Hành trình">How I got here</h2>
+      <ul class="log">
+        <li><span class="yr">Origin</span><h3>Vietnam</h3><p data-vi="Nơi bắt đầu.">Where it starts.</p></li>
+        <li><span class="yr">2023</span><h3>State of Oregon, Department of Administrative Services</h3><p data-vi="Trợ lý mua sắm và hợp đồng. Mua sắm công theo quy định của bang, và lần đầu làm việc với dữ liệu chi tiêu của hàng trăm nhà cung cấp.">Procurement and contract assistant. Public purchasing under state rules, and my first look at spend data across hundreds of vendors.</p></li>
+        <li><span class="yr">2023 to 2024</span><h3>Oregon State University</h3><p data-vi="Trợ lý dịch vụ tài chính. Xây dựng trang SharePoint cho nhân viên mới và chuyển quy trình duyệt chứng từ sang Power Automate. Cùng lúc, dự báo nhu cầu cho một nhà hàng địa phương.">Financial services assistant. Built a SharePoint onboarding hub and moved a paper approval process into Power Automate. On the side, forecast demand for a local restaurant as a class project.</p></li>
+        <li><span class="yr">2024</span><h3>BS, Supply Chain and Logistics Management</h3><p data-vi="Tốt nghiệp Oregon State. Chứng chỉ ASCM về mua hàng (2023) và hoạch định (2024).">Graduated from Oregon State. ASCM certificates in procurement (2023) and planning (2024).</p></li>
+        <li><span class="yr">2024 to 2025</span><h3>Oliden Technology, Stafford, TX</h3><p data-vi="Mua hàng linh kiện MWD/LWD. Xây hệ thống theo dõi đơn đặt hàng, xử lý tồn đọng cũ trong SAP, và chuẩn hóa quy trình duyệt nhà cung cấp theo ISO/API.">Procurement for MWD/LWD components. Built a PO tracking system, cleared an old backlog in SAP, and set up the approved supplier process to ISO and API standards.</p></li>
+        <li><span class="yr">2026</span><h3>Back at Oliden for a summer build</h3><p data-vi="Tìm nguồn linh kiện cho một đợt lắp ráp RSS và MWD/LWD với hạn chót cố định, và xử lý các vấn đề chất lượng với xưởng gia công.">Sourced parts for a rotary steerable and MWD/LWD build with a fixed assembly date, and worked quality issues with machine shops.</p></li>
+        <li class="now"><span class="yr">Now</span><h3>University of Houston, Bauer College of Business</h3><p data-vi="Thạc sĩ Quản lý Chuỗi cung ứng, tốt nghiệp tháng 5/2027. Trợ giảng môn SCM 4330 và phó chủ tịch CLB Chuỗi cung ứng.">MS in Supply Chain Management, finishing May 2027. Instructional assistant for SCM 4330 and vice president of the Supply Chain Club.</p></li>
+        <li><span class="yr">Next</span><h3 data-vi="Tiếp theo">What's next</h3><p data-vi="Mua hàng cho thiết bị khoan tại một công ty dịch vụ dầu khí. Xa hơn, góp phần xây chuỗi cung ứng bán dẫn của Việt Nam.">Downhole procurement at an oilfield services company. Further out, helping build Vietnam's semiconductor supply chain.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="stratum" id="samples" data-depth="2400">
+    <div class="depth"><b>2,400 ft</b>Limestone</div><div class="litho lime"></div><div class="callout"></div>
+    <div class="reveal">
+      <span class="label kicker">Detail C · Core samples</span>
+      <h2 data-vi="Mẫu lõi">Core samples</h2>
+      <p style="max-width:680px" data-vi="Mỗi dự án là một mẫu lõi lấy ở một độ sâu khác nhau: một câu hỏi kinh doanh, dữ liệu, phần phân tích bằng R, và ý nghĩa của kết quả. Đang trong quá trình ghi nhận.">Each project is a core pulled from a different depth: a business question, the data, the R work, and what the results mean. Logging is in progress.</p>
+      <div class="card-grid">
+        <a class="card-bp" href="projects/rig-count.html"><span class="go">→</span><span class="label">CS-01 · Forecasting</span><h3>Rig count forecast</h3><p>How many rigs will be running in six months, and what that means for long-lead parts.</p></a>
+        <a class="card-bp" href="projects/late-delivery.html"><span class="go">→</span><span class="label">CS-02 · Classification</span><h3>Late delivery risk</h3><p>Which orders will ship late, and what drives it.</p></a>
+        <a class="card-bp" href="projects/ofs-financials.html"><span class="go">→</span><span class="label">CS-03 · Financial analysis</span><h3>Oilfield services health check</h3><p>How SLB, Halliburton, and Baker Hughes move with oil prices.</p></a>
+        <a class="card-bp" href="projects/melbourne-housing.html"><span class="go">→</span><span class="label">CS-04 · Exploratory analysis</span><h3>Melbourne housing</h3><p>What drives house prices across Melbourne's suburbs.</p></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="stratum" id="skills" data-depth="3600">
+    <div class="depth"><b>3,600 ft</b>Granite</div><div class="litho granite"></div><div class="callout"></div>
+    <div class="reveal">
+      <span class="label kicker">Detail D · Toolkit</span>
+      <h2 data-vi="Bộ công cụ mình mang xuống giếng">The tools I bring down the hole</h2>
+      <p style="max-width:680px" data-vi="Một bộ dụng cụ đáy giếng (BHA) là chuỗi thiết bị nối với mũi khoan. Đây là bộ của mình: mỗi kỹ năng là một bộ phận, và mỗi bộ phận dẫn tới nơi mình đã dùng nó.">A bottom-hole assembly is the string of tools that sits right above the bit. Here's mine: each skill is one part, and each part links to where I used it.</p>
+      <div class="bha">
+        <a class="bha-row" href="resume.html#experience" style="--i:0">
+          <span class="bha-tool"><span class="t t-hwdp"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">Heavy-weight pipe</span><strong>Power Automate, SharePoint</strong><span class="bha-proof">Proof: Oregon State →</span></span>
+        </a>
+        <a class="bha-row" href="resume.html#experience" style="--i:1">
+          <span class="bha-tool"><span class="t t-jar"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">Jar</span><strong>Supplier qualification (ISO, API)</strong><span class="bha-proof">Proof: Oliden →</span></span>
+        </a>
+        <a class="bha-row" href="resume.html#experience" style="--i:2">
+          <span class="bha-tool"><span class="t t-collar"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">Drill collar</span><strong>SAP Business One, SAP Concur</strong><span class="bha-proof">Proof: Oliden →</span></span>
+        </a>
+        <a class="bha-row" href="resume.html#teaching" style="--i:3">
+          <span class="bha-tool"><span class="t t-stab"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">Stabilizer</span><strong>Excel Solver, @Risk, Monte Carlo</strong><span class="bha-proof">Proof: Teaching SCM 4330 →</span></span>
+        </a>
+        <a class="bha-row" href="projects/ofs-financials.html" style="--i:4">
+          <span class="bha-tool"><span class="t t-lwd"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">LWD tool</span><strong>Financial analysis</strong><span class="bha-proof">Proof: CS-03 →</span></span>
+        </a>
+        <a class="bha-row" href="projects/late-delivery.html" style="--i:5">
+          <span class="bha-tool"><span class="t t-mwd"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">MWD tool</span><strong>Classification models</strong><span class="bha-proof">Proof: CS-02 →</span></span>
+        </a>
+        <a class="bha-row" href="projects/rig-count.html" style="--i:6">
+          <span class="bha-tool"><span class="t t-motor"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">Mud motor</span><strong>Forecasting</strong><span class="bha-proof">Proof: CS-01 →</span></span>
+        </a>
+        <a class="bha-row" href="projects/index.html" style="--i:7">
+          <span class="bha-tool"><span class="t t-bit"></span></span>
+          <span class="bha-lead" aria-hidden="true"></span>
+          <span class="bha-text"><span class="label">Bit</span><strong>R (tidyverse, ggplot2)</strong><span class="bha-proof">Proof: Core samples →</span></span>
+        </a>
+      </div>
+      <div class="on-order">
+        <span class="label" data-vi="Đang đặt hàng">Parts on order</span>
+        <div class="oo-row"><span>Power BI, Tableau</span><span class="status">On order · ETA soon</span></div>
+        <div class="oo-row"><span>Python</span><span class="status">On order · ETA soon</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stratum" id="now" data-depth="4200">
+    <div class="depth"><b>4,200 ft</b>Shale</div><div class="litho shale"></div><div class="callout"></div>
+    <div class="reveal">
+      <span class="label kicker">Detail E · Now</span>
+      <h2 data-vi="Bây giờ">Now</h2>
+      <p class="muted" data-vi="Những việc mình đang làm trong tháng này.">What I'm working on this month.</p>
+      <ul class="now-list">
+        <li><span>Oct 2026</span><span data-vi="Xây trang web này cho môn BZAN 6351, bằng R và Quarto.">Building this site for BZAN 6351, in R and Quarto.</span></li>
+        <li><span>Oct 2026</span><span data-vi="Điều hành một công ty ngũ cốc muesli cùng nhóm trong game mô phỏng ERPsim.">Running a muesli company with my team in the ERPsim game.</span></li>
+        <li><span>Oct 2026</span><span data-vi="Trợ giảng Solver và @Risk cho môn SCM 4330.">Helping students with Solver and @Risk as an IA for SCM 4330.</span></li>
+      </ul>
+      <p style="margin-top:1.25rem"><a href="notes.html" data-vi="Ghi chép →">Notes →</a></p>
+    </div>
+  </section>
+
+  <section class="stratum" id="contact" data-depth="4600">
+    <div class="depth"><b>4,600 ft</b>Target</div><div class="litho target"></div><div class="callout"></div>
+    <div class="reveal">
+      <span class="label kicker">Detail F · Target zone</span>
+      <h2 data-vi="Bạn đã xuống tới đáy">You made it to the bottom</h2>
+      <div class="card-grid">
+        <a class="card-bp" href="play.html"><span class="go">→</span><span class="label" data-vi="Trò chơi · 1 phút">Game · 1 minute</span><h3 data-vi="Lái mũi khoan">Steer the bit</h3><p data-vi="Lái mũi khoan qua các tầng đá, nhặt linh kiện, và vào đúng vùng mục tiêu.">Guide a drill bit through rock, pick up parts, and land in the target.</p></a>
+        <div class="card-bp">
+          <span class="label" data-vi="Liên hệ">Say hello</span>
+          <h3 data-vi="Liên hệ với mình">Get in touch</h3>
+          <p data-vi="Hỏi về công việc, dự án, hay chỉ muốn trò chuyện về chuỗi cung ứng.">Questions about work, the projects, or supply chain in general.</p>
+          <div class="contact-row" style="margin-top:0.9rem">
+            <button class="bp-btn" data-copy="lehuyduc2811@gmail.com" data-vi="Sao chép email">Copy email</button>
+            <a class="bp-btn-ghost" href="https://www.linkedin.com/in/duc-huy-le/">LinkedIn</a>
+            <span class="copy-note" data-vi="Đã sao chép">Copied</span>
+          </div>
+        </div>
+      </div>
+      <div class="td-mark dim">TD 5,000 ft · Total depth</div>
+    </div>
+  </section>
+</div>
+</div><!-- /descent-main -->
+<aside class="drill-view" aria-label="Live view of the well as you scroll">
+  <div class="dv-head"><span class="label">Live view</span><span class="label label-orange" data-vi="Cuộn để khoan">Scroll to drill</span></div>
+  <div class="dv-box">
+    <div class="dv-canvas"><canvas id="drill-canvas" aria-hidden="true"></canvas></div>
+    <div class="dv-readout mono" id="drill-readout"></div>
+  </div>
+  <p class="dv-hint mono" data-vi="Bấm vào một tầng đá để nhảy tới đó.">Press a rock layer to jump to it.</p>
+</aside>
+</div><!-- /descent -->
+```

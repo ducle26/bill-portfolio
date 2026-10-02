@@ -1,0 +1,58 @@
+project:
+  type: website
+  output-dir: docs
+  resources:
+    - assets/
+    - radio/
+    - .nojekyll
+
+website:
+  title: "Duc (Bill) Le"
+  description: "Supply chain and procurement for downhole tools. Analytics work in R."
+  favicon: assets/img/favicon.svg
+  page-navigation: false
+  bread-crumbs: false
+  navbar:
+    title: "Duc (Bill) Le"
+    collapse-below: lg
+    left:
+      - href: index.qmd
+        text: Surface
+      - href: about.qmd
+        text: About
+      - href: projects/index.qmd
+        text: Core samples
+      - href: resume.qmd
+        text: Resume
+      - href: notes.qmd
+        text: Notes
+      - href: play.qmd
+        text: Play
+      - href: personal.qmd
+        text: Off the clock
+    right:
+      - icon: linkedin
+        href: https://www.linkedin.com/in/duc-huy-le/
+        aria-label: LinkedIn
+      - icon: github
+        href: https://github.com/
+        aria-label: GitHub
+  page-footer:
+    left: "© 2026 Duc (Bill) Le · Built in R with Quarto"
+    right: "Rev 2026.10 · Sheet set BL-01"
+
+format:
+  html:
+    theme:
+      light: styles/light.scss
+      dark: styles/dark.scss
+    respect-user-color-scheme: true
+    css:
+      - assets/fonts/fonts.css
+      - styles/site.css
+    include-after-body: _includes/after-body.html
+    toc: false
+    anchor-sections: false
+    smooth-scroll: true
+    link-external-newwindow: true
+    lang: en
