@@ -12,7 +12,7 @@ pagetitle: "Resume · Duc (Bill) Le"
     <div class="muted">Houston, TX · <a href="mailto:lehuyduc2811@gmail.com">lehuyduc2811@gmail.com</a> · <a href="https://www.linkedin.com/in/duc-huy-le/">linkedin.com/in/duc-huy-le</a></div>
   </div>
   <div class="no-print">
-    <button class="bp-btn" data-print data-vi="In hoặc lưu PDF">Print or save as PDF</button>
+    <button class="bp-btn" data-print>Print or save as PDF</button>
   </div>
 </div>
 

@@ -21,7 +21,7 @@
     return n;
   }
   function fmtFt(n) { return Math.round(n).toLocaleString("en-US") + " ft"; }
-  function isVi() { return document.documentElement.getAttribute("lang") === "vi"; }
+  function isVi() { return false; } // English only for now
   var BL = window.BL = { store: store, root: ROOT, depth: 0, rop: 0 };
 
   /* ---------- Toasts ---------- */
@@ -162,41 +162,15 @@
     }, 250);
   }
 
-  /* ---------- Navbar tools: language, music, radio ---------- */
-  var NAV_VI = {
-    "Surface": "Mặt đất", "About": "Giới thiệu", "Core samples": "Mẫu lõi", "Resume": "Hồ sơ",
-    "Notes": "Ghi chép", "Play": "Chơi", "Off the clock": "Ngoài giờ"
-  };
-  var tools = el("div", "nav-tools");
-  var langBtn = el("button", "nav-tool", '<span data-l="en">EN</span> / <span data-l="vi">VI</span>');
-  langBtn.type = "button"; langBtn.setAttribute("aria-label", "Switch language between English and Vietnamese");
-  tools.appendChild(langBtn);
-  var navTarget = document.querySelector(".quarto-navbar-tools") || document.querySelector("#navbarCollapse");
-  if (navTarget) navTarget.insertBefore(tools, navTarget.firstChild);
-
-  /* ---------- Language toggle ---------- */
-  var viNodes = Array.prototype.slice.call(document.querySelectorAll("[data-vi]"));
-  viNodes.forEach(function (n) { n._en = n.innerHTML; });
-  var navTexts = Array.prototype.slice.call(document.querySelectorAll(".navbar .menu-text"));
-  navTexts.forEach(function (n) { n._en = n.textContent.trim(); });
-  function setLang(lang) {
-    document.documentElement.setAttribute("lang", lang === "vi" ? "vi" : "en");
-    viNodes.forEach(function (n) { n.innerHTML = lang === "vi" ? n.getAttribute("data-vi") : n._en; });
-    navTexts.forEach(function (n) { n.textContent = lang === "vi" && NAV_VI[n._en] ? NAV_VI[n._en] : n._en; });
-    langBtn.querySelectorAll("[data-l]").forEach(function (s) { s.classList.toggle("on", s.dataset.l === lang); });
-    store.set("bl-lang", lang);
-    document.dispatchEvent(new CustomEvent("bl:lang", { detail: lang }));
-  }
-  langBtn.addEventListener("click", function () { setLang(isVi() ? "en" : "vi"); });
-  setLang(store.get("bl-lang") === "vi" ? "vi" : "en");
-
-  /* ---------- Record player: music starts softly a couple of seconds in ---------- */
-  // Browsers only allow sound after the visitor clicks, taps, or presses a key.
-  // If they already have, music starts on time; otherwise it starts on their first click.
-  // A-side: the site's own music (assets/js/field.js). B-side: Bill's picks on YouTube.
+  /* ---------- Record player ---------- */
+  // Browsers hold back sound until the visitor clicks, taps, or presses a key.
+  // On the home page the "Who's coming down?" choice is that click. Anywhere else,
+  // the music starts on the first click, and the player says so while it waits.
+  // A-side: tracks listed in assets/audio/playlist.js, or the built-in music
+  // (assets/js/field.js) when that list is empty. B-side: Bill's picks on YouTube.
   var PICKS = ["XutKfAL7wx8", "IuyJKdTCrE4", "kldpcaGtnb8", "T-U3jBF-Fac", "9FMFzHt5v6s", "FpAItpyVLUg"]; // YouTube video ids, in play order
   var DEFAULT_VOL = 35;
-  var music = { ctx: null, player: null, on: false, armed: false, saveTimer: null, side: "a" };
+  var music = { backend: null, on: false, armed: false, saveTimer: null, side: "a", loading: null };
   var bc = null, myId = Math.random().toString(36).slice(2);
   try { bc = new BroadcastChannel("bill-radio"); } catch (e) {}
 
@@ -221,107 +195,161 @@
       '<div class="rp-a"><div class="rp-title">Sunny side</div><div class="rp-sub label">Track 1</div>' +
         '<div class="rp-ctl"><button type="button" data-act="prev" aria-label="Previous track">◀◀</button><button type="button" data-act="toggle" class="rp-play" aria-label="Play">▶</button><button type="button" data-act="next" aria-label="Next track">▶▶</button>' +
         '<label class="rp-vol"><span class="label">Vol</span><input type="range" id="rp-vol" min="0" max="100" step="1" value="' + DEFAULT_VOL + '" aria-label="Volume"></label></div>' +
-        '<p class="rp-note" data-rp="a-note">Made live in your browser. The six tracks play in a loop.</p></div>' +
+        '<p class="rp-note" data-rp="a-note"></p></div>' +
       '<div class="rp-b" hidden><div class="rp-yt"></div><p class="rp-note"><span data-rp="b-note">My real favorites, played by YouTube.</span> <a class="rp-pop" href="' + ROOT + 'radio/index.html" target="bill-radio">Pop out ↗</a></p></div>' +
     "</div>";
   document.body.appendChild(rp);
   var musicBtn = rp.querySelector(".rp-deck"), rpMore = rp.querySelector(".rp-more"), rpPanel = rp.querySelector(".rp-panel");
   var rpNow = rp.querySelector(".rp-now"), rpVol = rp.querySelector("#rp-vol"), nowTimer = null;
 
-  function musicPref() { return store.get("bl-music") !== "off"; }
+  // Pausing lasts for this visit only; a new visit starts with sound again.
+  function musicPref() { return store.get("bl-music", true) !== "off"; }
+  function setPref(on) { store.set("bl-music", on ? "on" : "off", true); }
   function radioAlive() { var t = +store.get("bl-radio-alive") || 0; return Date.now() - t < 4000; }
   function getVol() { var v = parseInt(store.get("bl-vol"), 10); return isNaN(v) ? DEFAULT_VOL : Math.max(0, Math.min(100, v)); }
   function readPos() { try { return JSON.parse(store.get("bl-music-pos", true) || "{}"); } catch (e) { return {}; } }
   function savePos(on) {
-    if (!music.player) return;
-    var s = music.player.state();
-    store.set("bl-music-pos", JSON.stringify({ t: s.track, s: s.step, on: on }), true);
+    if (!music.backend) return;
+    var st = music.backend.state();
+    store.set("bl-music-pos", JSON.stringify({ t: st.track, s: st.pos, on: on, k: music.backend.kind }), true);
   }
-  function loadField(cb) {
-    if (window.FieldEngine) return cb();
-    var s = document.createElement("script");
-    s.src = ROOT + "assets/js/field.js"; s.onload = cb; document.body.appendChild(s);
+  function loadScript(src, cb) { var sc = document.createElement("script"); sc.src = src; sc.onload = cb; sc.onerror = cb; document.body.appendChild(sc); }
+
+  // Backend 1: recorded tracks from assets/audio
+  function fileBackend(tracks) {
+    var a = new Audio(), idx = 0, vol = DEFAULT_VOL / 100, fadeT = null, api;
+    a.preload = "none";
+    function fadeTo(target, sec, done) {
+      clearInterval(fadeT);
+      var from = a.volume, t0 = performance.now();
+      fadeT = setInterval(function () {
+        var p = Math.min(1, (performance.now() - t0) / Math.max(50, sec * 1000));
+        a.volume = Math.max(0, Math.min(1, from + (target - from) * p));
+        if (p >= 1) { clearInterval(fadeT); if (done) done(); }
+      }, 40);
+    }
+    function load(pos) {
+      a.src = ROOT + tracks[idx].file;
+      if (pos > 1) a.addEventListener("loadedmetadata", function h() { a.removeEventListener("loadedmetadata", h); try { a.currentTime = pos; } catch (e) {} });
+    }
+    a.addEventListener("ended", function () { idx = (idx + 1) % tracks.length; load(0); a.play(); if (api.onTrack) api.onTrack(); });
+    a.addEventListener("error", function () { if (tracks.length > 1 && !a.paused) { idx = (idx + 1) % tracks.length; load(0); a.play().catch(function () {}); } });
+    api = {
+      kind: "file", tracks: tracks, onTrack: null,
+      start: function (t, pos, fade) {
+        idx = ((t || 0) % tracks.length + tracks.length) % tracks.length;
+        load(pos || 0); a.volume = 0;
+        return a.play().then(function () { fadeTo(vol, fade == null ? 2.5 : fade); return true; }, function () { return false; });
+      },
+      stop: function (fade) { fadeTo(0, fade || 0.05, function () { a.pause(); }); },
+      setVolume: function (v) { vol = v; if (!a.paused) { clearInterval(fadeT); a.volume = v; } },
+      state: function () { return { track: idx, pos: a.currentTime || 0, title: tracks[idx].title, artist: tracks[idx].artist || "" }; }
+    };
+    return api;
   }
-  function ensureCtx() {
-    if (music.ctx) return music.ctx;
+  // Backend 2: the built-in music engine
+  function engineBackend() {
     var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    music.ctx = new AC();
-    music.player = window.FieldEngine.create(music.ctx);
-    music.player.setVolume(getVol() / 100);
-    music.player.onTrack = function () { updateMusicUi(); showNow(); };
-    return music.ctx;
+    if (!AC || !window.FieldEngine) return null;
+    var ctx = new AC(), player = window.FieldEngine.create(ctx), api;
+    player.onTrack = function () { if (api.onTrack) api.onTrack(); };
+    api = {
+      kind: "engine", tracks: window.FieldEngine.TRACKS, onTrack: null,
+      start: function (t, pos, fade) {
+        var wait = new Promise(function (res) { setTimeout(function () { res(ctx.state === "running"); }, 300); });
+        var ok = ctx.state === "running" ? Promise.resolve(true) : Promise.race([ctx.resume().then(function () { return ctx.state === "running"; }, function () { return false; }), wait]);
+        return ok.then(function (running) { if (running) player.play(t || 0, pos || 0, fade); return running; });
+      },
+      stop: function (fade) { player.stop(fade); },
+      setVolume: function (v) { player.setVolume(v); },
+      state: function () { var st = player.state(); return { track: st.track, pos: st.step, title: st.title, artist: "" }; }
+    };
+    return api;
   }
-  function showNow() {
-    if (!music.player) return;
-    rpNow.textContent = "♪ " + music.player.state().title;
+  function ensureBackend(cb) {
+    if (music.backend) return cb();
+    if (music.loading) { music.loading.push(cb); return; }
+    music.loading = [cb];
+    function ready() {
+      music.backend.setVolume(getVol() / 100);
+      music.backend.onTrack = function () { updateMusicUi(); showNow(); };
+      var q = music.loading; music.loading = null; q.forEach(function (f) { f(); });
+    }
+    loadScript(ROOT + "assets/audio/playlist.js", function () {
+      var list = window.BL_TRACKS || [];
+      if (list.length) { music.backend = fileBackend(list); return ready(); }
+      loadScript(ROOT + "assets/js/field.js", function () { music.backend = engineBackend(); if (music.backend) ready(); else music.loading = null; });
+    });
+  }
+  function showNow(text) {
+    rpNow.textContent = text || ("♪ " + music.backend.state().title);
     rpNow.classList.add("show");
-    clearTimeout(nowTimer); nowTimer = setTimeout(function () { rpNow.classList.remove("show"); }, 5000);
+    clearTimeout(nowTimer); nowTimer = setTimeout(function () { rpNow.classList.remove("show"); }, text ? 7000 : 5000);
   }
   function updateMusicUi() {
     rp.classList.toggle("on", music.on);
+    rp.classList.toggle("waiting", music.armed && !music.on);
     musicBtn.setAttribute("aria-pressed", music.on ? "true" : "false");
-    var st = music.player ? music.player.state() : { title: "Sunny side", track: 0 };
-    var total = window.FieldEngine ? window.FieldEngine.TRACKS.length : 6;
-    musicBtn.title = music.on ? (isVi() ? "Đang phát: " : "Now playing: ") + st.title + (isVi() ? ". Bấm để dừng." : ". Press to pause.") : (isVi() ? "Bật nhạc" : "Play music");
+    if (!music.backend) return;
+    var st = music.backend.state(), total = music.backend.tracks.length;
+    musicBtn.title = music.on ? "Now playing: " + st.title + ". Press to pause." : "Play music";
     rp.querySelector(".rp-title").textContent = st.title;
-    rp.querySelector(".rp-sub").textContent = (isVi() ? "Bài " : "Track ") + (st.track + 1) + (isVi() ? " trên " : " of ") + total;
+    rp.querySelector(".rp-sub").textContent = "Track " + (st.track + 1) + " of " + total + (st.artist ? " · " + st.artist : "");
     var pb = rp.querySelector(".rp-play"); pb.textContent = music.on ? "❚❚" : "▶"; pb.setAttribute("aria-label", music.on ? "Pause" : "Play");
-    rp.querySelector('[data-rp="head"]').textContent = isVi() ? "Máy hát của Bill" : "Bill's record player";
-    rp.querySelector('[data-rp="a-note"]').textContent = isVi() ? "Nhạc được tạo trực tiếp trong trình duyệt. Sáu bài phát lặp lại." : "Made live in your browser. The six tracks play in a loop.";
-    rp.querySelector('[data-rp="b-note"]').textContent = isVi() ? "Những bài mình thích nhất, phát qua YouTube." : "My real favorites, played by YouTube.";
+    rp.querySelector('[data-rp="a-note"]').textContent = music.backend.kind === "file"
+      ? "Free-to-use tracks, credited on the drill log page. They play in a loop."
+      : "Made live in your browser. The tracks play in a loop.";
   }
-  function startMusic(fade, announce, track) {
-    if (!music.ctx) return;
-    if (music.on && track == null) return;
-    var pos = readPos();
-    if (track != null) music.player.play(track, 0, fade);
-    else music.player.play(pos.t || 0, pos.on ? pos.s : 0, fade);
-    music.on = true; updateMusicUi(); savePos(true);
-    clearInterval(music.saveTimer); music.saveTimer = setInterval(function () { savePos(true); }, 1000);
-    if (bc) bc.postMessage({ type: "playing", id: myId });
-    if (announce) showNow();
+  // Try to start. Resolves true if sound is playing.
+  function startMusic(fade, track) {
+    if (!music.backend) return Promise.resolve(false);
+    if (music.on && track == null) return Promise.resolve(true);
+    var pos = readPos(), same = pos.k === music.backend.kind;
+    var t = track != null ? track : (same ? pos.t || 0 : 0), at = track != null ? 0 : (same && pos.on ? pos.s || 0 : 0);
+    return music.backend.start(t, at, fade).then(function (ok) {
+      if (!ok) return false;
+      music.on = true; music.armed = false; updateMusicUi(); savePos(true); showNow();
+      clearInterval(music.saveTimer); music.saveTimer = setInterval(function () { savePos(true); }, 1000);
+      if (bc) bc.postMessage({ type: "playing", id: myId });
+      return true;
+    });
   }
   function stopMusic(fade) {
     if (!music.on) return;
-    music.player.stop(fade == null ? 0.6 : fade);
+    music.backend.stop(fade == null ? 0.6 : fade);
     music.on = false; clearInterval(music.saveTimer); savePos(false); updateMusicUi();
   }
-  function armGesture(announce) {
+  // Wait for the first click, tap, or key press, then start.
+  function armGesture() {
     if (music.armed) return;
-    music.armed = true;
+    music.armed = true; updateMusicUi();
+    showNow("♪ Click anywhere for sound");
     function go(e) {
       if (e && e.target && e.target.closest && e.target.closest(".record-player")) return; // the player handles itself
       ["pointerdown", "keydown", "touchend"].forEach(function (t) { window.removeEventListener(t, go, true); });
       music.armed = false;
-      if (!musicPref() || music.on || radioAlive() || music.side === "b") return;
-      music.ctx.resume().then(function () { startMusic(2.5, announce); });
+      if (!musicPref() || music.on || radioAlive() || music.side === "b") { updateMusicUi(); return; }
+      startMusic(1.5);
     }
     ["pointerdown", "keydown", "touchend"].forEach(function (t) { window.addEventListener(t, go, true); });
   }
   function tryAutoplay() {
-    if (!musicPref() || radioAlive()) return;
-    loadField(function () {
-      if (!ensureCtx()) return;
+    if (!musicPref() || radioAlive() || music.on) return;
+    ensureBackend(function () {
       updateMusicUi();
-      var pos = readPos(), announce = true;
-      if (music.ctx.state === "running") return startMusic(pos.on ? 1.2 : 2.5, announce);
-      music.ctx.resume().then(function () { if (music.ctx.state === "running") startMusic(pos.on ? 1.2 : 2.5, announce); });
-      setTimeout(function () { if (!music.on) armGesture(announce); }, 200);
+      startMusic(readPos().on ? 1.2 : 2.5).then(function (ok) { if (!ok) armGesture(); });
     });
   }
-  function withAudio(fn) { loadField(function () { if (ensureCtx()) music.ctx.resume().then(fn, fn); }); }
   function toggleMusic() {
-    withAudio(function () {
-      if (music.on) { stopMusic(0.5); store.set("bl-music", "off"); }
-      else { setSide("a"); store.set("bl-music", "on"); startMusic(1.2, true); }
+    ensureBackend(function () {
+      if (music.on) { stopMusic(0.5); setPref(false); }
+      else { setSide("a"); setPref(true); startMusic(1.2); }
     });
   }
   function skip(dir) {
-    withAudio(function () {
-      var n = window.FieldEngine.TRACKS.length, cur = music.player.state().track;
-      store.set("bl-music", "on");
-      startMusic(0.8, true, (cur + dir + n) % n);
+    ensureBackend(function () {
+      var n = music.backend.tracks.length, cur = music.backend.state().track;
+      setPref(true); startMusic(0.8, (cur + dir + n) % n);
     });
   }
   function setSide(side) {
@@ -341,7 +369,7 @@
   }
   function openPanel(open) {
     rpPanel.hidden = !open; rpMore.setAttribute("aria-expanded", open ? "true" : "false");
-    if (open) { loadField(function () { updateMusicUi(); }); rpNow.classList.remove("show"); }
+    if (open) { ensureBackend(updateMusicUi); rpNow.classList.remove("show"); }
   }
   musicBtn.addEventListener("click", toggleMusic);
   rpMore.addEventListener("click", function () { openPanel(rpPanel.hidden); });
@@ -354,7 +382,7 @@
     });
   });
   rpVol.value = getVol();
-  rpVol.addEventListener("input", function () { store.set("bl-vol", this.value); if (music.player) music.player.setVolume(this.value / 100); });
+  rpVol.addEventListener("input", function () { store.set("bl-vol", this.value); if (music.backend) music.backend.setVolume(this.value / 100); });
   rp.querySelector(".rp-pop").addEventListener("click", function (e) {
     e.preventDefault(); setSide("a");
     var w = window.open(this.href, "bill-radio", "width=420,height=700,menubar=no,toolbar=no,location=no");
@@ -363,10 +391,17 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !rpPanel.hidden) openPanel(false); });
   if (bc) bc.onmessage = function (ev) { if (ev.data && ev.data.type === "playing" && ev.data.id !== myId) stopMusic(0.6); };
   window.addEventListener("pagehide", function () { savePos(music.on); });
-  document.addEventListener("bl:lang", function () { updateMusicUi(); });
-  // Continue right away when coming from another page; otherwise wait about 2.5 seconds.
-  setTimeout(tryAutoplay, readPos().on ? 150 : 2500);
-  BL.music = { stop: stopMusic, isOn: function () { return music.on; } };
+  // Start from a real click (the entrance choice on the home page).
+  function startFromClick(withSound) {
+    setPref(withSound);
+    if (!withSound) { stopMusic(0.3); music.armed = false; updateMusicUi(); return; }
+    ensureBackend(function () { startMusic(2).then(function (ok) { if (!ok) armGesture(); }); });
+  }
+  // Continue right away when coming from another page. On a first visit to the
+  // home page, the entrance choice starts it instead.
+  var gate = document.getElementById("picker") && !store.get("bl-visitor", true);
+  if (!gate) setTimeout(tryAutoplay, readPos().on ? 150 : 2500);
+  BL.music = { stop: stopMusic, isOn: function () { return music.on; }, prefOn: musicPref };
 
   /* ---------- Intro: the drawing sets itself up (home, once per visit) ---------- */
   var intro = document.getElementById("intro");
@@ -412,9 +447,11 @@
         store.set("bl-visitor", v, true);
         setVisitor(v === "skip" ? null : v);
         closePicker();
+        var sw = document.getElementById("picker-sound");
+        startFromClick(!sw || sw.checked);
       });
     });
-    picker.addEventListener("keydown", function (e) { if (e.key === "Escape") { store.set("bl-visitor", "skip", true); closePicker(); } });
+    picker.addEventListener("keydown", function (e) { if (e.key === "Escape") { store.set("bl-visitor", "skip", true); closePicker(); tryAutoplay(); } });
   }
   document.querySelectorAll("[data-open-picker]").forEach(function (a) {
     a.addEventListener("click", function (e) { e.preventDefault(); openPicker(); });

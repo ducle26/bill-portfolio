@@ -27,15 +27,19 @@ A Quarto website, built in R. The finished site lives in the `docs/` folder, whi
 | Layout and look | `styles/site.css` |
 | Menu and footer | `_quarto.yml` |
 
-Vietnamese text sits in `data-vi="..."` next to the English. Edit both when you change a line.
-
 ## To-do list for Bill
 
 - **B-side songs:** the YouTube video ids are in two places, `PICKS` in `assets/js/site.js` and `youtubeVideos` in `radio/index.html`. Keep them the same.
-- **Music:** the A-side is the site's own music (`assets/js/field.js`). It starts at 35% volume about 2.5 seconds in, or on the visitor's first click if the browser is holding sound back. Pressing the record player stops it, and the site remembers.
+- **Music:** the A-side plays the tracks listed in `assets/audio/playlist.js`. Put the mp3 files in `assets/audio/` and add one line per track there. While the list is empty, the site plays its built-in music. Music starts at 35% volume from the entrance choice on the home page, or on the visitor's first click elsewhere. Pausing lasts for that visit only.
 - **Personal page:** photos and a line for each place, plus hobbies.
 - **Notes:** the three note titles are placeholders.
 - **Projects:** each project page links to `github.com/ducle26/<repo>`. Create those repos as you finish each one.
+
+## Later list
+
+- **Vietnamese version:** removed for now. Brainstorm the voice and wording first so it reads naturally to a native speaker, then add it back.
+- **Game leaderboard:** shared scores need a small free database (Firebase was the plan). Scores are saved per device for now.
+- **Live rig on every page:** a small version to replace the depth ruler.
 
 ## Adding R to a project page
 

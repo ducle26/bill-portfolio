@@ -307,11 +307,6 @@ ul.task-list li input[type="checkbox"] {
 </i> 
 <span class="menu-text"></span></a>
   </li>  
-  <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/ducle26"> <i class="bi bi-github" role="img" aria-label="GitHub">
-</i> 
-<span class="menu-text"></span></a>
-  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -390,33 +385,53 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">Live well view</th>
-<td>On the home page, the cross-section on the right drills as you scroll. The orange dots running up the pipe are mud pulses, and the specks are cuttings. The well kicks off at 3,000 ft and builds angle toward the target, like a real directional well.</td>
+<td>On the home page, the cross-section on the right drills as you scroll, and you can drag the bit to scroll the page. The orange dots running up the pipe are mud pulses. Casing is set above each section you pass, and the rig's block cycles once for every 90 ft stand of pipe. The well kicks off at 3,000 ft and builds angle toward the target, like a real directional well.</td>
 </tr>
 <tr class="even">
+<th data-quarto-table-cell-role="th">Sidetracks</th>
+<td>Four branches leave the main well, one for each project. A branch turns orange once you've read that project.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Log curve</th>
+<td>The curve on the right edge of the well view is a log of the page itself: it swings wider where a section holds more text and pictures.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">The plant</th>
+<td>When the bit reaches the target, the well comes on production. Oil flows to the separator, the tanks fill, and the flare lights. The sky over the rig follows your local time.</td>
+</tr>
+<tr class="odd">
 <th data-quarto-table-cell-role="th">ROP</th>
 <td>Rate of penetration, shown in the title block and the live view. Here it's how fast you scroll, in feet per second. A real rig in hard rock might make 50 to 100 feet in an hour, so you're doing fine.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">Sheet log</th>
 <td>The title block counts the pages you've seen. Log all of them and this page opens on its own.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">Toolkit</th>
 <td>Drawn as a bottom-hole assembly: the string of tools right above the bit. Skills without proof yet are listed as parts on order.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">Record player</th>
-<td>The turntable in the corner runs the music. Press it to play or pause, and press the dots to flip the record. The A-side is made live in your browser with the Web Audio API: warm electric piano, soft bass, a lazy beat, and two slower tracks with strings and a plucked lead. Nothing is recorded, so there's nothing to license. The B-side is Bill's own favorites, played by YouTube's player.</td>
+<td>The turntable in the corner runs the music. Press it to play or pause, and press the dots to change track or flip the record. The B-side is Bill's own favorites, played by YouTube's player.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">Music credits</th>
+<td id="music-credits">The A-side is made live in your browser with the Web Audio API, so there's nothing to license.</td>
 </tr>
 <tr class="even">
+<th data-quarto-table-cell-role="th">The game</th>
+<td>Everyone drills the same well each day, because the layout is built from the date. The lateral at the end is a small version of geosteering: keeping the bit inside a thin layer of good rock.</td>
+</tr>
+<tr class="odd">
 <th data-quarto-table-cell-role="th">Journey map</th>
 <td>The route on the home page draws itself when you reach it. Press a stop to light up that part of the timeline.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">Career log</th>
 <td>On the resume, the same history is drawn as a strip log, the way a well log shows what's at each depth. Press a bar to jump to the entry.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">Headshot</th>
 <td>Printed in ink in light mode and as a cyanotype in dark mode, which is how real blueprints were made. Hover to see it in color.</td>
 </tr>
@@ -424,6 +439,18 @@ ul.task-list li input[type="checkbox"] {
 </table>
 
 <p><a href="index.html">← Back to the surface</a></p>
+<script src="assets/audio/playlist.js"></script>
+<script>
+  // List the recorded tracks and their licenses, if any are in use.
+  (function () {
+    var t = window.BL_TRACKS || [], cell = document.getElementById("music-credits");
+    if (!t.length || !cell) return;
+    cell.innerHTML = '<ul class="credits-list">' + t.map(function (x) {
+      var name = x.source ? '<a href="' + x.source + '">' + x.title + "</a>" : x.title;
+      return "<li>" + name + (x.artist ? " by " + x.artist : "") + (x.license ? " (" + x.license + ")" : "") + "</li>";
+    }).join("") + "</ul>";
+  })();
+</script>
 
 
 

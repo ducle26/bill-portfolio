@@ -17,13 +17,13 @@ pagetitle: "About · Duc (Bill) Le"
   </div>
 
   <div>
-    <h2 style="margin-top:0" data-vi="Chào bạn, mình là Bill">Hi, I'm Bill</h2>
-    <p data-vi="Mình tên Lê Đức Huy, mọi người hay gọi là Bill. Mình đang học năm cuối thạc sĩ Quản lý Chuỗi cung ứng tại Bauer College of Business, Đại học Houston, và làm mua hàng tại Oliden Technology ở Stafford, nơi sản xuất thiết bị MWD/LWD và hệ thống khoan định hướng xoay (RSS).">My name is Duc Le, and most people call me Bill. I'm in my last year of an MS in Supply Chain Management at the University of Houston's Bauer College of Business, and I work in procurement at Oliden Technology in Stafford, which builds MWD/LWD and rotary steerable tools.</p>
-    <p data-vi="Phần lớn công việc của mình là những thứ ít ai thấy: tìm xưởng gia công đúng bản vẽ, giữ đơn hàng khớp với từng lần sửa bản vẽ, và kiểm tra hàng về có đúng như đã đặt. Mình thích công việc này vì nó nằm giữa kỹ thuật, tài chính và nhà cung cấp, và một linh kiện trễ là một thiết bị trễ.">Most of my work is the part nobody sees: finding shops that can machine a part to print, keeping orders in step with drawing changes, and checking that what arrives is what we asked for. I like that the job sits between engineering, finance, and the supplier, and that a late part means a late tool.</p>
-    <p data-vi="Ở trường, mình đang học cách dùng dữ liệu để hỗ trợ công việc đó. Trang này tập hợp những gì mình đã làm, phần lớn bằng R.">At school I'm learning to back that work with data. This site collects what I've built, mostly in R.</p>
+    <h2 style="margin-top:0">Hi, I'm Bill</h2>
+    <p>My name is Duc Le, and most people call me Bill. I'm in my last year of an MS in Supply Chain Management at the University of Houston's Bauer College of Business, and I work in procurement at Oliden Technology in Stafford, which builds MWD/LWD and rotary steerable tools.</p>
+    <p>Most of my work is the part nobody sees: finding shops that can machine a part to print, keeping orders in step with drawing changes, and checking that what arrives is what we asked for. I like that the job sits between engineering, finance, and the supplier, and that a late part means a late tool.</p>
+    <p>At school I'm learning to back that work with data. This site collects what I've built, mostly in R.</p>
     <div class="btn-row">
-      <a class="bp-btn" href="resume.html" data-vi="Xem hồ sơ">See the resume</a>
-      <a class="bp-btn-ghost" href="projects/index.html" data-vi="Xem dự án">See the projects</a>
+      <a class="bp-btn" href="resume.html">See the resume</a>
+      <a class="bp-btn-ghost" href="projects/index.html">See the projects</a>
     </div>
   </div>
 </div>

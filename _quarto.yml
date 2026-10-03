@@ -35,9 +35,6 @@ website:
       - icon: linkedin
         href: https://www.linkedin.com/in/duc-huy-le/
         aria-label: LinkedIn
-      - icon: github
-        href: https://github.com/ducle26
-        aria-label: GitHub
   page-footer:
     left: "© 2026 Duc (Bill) Le · Built in R with Quarto"
     right: "Rev 2026.10 · Sheet set BL-01"

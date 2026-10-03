@@ -6,6 +6,7 @@
 <title>Bill's record player</title>
 <link rel="icon" href="../assets/img/favicon.svg">
 <link rel="stylesheet" href="../assets/fonts/fonts.css">
+<script src="../assets/audio/playlist.js"></script>
 <script src="../assets/js/field.js"></script>
 <style>
   :root {
@@ -95,14 +96,13 @@
    1. youtubeVideos: the B-side. YouTube video ids, in play order. The id is
       the part after "v=" in a video's address. Keep this list the same as
       PICKS in assets/js/site.js.
-   2. fieldTracks: optional mp3 files for the A-side. Leave it empty and the
-      A-side plays the site's own music, made live in the browser.
+   2. The A-side tracks come from assets/audio/playlist.js. If that list is
+      empty, the A-side plays the site's built-in music.
    ============================================================ */
 var CONFIG = {
   youtubeVideos: ["XutKfAL7wx8", "IuyJKdTCrE4", "kldpcaGtnb8", "T-U3jBF-Fac", "9FMFzHt5v6s", "FpAItpyVLUg"],
-  fieldTracks: [
-    // { title: "Track name", artist: "Artist on Pixabay", file: "../assets/audio/track-1.mp3", source: "https://pixabay.com/music/..." }
-  ]
+  // The A-side list lives in assets/audio/playlist.js, shared with the corner player.
+  fieldTracks: (window.BL_TRACKS || []).map(function (t) { return { title: t.title, artist: t.artist, file: "../" + t.file, source: t.source }; })
 };
 
 (function () {
@@ -249,7 +249,7 @@ var CONFIG = {
   // Credits
   var foot = $("foot");
   if (CONFIG.fieldTracks.length) {
-    foot.innerHTML = "Channel 1: royalty-free music from Pixabay. " + CONFIG.fieldTracks.map(function (t) { return t.source ? '<a href="' + t.source + '" target="_blank" rel="noopener">' + t.title + "</a>" : t.title; }).join(" · ");
+    foot.innerHTML = "A-side credits: " + CONFIG.fieldTracks.map(function (t) { return (t.source ? '<a href="' + t.source + '" target="_blank" rel="noopener">' + t.title + "</a>" : t.title) + (t.artist ? " by " + t.artist : ""); }).join(" · ");
   } else {
     foot.textContent = "The A-side is made live in your browser. The B-side plays through YouTube's own player.";
   }

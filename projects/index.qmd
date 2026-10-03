@@ -6,7 +6,7 @@ pagetitle: "Core samples · Duc (Bill) Le"
 ```{=html}
 <div id="sheet-meta" data-sheet="04" data-title="Core samples" data-top="2400" data-bottom="2600" hidden></div>
 <span class="label">Sheet 04 · 2,400 to 3,600 ft</span>
-<p class="lede muted" style="font-size:1.15rem;max-width:680px;margin-top:0.75rem" data-vi="Mỗi dự án là một mẫu lõi lấy ở một độ sâu khác nhau: một câu hỏi kinh doanh, dữ liệu, phần phân tích bằng R, và ý nghĩa của kết quả.">Each project is a core pulled from a different depth: a business question, the data, the R work, and what the results mean. Every case study follows the same five parts: overview, problem, approach, results, and code.</p>
+<p class="lede muted" style="font-size:1.15rem;max-width:680px;margin-top:0.75rem">Each project is a core pulled from a different depth: a business question, the data, the R work, and what the results mean. Every case study follows the same five parts: overview, problem, approach, results, and code.</p>
 <div class="cores">
   <a class="core" href="rig-count.html">
     <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>

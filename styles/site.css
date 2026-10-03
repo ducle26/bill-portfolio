@@ -649,3 +649,110 @@ details.role.flash { animation: flash 1.4s ease; }
 @media (max-width: 600px) { .jmap .stop text { display: none; } .jmap .stop circle { r: 11; } .jmap .stop.active circle { r: 14; } }
 /* Scroll cue sits under the route instead of on top of it */
 .scroll-cue { position: static; margin-top: 2rem; }
+
+/* Entrance sound switch */
+.sound-switch { display: inline-flex; align-items: center; gap: 10px; margin: 1.1rem 0 0; cursor: pointer; position: relative; }
+.sound-switch input { position: absolute; opacity: 0; width: 34px; height: 18px; margin: 0; cursor: pointer; }
+.sound-switch .sw { width: 36px; height: 20px; border: 1px solid var(--ink); border-radius: 10px; position: relative; transition: background-color 150ms ease; }
+.sound-switch .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink-3); transition: left 150ms ease, background-color 150ms ease; }
+.sound-switch input:checked + .sw { background: var(--orange); border-color: var(--orange); }
+.sound-switch input:checked + .sw::after { left: 18px; background: var(--on-orange); }
+.sound-switch input:focus-visible + .sw { outline: 2px solid var(--orange); outline-offset: 3px; }
+.sound-switch .mono { color: var(--ink); }
+.sound-switch input:not(:checked) ~ .mono { color: var(--ink-3); text-decoration: line-through; }
+.picker .skip { display: block; }
+/* Record player waiting for the first click */
+.record-player.waiting .rp-deck { animation: rp-wait 1.6s ease-in-out infinite; }
+@keyframes rp-wait { 50% { filter: drop-shadow(0 0 0 var(--orange)) drop-shadow(0 0 6px var(--orange)); } }
+/* Live view column */
+@media (min-width: 1200px) { .descent { grid-template-columns: minmax(0, 1fr) 320px; gap: 40px; } }
+#drill-canvas { touch-action: none; }
+
+/* Game legend and end score */
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0.75rem 0 0.25rem; font-size: 0.9rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legend svg { width: 22px; height: 22px; flex: none; }
+.lg-o { fill: none; stroke: var(--orange); stroke-width: 2.5; } .lg-o.thin { stroke-width: 1.5; } .lg-o.dash { stroke-dasharray: 4 3.2; }
+.lg-f { fill: var(--orange); } .lg-w { fill: none; stroke: var(--paper); stroke-width: 2; }
+.lg-i { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+.end-score { font-family: "Space Grotesk", sans-serif; font-size: clamp(2.2rem, 7vw, 3.4rem); line-height: 1; letter-spacing: -0.02em; margin: 0.2rem 0 0.6rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.game-overlay .game-stats { margin: 0.6rem 0; }
+.game-overlay .game-stats div { padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+.credits-list { margin: 0; padding-left: 1.1rem; }
+
+/* Keep the footer text clear of the record player */
+.nav-footer .nav-footer-left { padding-left: 104px; }
+@media (min-width: 1200px) { body.has-gauge .nav-footer .nav-footer-left { padding-left: 112px; } }
+@media (max-width: 767.98px) { .nav-footer .nav-footer-left { padding-left: 0; } .nav-footer { padding-bottom: 72px; } }
+
+/* =========================================================
+   Phones and tablets (below 1200px)
+   The live well view becomes a small card in the bottom right corner.
+   Press it to open the full view; press a rock layer to jump and close.
+   ========================================================= */
+.dv-toggle, .dv-scrim { display: none; }
+@media (max-width: 1199.98px) {
+  body.home .title-block-fixed { display: none; } /* the card shows the depth instead */
+  .drill-view {
+    display: flex; flex-direction: column; gap: 0;
+    position: fixed; right: 8px; bottom: 8px; z-index: 1150 !important;
+    width: 66px; height: 144px; padding: 3px 3px 2px;
+    background: var(--paper); border: 1px solid var(--ink); cursor: pointer;
+    box-shadow: 0 2px 0 var(--grid-strong);
+  }
+  .drill-view .dv-head, .drill-view .dv-hint { display: none; }
+  .drill-view .dv-box { border: 0; padding: 0; background: none; }
+  .drill-view .dv-box::before, .drill-view .dv-box::after { display: none; }
+  .drill-view .dv-readout { justify-content: center; margin-top: 2px; padding-top: 2px; min-height: 0; font-size: 0.62rem; line-height: 1.5; }
+  .drill-view .dv-readout b { color: var(--orange-ink); text-transform: uppercase; letter-spacing: 0.03em; }
+  .dv-toggle {
+    display: grid; place-items: center; position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; padding: 0;
+    font: 400 12px/1 "Space Mono", monospace; color: var(--ink-2); background: var(--paper);
+    border: 1px solid var(--grid-strong); border-radius: 2px; cursor: pointer;
+  }
+
+  /* Opened: a full sheet over the page */
+  .dv-scrim { position: fixed; inset: 0; z-index: 3100; background: var(--scrim); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .dv-scrim.on { display: block; }
+  .drill-view.open {
+    left: 50%; right: auto; top: 50%; bottom: auto; transform: translate(-50%, -50%); z-index: 3200 !important;
+    width: min(420px, calc(100vw - 24px)); height: min(680px, calc(100vh - 96px)); height: min(680px, calc(100dvh - 96px));
+    padding: 12px 12px 10px; gap: 8px; cursor: default;
+  }
+  .drill-view.open .dv-head { display: flex; padding-right: 34px; }
+  .drill-view.open .dv-hint { display: block; }
+  .drill-view.open .dv-box { border: 1px solid var(--grid-strong); padding: 8px 6px 6px; background: var(--paper); }
+  .drill-view.open .dv-box::before, .drill-view.open .dv-box::after { display: block; }
+  .drill-view.open .dv-readout { justify-content: flex-start; margin-top: 6px; padding-top: 6px; min-height: 2.6em; font-size: 0.68rem; }
+  .drill-view.open .dv-readout b { color: var(--ink); text-transform: none; letter-spacing: 0; }
+  .drill-view.open .dv-toggle { top: 8px; right: 8px; width: 30px; height: 30px; font-size: 18px; color: var(--ink); border-color: var(--ink); }
+
+  /* Room at the end of the page so the corner pieces don't sit on the last card */
+  body.home .nav-footer { padding-bottom: 84px; }
+}
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .drill-view:not(.open) { right: 16px; bottom: 16px; width: 84px; height: 190px; }
+}
+/* A phone held sideways: a shorter card, and the open view uses the full height */
+@media (max-width: 1199.98px) and (max-height: 520px) {
+  .drill-view:not(.open) { right: 8px; bottom: 8px; width: 66px; height: 120px; }
+  .drill-view.open { height: calc(100vh - 16px); height: calc(100dvh - 16px); }
+  .drill-view.open .dv-hint { display: none; }
+}
+@media print { .drill-view, .dv-scrim { display: none !important; } }
+
+/* Route strip under the greeting: larger type on phones so it can be read */
+@media (max-width: 600px) {
+  .route { margin-top: 2rem; }
+  .route svg { margin-bottom: 0.5rem; }
+  .route text { font-size: 21px; letter-spacing: 0; }
+  .route text.big { font-size: 28px; transform: translateY(14px); }
+  .route .r-dash { display: none; }
+  .route .r-node { r: 9; }
+}
+
+/* Parts on order: keep each status tag on one line */
+@media (max-width: 575.98px) {
+  .oo-row { flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; }
+  .oo-row .status { white-space: nowrap; }
+}
