@@ -23,7 +23,7 @@ pagetitle: "CS-03 Oilfield services health check · Duc (Bill) Le"
 ## Project overview
 
 ::: {.pending data-tag="To log"}
-Two or three sentences: the business question, what the analysis found, and what someone should do about it. Written last.
+Summary to come once the analysis is done.
 :::
 ::::
 :::::
@@ -54,7 +54,7 @@ Planned steps:
 3. Compare revenue and margins from annual reports
 4. Chart how each company held up through the 2020 oil price crash and since
 
-The R code, with comments, goes here. Each step becomes a short section with its code chunk and one line on why.
+The R code, with comments, will sit under each step.
 :::
 ::::
 :::::

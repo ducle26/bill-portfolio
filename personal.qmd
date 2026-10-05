@@ -14,12 +14,12 @@ pagetitle: "Off the clock · Duc (Bill) Le"
 
 <h2>Places</h2>
 <div class="place-grid">
-  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Vietnam</strong><span class="muted">A line from Bill goes here.</span></div></div>
-  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Windermere, Florida</strong><span class="muted">A line from Bill goes here.</span></div></div>
-  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Corvallis, Oregon</strong><span class="muted">A line from Bill goes here.</span></div></div>
-  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Houston, Texas</strong><span class="muted">A line from Bill goes here.</span></div></div>
+  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Vietnam</strong></div></div>
+  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Windermere, Florida</strong></div></div>
+  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Corvallis, Oregon</strong></div></div>
+  <div class="place"><div class="ph"><span class="mono">Photo pending</span></div><div class="cap"><strong>Houston, Texas</strong></div></div>
 </div>
 
 <h2>Things I like</h2>
-<div class="pending" data-tag="From Bill">A few hobbies, with a photo or two.</div>
+<div class="pending" data-tag="Coming soon">A few hobbies, with a photo or two.</div>
 ```

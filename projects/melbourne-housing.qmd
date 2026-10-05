@@ -1,18 +1,27 @@
 ---
 title: "Melbourne housing"
 pagetitle: "CS-04 Melbourne housing · Duc (Bill) Le"
+description-meta: "What drives house prices in Melbourne, and can a model built on listing-day facts back up an agent's price guide? Regression, a decision tree, and a random forest in R."
+code-fold: true
+code-summary: "Show the R code"
+fig-width: 8
+fig-height: 4.6
+execute:
+  warning: false
+  message: false
 ---
 
 ```{=html}
 <div id="sheet-meta" data-sheet="04" data-title="CS-04" data-top="3350" data-bottom="3600" hidden></div>
 <span class="label">Core sample CS-04 · 3,350 to 3,600 ft</span>
-<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">What drives house prices across Melbourne's suburbs?</p>
+<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">What drives house prices across Melbourne's suburbs, and can a model back up an agent's price guide?</p>
 <div class="sample-head">
-  <div><span class="label">Method</span><div class="v">Exploratory analysis</div></div>
-  <div><span class="label">Data</span><div class="v">Melbourne housing market (Kaggle, public)</div></div>
-  <div><span class="label">R packages</span><div class="v">tidyverse, ggplot2</div></div>
-  <div><span class="label">Status</span><div class="v"><span class="status">Done in class · moving over</span></div></div>
+  <div><span class="label">Method</span><div class="v">Regression, decision tree, random forest</div></div>
+  <div><span class="label">Data</span><div class="v">Melbourne Housing Snapshot (Kaggle, public)</div></div>
+  <div><span class="label">R packages</span><div class="v">tidyverse, rpart, randomForest, car</div></div>
+  <div><span class="label">Status</span><div class="v"><span class="status">Logged · Sep 2026</span></div></div>
 </div>
+<div class="cs-tools"><button type="button" class="bp-btn-ghost" id="code-toggle" aria-pressed="false">Show all code</button><a class="bp-btn-ghost" href="#try-it">Skip to the price guide ↓</a></div>
 ```
 
 ::::: {.cs-sec}
@@ -22,9 +31,11 @@ pagetitle: "CS-04 Melbourne housing · Duc (Bill) Le"
 :::: {}
 ## Project overview
 
-::: {.pending data-tag="To log"}
-Two or three sentences: the business question, what the analysis found, and what someone should do about it. Written last.
-:::
+A real estate agency in Melbourne sets a price guide for every new listing. Today that guide comes from an agent's judgment and a few nearby sales. I used 14,885 sales from 2016 and 2017 to find what drives price, and to test whether facts known on listing day can predict it.
+
+Location and property type do most of the work. The best model, a random forest, lands within 20% of the real sale price for two homes out of three. That is good enough for a first draft and a second opinion. It is not good enough to replace the agent.
+
+This was Project 1 for BZAN 6351, and it has nothing to do with oil. I kept it here because a buyer asks the same question every day: what should this cost, given what it is?
 ::::
 :::::
 
@@ -35,9 +46,14 @@ Two or three sentences: the business question, what the analysis found, and what
 :::: {}
 ## Problem statement
 
-::: {.pending data-tag="To move over"}
-This was Project 1, presented in class on Sep 28. The business question from that project goes here.
-:::
+A guide set too high leaves the home unsold. A guide set too low costs the seller money and the agency its name. The agency wants a number it can defend to a seller.
+
+That turns into two questions:
+
+1. **Which features and locations drive sale price the most?**
+2. **Can a model built only on facts known at listing time predict the price closely enough to support a guide?** Those facts are type, rooms, bathrooms, parking, land, distance from the city, and region.
+
+I set the test before I built anything: error on homes the model has never seen, in dollars and in percent, plus price drivers plain enough for an agent to explain to a seller.
 ::::
 :::::
 
@@ -48,9 +64,433 @@ This was Project 1, presented in class on Sep 28. The business question from tha
 :::: {}
 ## Approach
 
-::: {.pending data-tag="To move over"}
-The cleaning, exploration, and methods from Project 1 go here, with the R code.
-:::
+### Step 1 · Get to know the data
+
+The Melbourne Housing Snapshot holds sales scraped from public listings on Domain.com.au by Tony Pino and published on Kaggle by Dan Becker. Each row is one sale, from January 2016 to September 2017. The file has 18,396 sales and 21 fields.
+
+```{r setup}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(rpart)
+library(randomForest)
+library(car)
+library(knitr)
+
+# The site's chart style. bp_both() draws each chart twice:
+# once for the light sheet and once for the dark print.
+source("_blueprint.R")
+bp_device()
+
+raw <- read.csv("data/melbourne_housing.csv", check.names = FALSE,
+                na.strings = c("", "NA"), stringsAsFactors = FALSE)
+raw <- raw[, -1]                      # first column is an old row index
+```
+
+The first thing I check on any new file is what's missing.
+
+```{r chart-missing}
+#| renderings: [light, dark]
+#| fig-height: 4
+#| fig-cap: "Fig. 1 · Share of each field that is blank"
+#| fig-alt: "Bar chart of missing values. Building area is blank for 58 percent of sales and year built for 51 percent."
+miss <- data.frame(variable = names(raw),
+                   pct_missing = round(colMeans(is.na(raw)) * 100, 1)) %>%
+  arrange(desc(pct_missing))
+
+bp_both(function(k) {
+  ggplot(filter(miss, pct_missing > 0),
+         aes(pct_missing, reorder(variable, pct_missing))) +
+    geom_col(width = 0.62) +
+    geom_text(aes(label = paste0(pct_missing, "%")), hjust = -0.2, size = 3.6) +
+    scale_x_continuous(limits = c(0, 68), expand = c(0, 0)) +
+    labs(title = "Floor area and build year are blank for about half the sales",
+         subtitle = "The two fields a buyer would most like to have are the ones the listings left out.",
+         x = "% of sales with the field blank", y = NULL) +
+    theme(panel.grid.major.y = element_blank())
+})
+```
+
+What this data can't do, noted before any modeling:
+
+- **Floor area and build year are too sparse to use.** Filling in half a column would be guessing.
+- **It covers 2016 and 2017 only.** The model describes that market, not today's prices.
+- **It comes from one listing site.** Private sales that were never advertised aren't in it.
+- **Sale method, agency, and sale date are known only after the sale.** They don't belong in a model meant for listing day.
+
+### Step 2 · Clean it, and keep a count
+
+Every cleaning step removes rows, so I log the count after each one. If a step throws away more than I expect, I want to see it.
+
+```{r clean}
+log_step <- data.frame(Step = "Raw file", Sales = nrow(raw))
+
+# 1. Duplicates: same address, suburb and sale date is a double entry
+d <- raw %>% distinct(Address, Suburb, Date, .keep_all = TRUE)
+log_step <- rbind(log_step, data.frame(Step = "Remove duplicate sales", Sales = nrow(d)))
+
+# 2. Formatting: dates, readable labels, fold the three small country regions into one
+d <- d %>%
+  mutate(Date = as.Date(Date, format = "%d/%m/%Y"),
+         Type = factor(dplyr::recode(Type, h = "House", t = "Townhouse", u = "Unit"),
+                       levels = c("House", "Townhouse", "Unit")),
+         Region = case_when(grepl("Victoria", Regionname) ~ "Regional Victoria",
+                            TRUE ~ sub(" Metropolitan", "", Regionname)),
+         Region = factor(Region))
+
+# 3. Impossible values become missing
+d <- d %>%
+  mutate(YearBuilt    = ifelse(YearBuilt < 1840, NA, YearBuilt),   # before Melbourne existed
+         BuildingArea = ifelse(BuildingArea == 0, NA, BuildingArea),
+         Bathroom     = ifelse(Bathroom == 0, NA, Bathroom))       # every dwelling has one
+
+# 4. Rows missing the core layout fields (bathroom, bedroom and parking go missing together)
+d <- d %>% filter(!is.na(Bathroom), !is.na(Region), !is.na(Distance))
+log_step <- rbind(log_step, data.frame(Step = "Drop rows missing core fields", Sales = nrow(d)))
+
+# 5. Entry errors: second bedroom count far above the room count
+d <- d %>% filter(is.na(Bedroom2) | Bedroom2 <= Rooms + 2)
+log_step <- rbind(log_step, data.frame(Step = "Drop room-count conflicts", Sales = nrow(d)))
+
+# 6. Fill the remaining gaps with the median for that property type
+d <- d %>% group_by(Type) %>%
+  mutate(Landsize = ifelse(is.na(Landsize), median(Landsize, na.rm = TRUE), Landsize),
+         Car      = ifelse(is.na(Car),      median(Car,      na.rm = TRUE), Car)) %>%
+  ungroup()
+
+kable(log_step, format.args = list(big.mark = ","),
+      caption = "Sales left after each cleaning step")
+```
+
+The big drop is the third row. Bathroom, bedroom, and parking counts go missing together, which points to listings that never had the detail. I dropped those rows instead of guessing three fields at once. Where only land size or parking was blank, I filled it with the median for that property type.
+
+### Step 3 · Decide what to do with extreme values
+
+Prices run from about \$85,000 to \$9 million. Those are real sales, so they stay. But a few mansions can drag a model around, so the models predict the log of price, which pulls the long tail in.
+
+Land size is a different case. A value like 433,014 m² for a suburban house is a typing error, so I capped land at the 99th percentile.
+
+```{r chart-outliers}
+#| renderings: [light, dark]
+#| fig-height: 3.9
+#| fig-cap: "Fig. 2 · The same prices, before and after taking the log"
+#| fig-alt: "Two histograms. Raw prices pile up on the left with a long tail to the right. Log prices form a roughly symmetric bell shape."
+cap <- quantile(d$Landsize, 0.99)
+d <- d %>% mutate(Landsize = pmin(Landsize, cap),
+                  logPrice = log(Price))
+
+# How many sales the usual 1.5 x IQR rule flags, on each scale
+iqr_raw <- with(d, sum(Price > quantile(Price, .75) + 1.5 * IQR(Price)))
+iqr_log <- with(d, sum(logPrice > quantile(logPrice, .75) + 1.5 * IQR(logPrice) |
+                       logPrice < quantile(logPrice, .25) - 1.5 * IQR(logPrice)))
+
+shape <- bind_rows(
+  data.frame(panel = "Price, AUD millions", value = d$Price / 1e6),
+  data.frame(panel = "log(Price)", value = d$logPrice)) %>%
+  mutate(panel = factor(panel, levels = c("Price, AUD millions", "log(Price)")))
+
+bp_both(function(k) {
+  ggplot(shape, aes(value)) +
+    geom_histogram(bins = 55) +
+    facet_wrap(~panel, scales = "free") +
+    scale_y_continuous(labels = comma) +
+    labs(title = "Raw prices have a long right tail. Log prices are close to even.",
+         x = NULL, y = "Sales") +
+    theme(panel.grid.major.x = element_blank())
+})
+```
+
+On the raw scale the usual outlier rule flags `r iqr_raw` sales. On the log scale it flags `r iqr_log`.
+
+### Step 4 · Look before modeling
+
+Four charts told me most of what the models later confirmed.
+
+```{r chart-distance}
+#| renderings: [light, dark]
+#| fig-cap: "Fig. 3 · Price against distance from the city center, by property type"
+#| fig-alt: "Scatter plot with three trend lines. House and townhouse prices fall as distance from the city center grows. Unit prices stay close to flat. Houses sit highest near the city."
+bp_both(function(k) {
+  ggplot(d, aes(Distance, Price / 1e6, colour = Type)) +
+    geom_point(alpha = 0.22, size = 0.9, stroke = 0) +
+    geom_smooth(se = FALSE, method = "loess", linewidth = 1.2) +
+    scale_colour_manual(values = setNames(k$series, levels(d$Type))) +
+    scale_y_log10(breaks = c(0.25, 0.5, 1, 2, 4, 8), labels = bp_millions) +
+    coord_cartesian(xlim = c(0, 40), ylim = c(0.2, 9.5)) +
+    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 2.5))) +
+    labs(title = "Houses lose value with distance from the city. Units barely move.",
+         subtitle = "Each dot is one sale. Lines show the trend for each type.",
+         x = "Distance to the city center (km)", y = "Price, log scale")
+})
+```
+
+```{r chart-region}
+#| renderings: [light, dark]
+#| fig-height: 3.6
+#| fig-cap: "Fig. 4 · Median sale price by region"
+#| fig-alt: "Bar chart of median price by region. Southern is highest at 1.24 million dollars and Regional Victoria lowest at 0.57 million."
+region_med <- d %>% group_by(Region) %>%
+  summarise(median_price = median(Price), n = n())
+
+bp_both(function(k) {
+  ggplot(region_med, aes(median_price / 1e6, reorder(Region, median_price))) +
+    geom_col(width = 0.62) +
+    geom_text(aes(label = dollar(median_price / 1e6, suffix = "M", accuracy = 0.01)),
+              hjust = -0.15, size = 3.6) +
+    scale_x_continuous(limits = c(0, 1.5), expand = c(0, 0), labels = bp_millions) +
+    labs(title = "The southern suburbs sell for about 60% more than the western ones",
+         x = "Median price (AUD)", y = NULL) +
+    theme(panel.grid.major.y = element_blank())
+})
+```
+
+```{r chart-map}
+#| renderings: [light, dark]
+#| fig-height: 6.7
+#| fig-cap: "Fig. 5 · Every sale with a map position, shaded by price. The cross marks the city center and the rings mark 10, 20 and 30 km from it."
+#| fig-alt: "Dot map of Melbourne sales. The most expensive homes sit close to the city center and along the bay to the south-east."
+cbd_lon <- 144.9631
+cbd_lat <- -37.8136
+
+# Rings at 10, 20 and 30 km, turned into map positions
+ring <- do.call(rbind, lapply(c(10, 20, 30), function(km) {
+  a <- seq(0, 2 * pi, length.out = 181)
+  data.frame(km = km,
+             lon = cbd_lon + km * cos(a) / (111.32 * cos(cbd_lat * pi / 180)),
+             lat = cbd_lat + km * sin(a) / 110.57)
+}))
+
+bp_both(function(k) {
+  d %>% filter(!is.na(Lattitude)) %>% arrange(Price) %>%
+    ggplot(aes(Longtitude, Lattitude)) +
+    geom_path(data = ring, aes(lon, lat, group = km), linewidth = 0.3,
+              linetype = "22", colour = k$axis) +
+    geom_point(aes(colour = log10(Price)), size = 0.85, alpha = 0.85, stroke = 0) +
+    # The city center: a cross, with a paper-colored outline so it shows over the dots
+    annotate("point", x = cbd_lon, y = cbd_lat, shape = 3, size = 5, stroke = 2.6, colour = k$paper) +
+    annotate("point", x = cbd_lon, y = cbd_lat, shape = 3, size = 5, stroke = 1, colour = k$ink) +
+    annotate("text", x = 144.865, y = -37.96, label = "Port Phillip Bay",
+             size = 3.4, colour = k$ink3) +
+    # Shade on a log scale, and clip the few extreme sales so the middle shows contrast
+    scale_colour_gradientn(colours = k$seq,
+                           limits = log10(c(4e5, 3e6)), oob = squish,
+                           breaks = log10(c(5e5, 1e6, 2e6)),
+                           labels = c("$0.5M", "$1M", "$2M")) +
+    coord_quickmap(xlim = cbd_lon + c(-42, 42) / 87.95,
+                   ylim = cbd_lat + c(-36, 26) / 110.57) +
+    labs(title = "Expensive homes ring the bay, south-east of the city",
+         x = NULL, y = NULL) +
+    theme(axis.text = element_blank(), axis.ticks = element_blank(),
+          axis.line = element_blank(), panel.grid.major = element_blank(),
+          legend.key.width = unit(1.4, "cm"), legend.key.height = unit(0.22, "cm"))
+})
+```
+
+```{r chart-rooms}
+#| renderings: [light, dark]
+#| fig-cap: "Fig. 6 · Price by number of rooms, for each property type"
+#| fig-alt: "Box plots of price by room count. Price rises with each added room, and houses sit above townhouses and units at every size."
+bp_both(function(k) {
+  ggplot(d, aes(factor(pmin(Rooms, 6)), Price / 1e6, colour = Type)) +
+    geom_boxplot(outlier.alpha = 0.12, outlier.size = 0.5, linewidth = 0.5,
+                 fill = NA, position = position_dodge2(preserve = "single", padding = 0.25)) +
+    scale_colour_manual(values = setNames(k$series, levels(d$Type))) +
+    scale_y_log10(breaks = c(0.25, 0.5, 1, 2, 4, 8), labels = bp_millions) +
+    labs(title = "Each extra room adds value, and houses sit above units at every size",
+         x = "Rooms (6 means 6 or more)", y = "Price, log scale") +
+    theme(panel.grid.major.x = element_blank())
+})
+```
+
+```{r ttest}
+tt  <- t.test(logPrice ~ Type, data = filter(d, Type != "Townhouse"))
+gap <- unname(round((exp(tt$estimate[1] - tt$estimate[2]) - 1) * 100))
+```
+
+One formal check before moving on. A t-test on log price puts the typical house about `r gap`% above the typical unit, and a gap that size would almost never show up by chance (p < 0.001).
+
+### Step 5 · Build three models on the same facts
+
+All three models see only what an agent knows on listing day, and all three are scored on the same 20% of sales held back from training.
+
+- **Multiple linear regression** on log price. Easy to explain: each coefficient turns into a percent effect.
+- **Decision tree.** Gives plain if-then pricing rules.
+- **Random forest.** Averages 300 trees. Usually the most accurate, and the hardest to explain.
+
+```{r split}
+set.seed(6351)
+model_df <- d %>% select(Price, logPrice, Type, Rooms, Bathroom, Car,
+                         Landsize, Distance, Region)
+idx   <- sample(seq_len(nrow(model_df)), size = 0.8 * nrow(model_df))
+train <- model_df[idx, ]
+test  <- model_df[-idx, ]
+c(train = nrow(train), test = nrow(test))
+
+f <- logPrice ~ Type + Rooms + Bathroom + Car + log1p(Landsize) + Distance + Region
+
+# One scoring function for all three, with prices back on the dollar scale
+scores <- function(actual, pred_log, name) {
+  pred <- exp(pred_log)
+  data.frame(Model = name,
+             R2   = round(1 - sum((actual - pred)^2) / sum((actual - mean(actual))^2), 3),
+             RMSE = round(sqrt(mean((actual - pred)^2))),
+             MAE  = round(mean(abs(actual - pred))),
+             MAPE = round(mean(abs(actual - pred) / actual) * 100, 1))
+}
+```
+
+#### Linear regression
+
+```{r chart-lm}
+#| renderings: [light, dark]
+#| fig-height: 4.8
+#| fig-cap: "Fig. 7 · What each factor does to price in the regression, with everything else held equal"
+#| fig-alt: "Bar chart of regression effects. A unit sells for 38.8 percent less than a comparable house. Each extra room adds 17.4 percent. Each kilometer from the city takes off 4.1 percent."
+lm_fit <- lm(f, data = train)
+
+# Coefficients on log price, turned into percent change in price
+pct <- data.frame(term = names(coef(lm_fit))[-1],
+                  pct_effect = round((exp(coef(lm_fit)[-1]) - 1) * 100, 1))
+
+labels <- c(TypeTownhouse = "Townhouse, vs. house", TypeUnit = "Unit, vs. house",
+            Rooms = "Each extra room", Bathroom = "Each extra bathroom",
+            Car = "Each extra parking spot", `log1p(Landsize)` = "Land, per log step",
+            Distance = "Each km from the city",
+            RegionNorthern = "Northern, vs. Eastern",
+            `RegionRegional Victoria` = "Regional Victoria, vs. Eastern",
+            `RegionSouth-Eastern` = "South-Eastern, vs. Eastern",
+            RegionSouthern = "Southern, vs. Eastern", RegionWestern = "Western, vs. Eastern")
+pct$label <- labels[pct$term]
+
+bp_both(function(k) {
+  ggplot(pct, aes(pct_effect, reorder(label, pct_effect))) +
+    geom_col(width = 0.62) +
+    geom_vline(xintercept = 0, linewidth = 0.5, colour = k$ink) +
+    geom_text(aes(label = sprintf("%+.1f%%", pct_effect),
+                  hjust = ifelse(pct_effect > 0, -0.15, 1.15)), size = 3.5) +
+    scale_x_continuous(limits = c(-50, 36), labels = function(x) paste0(x, "%")) +
+    labs(title = "Type and region move price the most. Parking and land barely count.",
+         subtitle = "Region effects compare homes at the same distance from the city.",
+         x = "Change in price", y = NULL) +
+    theme(panel.grid.major.y = element_blank())
+})
+```
+
+```{r chart-checks}
+#| renderings: [light, dark]
+#| fig-height: 3.8
+#| fig-cap: "Fig. 8 · Regression checks: residuals against fitted values, and residuals against a normal curve"
+#| fig-alt: "Two diagnostic plots. Residuals scatter evenly around zero across fitted values, and follow the normal line except at the far tails."
+vif_max <- max(vif(lm_fit)[, "GVIF^(1/(2*Df))"]^2)   # squared, so it reads on the usual VIF scale
+e <- resid(lm_fit)
+durbin_watson <- sum(diff(e)^2) / sum(e^2)
+
+qq <- qqnorm(e, plot.it = FALSE)
+checks <- bind_rows(
+  data.frame(panel = "Residuals vs. fitted", x = fitted(lm_fit), y = e),
+  data.frame(panel = "Normal Q-Q", x = qq$x, y = qq$y)) %>%
+  mutate(panel = factor(panel, levels = c("Residuals vs. fitted", "Normal Q-Q")))
+ref <- data.frame(panel = factor(c("Residuals vs. fitted", "Normal Q-Q"),
+                                 levels = levels(checks$panel)),
+                  slope = c(0, sd(e)), intercept = 0)
+
+bp_both(function(k) {
+  ggplot(checks, aes(x, y)) +
+    geom_abline(data = ref, aes(slope = slope, intercept = intercept),
+                linewidth = 0.5, colour = k$ink) +
+    geom_point(alpha = 0.2, size = 0.8, stroke = 0) +
+    facet_wrap(~panel, scales = "free_x") +
+    labs(title = "The regression's errors behave well once price is logged",
+         x = NULL, y = "Residual (log price)")
+})
+```
+
+The checks hold up well enough to trust the coefficients. The spread of errors stays about constant, and the errors follow a normal curve except at the far tails. No two inputs overlap much: the largest VIF is `r round(vif_max, 1)`, where 5 is the usual warning line. The Durbin-Watson statistic is `r round(durbin_watson, 2)`, where 2 means independent errors.
+
+#### Decision tree
+
+```{r tree}
+tree_fit <- rpart(f, data = train, method = "anova",
+                  control = rpart.control(cp = 0.01, maxdepth = 4))
+
+# Turn each leaf of the tree into one row: which homes land there, and their typical price
+leaf  <- tree_fit$frame %>% mutate(node = as.integer(rownames(tree_fit$frame))) %>%
+  filter(var == "<leaf>")
+paths <- path.rpart(tree_fit, nodes = leaf$node, print.it = FALSE)
+
+# Type and Region: a later split narrows an earlier one, so keep the last
+which_levels <- function(p, key, all_levels) {
+  hit <- grep(paste0("^", key, "="), p, value = TRUE)
+  if (!length(hit)) return("Any")
+  got <- strsplit(sub(".*=", "", tail(hit, 1)), ",")[[1]]
+  if (length(got) >= 4 && length(got) < length(all_levels))   # a long list reads better as "all but"
+    return(paste("All but", paste(setdiff(all_levels, got), collapse = ", ")))
+  paste(got, collapse = ", ")
+}
+# Counts split at x.5, so "Rooms< 3.5" reads "up to 3" and "Rooms>=3.5" reads "4 or more"
+count_range <- function(p, key) {
+  lo <- suppressWarnings(max(as.numeric(sub(".*>=", "", grep(paste0("^", key, ">="), p, value = TRUE)))))
+  hi <- suppressWarnings(min(as.numeric(sub(".*< ", "", grep(paste0("^", key, "< "), p, value = TRUE)))))
+  lo <- if (is.finite(lo)) ceiling(lo) else NA
+  hi <- if (is.finite(hi)) floor(hi) else NA
+  if (is.na(lo) && is.na(hi)) "Any"
+  else if (is.na(lo)) ifelse(hi == 1, "1", paste("Up to", hi))
+  else if (is.na(hi)) paste(lo, "or more")
+  else paste(lo, "to", hi)
+}
+km_range <- function(p) {
+  hit <- grep("^Distance", p, value = TRUE)
+  if (!length(hit)) return("Any")
+  hit <- sub("Distance>=", "At least ", hit)
+  hit <- sub("Distance< ", "Under ", hit)
+  paste(paste(hit, "km"), collapse = ", ")
+}
+rules <- do.call(rbind, lapply(paths, function(p) data.frame(
+  Type = which_levels(p, "Type", levels(d$Type)),
+  Region = which_levels(p, "Region", levels(d$Region)),
+  Distance = km_range(p),
+  Rooms = count_range(p, "Rooms"),
+  Bathrooms = count_range(p, "Bathroom"))))
+rules$Homes <- leaf$n
+rules$price <- exp(leaf$yval)
+rules <- rules %>% arrange(price) %>%
+  mutate(`Typical price` = dollar(round(price, -3))) %>%
+  select(`Typical price`, Type, Region, Distance, Rooms, Bathrooms, Homes)
+
+kable(rules, row.names = FALSE, format.args = list(big.mark = ","), align = "rlllllr",
+      caption = "The tree's pricing rules, cheapest to dearest (training set)")
+```
+
+The tree is the weakest of the three, but it is the one an agent could carry in their head. Its first cut is unit or not. For houses and townhouses, its next cut is whether the home sits in the southern suburbs.
+
+#### Random forest
+
+```{r chart-rf}
+#| renderings: [light, dark]
+#| fig-height: 3.6
+#| fig-cap: "Fig. 9 · How much the random forest's error grows when each input is scrambled"
+#| fig-alt: "Bar chart of variable importance. Region and distance lead, then land size and property type. Rooms, bathrooms and parking matter least."
+set.seed(6351)
+rf_fit <- randomForest(logPrice ~ Type + Rooms + Bathroom + Car + Landsize + Distance + Region,
+                       data = train, ntree = 300, importance = TRUE)
+
+imp <- data.frame(feature = rownames(importance(rf_fit)),
+                  inc_mse = importance(rf_fit)[, "%IncMSE"]) %>%
+  arrange(desc(inc_mse))
+imp$share <- round(imp$inc_mse / sum(imp$inc_mse) * 100, 1)
+
+bp_both(function(k) {
+  ggplot(imp, aes(share, reorder(feature, share))) +
+    geom_col(width = 0.62) +
+    geom_text(aes(label = paste0(share, "%")), hjust = -0.2, size = 3.6) +
+    scale_x_continuous(limits = c(0, 31), expand = c(0, 0)) +
+    labs(title = "Where the home is matters more than what it is",
+         subtitle = "Region and distance together carry almost half the weight.",
+         x = "Share of total importance (%)", y = NULL) +
+    theme(panel.grid.major.y = element_blank())
+})
+```
 ::::
 :::::
 
@@ -61,17 +501,165 @@ The cleaning, exploration, and methods from Project 1 go here, with the R code.
 :::: {}
 ## Results and impact
 
-::: {.pending data-tag="To log"}
-Key charts from Project 1 and what they mean. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.
+### How the three models scored
+
+```{r compare}
+results <- rbind(
+  scores(test$Price, predict(lm_fit,   test), "Linear regression"),
+  scores(test$Price, predict(tree_fit, test), "Decision tree"),
+  scores(test$Price, predict(rf_fit,   test), "Random forest"))
+
+test$pred_rf <- exp(predict(rf_fit, test))
+within10 <- mean(abs(test$pred_rf - test$Price) / test$Price <= 0.10) * 100
+within20 <- mean(abs(test$pred_rf - test$Price) / test$Price <= 0.20) * 100
+
+results %>%
+  transmute(Model,
+            `MAPE (average miss, %)` = paste0(MAPE, "%"),
+            `MAE (average miss)` = dollar(MAE),
+            RMSE = dollar(RMSE),
+            `R-squared` = R2) %>%
+  kable(caption = "Accuracy on the 2,977 sales the models never saw", align = "lrrrr")
+```
+
+The random forest wins on every measure. Its average miss is `r results$MAPE[3]`% of the sale price, against `r results$MAPE[1]`% for the regression and `r results$MAPE[2]`% for the tree. Put another way, `r round(within10)`% of its predictions land within 10% of the real price and `r round(within20)`% land within 20%.
+
+```{r chart-pred}
+#| renderings: [light, dark]
+#| fig-height: 5
+#| fig-cap: "Fig. 10 · Random forest predictions against real sale prices, on the test set"
+#| fig-alt: "Scatter plot of predicted against actual price. Points cluster along the diagonal, with wider scatter above two million dollars."
+bp_both(function(k) {
+  ggplot(test, aes(pred_rf / 1e6, Price / 1e6, colour = Type)) +
+    geom_abline(linewidth = 0.5, linetype = "42", colour = k$ink) +
+    geom_point(alpha = 0.45, size = 1, stroke = 0) +
+    scale_colour_manual(values = setNames(k$series, levels(test$Type))) +
+    scale_x_log10(breaks = c(0.25, 0.5, 1, 2, 4, 8), labels = bp_millions) +
+    scale_y_log10(breaks = c(0.25, 0.5, 1, 2, 4, 8), labels = bp_millions) +
+    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 2.5))) +
+    labs(title = "Most predictions sit near the line. The dear homes are the hard ones.",
+         subtitle = "A dot on the dashed line is a perfect call.",
+         x = "Predicted price, log scale", y = "Actual price, log scale")
+})
+```
+
+### What I'd tell the agency
+
+1. **Start the guide from location.** Each extra kilometer from the city takes about `r abs(pct$pct_effect[pct$term == "Distance"])`% off the price with everything else equal, and region moves it by up to a quarter either way against the eastern suburbs at the same distance. Set the location first, then adjust for the home.
+2. **Never price a unit off nearby house sales.** A unit sells for about `r abs(pct$pct_effect[pct$term == "TypeUnit"])`% less than a comparable house, and a townhouse for about `r abs(pct$pct_effect[pct$term == "TypeTownhouse"])`% less.
+3. **Lead with layout in seller meetings.** One more room adds about `r pct$pct_effect[pct$term == "Rooms"]`% and one more bathroom about `r pct$pct_effect[pct$term == "Bathroom"]`%. A parking spot adds only `r pct$pct_effect[pct$term == "Car"]`%, and a bigger block moves the price very little once location is set.
+4. **Use the random forest as a first draft, and review the gaps.** When an agent's own guide and the model differ by more than 20%, one of them is missing something. That listing gets a second look before it goes out.
+5. **Collect floor area and build year at listing.** They were blank for half the sales. Filling them in is the cheapest way to sharpen the model.
+
+### What this doesn't settle
+
+The model learned from 2016 and 2017, so its dollar figures are out of date and only the pattern carries over. It also can't see condition, renovation, or street, which is most of what an agent walks through a home to judge. That's why I'd use it to check a guide, not to set one.
+
+::: {#try-it .try-it}
+[Try it · Price guide]{.label .label-orange}
+
+Spec a home and the regression prices it, one line at a time. Drag the orange ring on the map to move the home closer to the city or farther out.
+
+```{=html}
+<div class="pg" id="price-guide" hidden>
+  <div class="pg-top">
+    <figure class="pg-panel pg-map">
+      <figcaption class="label">Plan view · sales from the test set</figcaption>
+      <svg id="pg-map-svg" viewBox="0 0 400 400" role="img" aria-label="Map of Melbourne sales with a ring showing the chosen distance from the city center"></svg>
+    </figure>
+    <figure class="pg-panel pg-elev">
+      <figcaption class="label">Elevation · not to scale</figcaption>
+      <svg id="pg-elev-svg" viewBox="0 24 420 200" role="img" aria-label="Line drawing of the chosen home"></svg>
+      <div class="pg-price">
+        <span class="label">Guide price · 2016 to 2017 dollars</span>
+        <output id="pg-price">A$0</output>
+        <p class="pg-range" id="pg-range"></p>
+      </div>
+    </figure>
+  </div>
+
+  <div class="pg-controls">
+    <div class="pg-ctl pg-wide">
+      <span class="label" id="pg-type-l">Type</span>
+      <div class="pg-seg" role="group" aria-labelledby="pg-type-l" id="pg-type"></div>
+    </div>
+    <div class="pg-ctl"><span class="label">Rooms</span><div class="pg-step" data-key="rooms"></div></div>
+    <div class="pg-ctl"><span class="label">Bathrooms</span><div class="pg-step" data-key="bath"></div></div>
+    <div class="pg-ctl"><span class="label">Parking</span><div class="pg-step" data-key="car"></div></div>
+    <div class="pg-ctl pg-wide">
+      <span class="label" id="pg-region-l">Region</span>
+      <div class="pg-seg" role="group" aria-labelledby="pg-region-l" id="pg-region"></div>
+    </div>
+    <div class="pg-ctl pg-wide">
+      <label class="label" for="pg-dist">Distance from the city center · <span id="pg-dist-v">9 km</span></label>
+      <input type="range" id="pg-dist" min="1" max="30" step="0.5" value="9">
+    </div>
+  </div>
+  <p class="pg-warn" id="pg-warn" hidden></p>
+
+  <div class="pg-bom-wrap">
+  <table class="pg-bom" aria-live="polite" data-quarto-disable-processing="true">
+    <caption class="label">Bill of materials</caption>
+    <thead><tr><th>Item</th><th>Spec</th><th>Effect</th><th>Running price</th></tr></thead>
+    <tbody id="pg-bom"></tbody>
+  </table>
+  </div>
+
+  <div class="pg-test">
+    <button type="button" class="bp-btn" id="pg-real">Test it on a real sale</button>
+    <button type="button" class="bp-btn-ghost" id="pg-reset">Reset</button>
+    <p id="pg-real-out" aria-live="polite"></p>
+  </div>
+</div>
+<noscript><p class="muted">The price guide needs JavaScript.</p></noscript>
+```
+
+[The tool runs the linear regression, because it can show its work line by line. The random forest is more accurate, but it can't be laid out as a parts list.]{.muted}
 :::
 
-::: {.try-it}
-[Try it]{.label .label-orange}
+```{r guide-data}
+#| echo: false
+#| output: asis
+# Hand the regression to the price guide tool as JSON.
+b <- coef(lm_fit)
+lm_ape <- abs(exp(predict(lm_fit, test)) - test$Price) / test$Price
 
-To be decided once the findings are moved over.
+set.seed(6351)
+held <- d[-idx, ] %>% filter(!is.na(Lattitude)) %>%
+  mutate(x = (Longtitude - cbd_lon) * cos(cbd_lat * pi / 180) * 111.32,
+         y = (Lattitude - cbd_lat) * 110.57) %>%
+  filter(sqrt(x^2 + y^2) <= 30) %>%
+  slice_sample(n = 1800)
 
-[This panel goes live when the analysis is done.]{.muted}
-:::
+guide <- list(
+  coef = list(
+    intercept = unname(b["(Intercept)"]),
+    type = as.list(c(House = 0, Townhouse = unname(b["TypeTownhouse"]), Unit = unname(b["TypeUnit"]))),
+    rooms = unname(b["Rooms"]), bath = unname(b["Bathroom"]), car = unname(b["Car"]),
+    logLand = unname(b["log1p(Landsize)"]), dist = unname(b["Distance"]),
+    region = as.list(setNames(c(0, unname(b[paste0("Region", levels(d$Region)[-1])])),
+                              levels(d$Region)))),
+  land = as.list(tapply(d$Landsize, d$Type, median)),
+  regionRange = lapply(split(d$Distance, d$Region),
+                       function(x) unname(round(quantile(x, c(0.02, 0.98)), 1))),
+  err = list(p50 = round(median(lm_ape), 3), within20 = round(mean(lm_ape <= 0.2), 3),
+             mapeLm = results$MAPE[1], mapeRf = results$MAPE[3]),
+  types = levels(d$Type), regions = levels(d$Region),
+  sales = unname(as.matrix(held %>% transmute(
+    round(x, 2), round(y, 2), round(Price / 1000), as.integer(Type) - 1L, Rooms,
+    Bathroom, Car, round(Landsize), Distance, as.integer(Region) - 1L)))
+)
+cat("```{=html}\n<script type=\"application/json\" id=\"pg-data\">",
+    jsonlite::toJSON(guide, auto_unbox = TRUE, digits = 6),
+    "</script>\n```\n", sep = "")
+```
+
+```{r guard}
+#| include: false
+# The words on this page quote these numbers. Stop the build if they ever drift.
+stopifnot(nrow(raw) == 18396, ncol(raw) == 21, nrow(d) == 14885, nrow(test) == 2977,
+          round(within20) == 67, results$MAPE[3] == 17.8)
+```
 ::::
 :::::
 
@@ -82,12 +670,17 @@ To be decided once the findings are moved over.
 :::: {}
 ## Code
 
-::: {.pending data-tag="Repo"}
-github.com/ducle26/melbourne-housing: the R Markdown file, the data source, and comments on each step.
-:::
+Every chart and number on this page comes from the R code folded under each step. Press "Show all code" at the top to open it all at once.
+
+- **This page's source:** [projects/melbourne-housing.qmd](https://github.com/ducle26/bill-portfolio/blob/main/projects/melbourne-housing.qmd) in the site's repo, with the data file beside it.
+- **The class version:** [github.com/ducle26/melbourne-housing](https://github.com/ducle26/melbourne-housing) holds the R Markdown file I turned in for Project 1, the data, and a note on how to run it.
+
+Data: Becker, D. (2018). *Melbourne Housing Snapshot*, scraped by T. Pino from Domain.com.au. [Kaggle](https://www.kaggle.com/datasets/dansbecker/melbourne-housing-snapshot).
 ::::
 :::::
 
 ```{=html}
 <nav class="sample-nav"><a href="ofs-financials.html">← CS-03 · Oilfield services health check</a><a href="../play.html">Bottom of the well →</a></nav>
+<script src="../assets/js/casestudy.js"></script>
+<script src="../assets/js/priceguide.js"></script>
 ```

@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="description" content="What drives house prices in Melbourne, and can a model built on listing-day facts back up an agent’s price guide? Regression, a decision tree, and a random forest in R.">
 
 <title>CS-04 Melbourne housing · Duc (Bill) Le – Duc (Bill) Le</title>
 <style>
@@ -25,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -345,22 +381,23 @@ ul.task-list li input[type="checkbox"] {
 
 <div id="sheet-meta" data-sheet="04" data-title="CS-04" data-top="3350" data-bottom="3600" hidden=""></div>
 <span class="label">Core sample CS-04 · 3,350 to 3,600 ft</span>
-<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">What drives house prices across Melbourne's suburbs?</p>
+<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">What drives house prices across Melbourne's suburbs, and can a model back up an agent's price guide?</p>
 <div class="sample-head">
-  <div><span class="label">Method</span><div class="v">Exploratory analysis</div></div>
-  <div><span class="label">Data</span><div class="v">Melbourne housing market (Kaggle, public)</div></div>
-  <div><span class="label">R packages</span><div class="v">tidyverse, ggplot2</div></div>
-  <div><span class="label">Status</span><div class="v"><span class="status">Done in class · moving over</span></div></div>
+  <div><span class="label">Method</span><div class="v">Regression, decision tree, random forest</div></div>
+  <div><span class="label">Data</span><div class="v">Melbourne Housing Snapshot (Kaggle, public)</div></div>
+  <div><span class="label">R packages</span><div class="v">tidyverse, rpart, randomForest, car</div></div>
+  <div><span class="label">Status</span><div class="v"><span class="status">Logged · Sep 2026</span></div></div>
 </div>
+<div class="cs-tools"><button type="button" class="bp-btn-ghost" id="code-toggle" aria-pressed="false">Show all code</button><a class="bp-btn-ghost" href="#try-it">Skip to the price guide ↓</a></div>
 <div class="cs-sec">
 <div class="num">
 <p>01</p>
 </div>
 <section id="project-overview" class="level2">
 <h2 data-anchor-id="project-overview">Project overview</h2>
-<div class="pending" data-tag="To log">
-<p>Two or three sentences: the business question, what the analysis found, and what someone should do about it. Written last.</p>
-</div>
+<p>A real estate agency in Melbourne sets a price guide for every new listing. Today that guide comes from an agent’s judgment and a few nearby sales. I used 14,885 sales from 2016 and 2017 to find what drives price, and to test whether facts known on listing day can predict it.</p>
+<p>Location and property type do most of the work. The best model, a random forest, lands within 20% of the real sale price for two homes out of three. That is good enough for a first draft and a second opinion. It is not good enough to replace the agent.</p>
+<p>This was Project 1 for BZAN 6351, and it has nothing to do with oil. I kept it here because a buyer asks the same question every day: what should this cost, given what it is?</p>
 </section>
 </div>
 <div class="cs-sec">
@@ -369,9 +406,13 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="problem-statement" class="level2">
 <h2 data-anchor-id="problem-statement">Problem statement</h2>
-<div class="pending" data-tag="To move over">
-<p>This was Project 1, presented in class on Sep 28. The business question from that project goes here.</p>
-</div>
+<p>A guide set too high leaves the home unsold. A guide set too low costs the seller money and the agency its name. The agency wants a number it can defend to a seller.</p>
+<p>That turns into two questions:</p>
+<ol type="1">
+<li><strong>Which features and locations drive sale price the most?</strong></li>
+<li><strong>Can a model built only on facts known at listing time predict the price closely enough to support a guide?</strong> Those facts are type, rooms, bathrooms, parking, land, distance from the city, and region.</li>
+</ol>
+<p>I set the test before I built anything: error on homes the model has never seen, in dollars and in percent, plus price drivers plain enough for an agent to explain to a seller.</p>
 </section>
 </div>
 <div class="cs-sec">
@@ -380,9 +421,721 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="approach" class="level2">
 <h2 data-anchor-id="approach">Approach</h2>
-<div class="pending" data-tag="To move over">
-<p>The cleaning, exploration, and methods from Project 1 go here, with the R code.</p>
+<section id="step-1-get-to-know-the-data" class="level3">
+<h3 data-anchor-id="step-1-get-to-know-the-data">Step 1 · Get to know the data</h3>
+<p>The Melbourne Housing Snapshot holds sales scraped from public listings on Domain.com.au by Tony Pino and published on Kaggle by Dan Becker. Each row is one sale, from January 2016 to September 2017. The file has 18,396 sales and 21 fields.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rpart)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># The site's chart style. bp_both() draws each chart twice:</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># once for the light sheet and once for the dark print.</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"_blueprint.R"</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_device</span>()</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>raw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/melbourne_housing.csv"</span>, <span class="at">check.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">na.strings =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"NA"</span>), <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>raw <span class="ot">&lt;-</span> raw[, <span class="sc">-</span><span class="dv">1</span>]                      <span class="co"># first column is an old row index</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
+<p>The first thing I check on any new file is what’s missing.</p>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>miss <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">variable =</span> <span class="fu">names</span>(raw),</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">pct_missing =</span> <span class="fu">round</span>(<span class="fu">colMeans</span>(<span class="fu">is.na</span>(raw)) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(pct_missing))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">filter</span>(miss, pct_missing <span class="sc">&gt;</span> <span class="dv">0</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>         <span class="fu">aes</span>(pct_missing, <span class="fu">reorder</span>(variable, pct_missing))) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.62</span>) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(pct_missing, <span class="st">"%"</span>)), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.2</span>, <span class="at">size =</span> <span class="fl">3.6</span>) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">68</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Floor area and build year are blank for about half the sales"</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"The two fields a buyer would most like to have are the ones the listings left out."</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"% of sales with the field blank"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-missing-1.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of missing values. Building area is blank for 58 percent of sales and year built for 51 percent." width="768"></p>
+<figcaption>Fig. 1 · Share of each field that is blank</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-missing-2.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of missing values. Building area is blank for 58 percent of sales and year built for 51 percent." width="768"></p>
+<figcaption>Fig. 1 · Share of each field that is blank</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>What this data can’t do, noted before any modeling:</p>
+<ul>
+<li><strong>Floor area and build year are too sparse to use.</strong> Filling in half a column would be guessing.</li>
+<li><strong>It covers 2016 and 2017 only.</strong> The model describes that market, not today’s prices.</li>
+<li><strong>It comes from one listing site.</strong> Private sales that were never advertised aren’t in it.</li>
+<li><strong>Sale method, agency, and sale date are known only after the sale.</strong> They don’t belong in a model meant for listing day.</li>
+</ul>
+</section>
+<section id="step-2-clean-it-and-keep-a-count" class="level3">
+<h3 data-anchor-id="step-2-clean-it-and-keep-a-count">Step 2 · Clean it, and keep a count</h3>
+<p>Every cleaning step removes rows, so I log the count after each one. If a step throws away more than I expect, I want to see it.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>log_step <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Step =</span> <span class="st">"Raw file"</span>, <span class="at">Sales =</span> <span class="fu">nrow</span>(raw))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Duplicates: same address, suburb and sale date is a double entry</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> raw <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(Address, Suburb, Date, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>log_step <span class="ot">&lt;-</span> <span class="fu">rbind</span>(log_step, <span class="fu">data.frame</span>(<span class="at">Step =</span> <span class="st">"Remove duplicate sales"</span>, <span class="at">Sales =</span> <span class="fu">nrow</span>(d)))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Formatting: dates, readable labels, fold the three small country regions into one</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date =</span> <span class="fu">as.Date</span>(Date, <span class="at">format =</span> <span class="st">"%d/%m/%Y"</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Type =</span> <span class="fu">factor</span>(dplyr<span class="sc">::</span><span class="fu">recode</span>(Type, <span class="at">h =</span> <span class="st">"House"</span>, <span class="at">t =</span> <span class="st">"Townhouse"</span>, <span class="at">u =</span> <span class="st">"Unit"</span>),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                       <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"House"</span>, <span class="st">"Townhouse"</span>, <span class="st">"Unit"</span>)),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">Region =</span> <span class="fu">case_when</span>(<span class="fu">grepl</span>(<span class="st">"Victoria"</span>, Regionname) <span class="sc">~</span> <span class="st">"Regional Victoria"</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                            <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">sub</span>(<span class="st">" Metropolitan"</span>, <span class="st">""</span>, Regionname)),</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">Region =</span> <span class="fu">factor</span>(Region))</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Impossible values become missing</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">YearBuilt    =</span> <span class="fu">ifelse</span>(YearBuilt <span class="sc">&lt;</span> <span class="dv">1840</span>, <span class="cn">NA</span>, YearBuilt),   <span class="co"># before Melbourne existed</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">BuildingArea =</span> <span class="fu">ifelse</span>(BuildingArea <span class="sc">==</span> <span class="dv">0</span>, <span class="cn">NA</span>, BuildingArea),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">Bathroom     =</span> <span class="fu">ifelse</span>(Bathroom <span class="sc">==</span> <span class="dv">0</span>, <span class="cn">NA</span>, Bathroom))       <span class="co"># every dwelling has one</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Rows missing the core layout fields (bathroom, bedroom and parking go missing together)</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Bathroom), <span class="sc">!</span><span class="fu">is.na</span>(Region), <span class="sc">!</span><span class="fu">is.na</span>(Distance))</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>log_step <span class="ot">&lt;-</span> <span class="fu">rbind</span>(log_step, <span class="fu">data.frame</span>(<span class="at">Step =</span> <span class="st">"Drop rows missing core fields"</span>, <span class="at">Sales =</span> <span class="fu">nrow</span>(d)))</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Entry errors: second bedroom count far above the room count</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">is.na</span>(Bedroom2) <span class="sc">|</span> Bedroom2 <span class="sc">&lt;=</span> Rooms <span class="sc">+</span> <span class="dv">2</span>)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>log_step <span class="ot">&lt;-</span> <span class="fu">rbind</span>(log_step, <span class="fu">data.frame</span>(<span class="at">Step =</span> <span class="st">"Drop room-count conflicts"</span>, <span class="at">Sales =</span> <span class="fu">nrow</span>(d)))</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Fill the remaining gaps with the median for that property type</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Type) <span class="sc">%&gt;%</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Landsize =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(Landsize), <span class="fu">median</span>(Landsize, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), Landsize),</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>         <span class="at">Car      =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(Car),      <span class="fu">median</span>(Car,      <span class="at">na.rm =</span> <span class="cn">TRUE</span>), Car)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(log_step, <span class="at">format.args =</span> <span class="fu">list</span>(<span class="at">big.mark =</span> <span class="st">","</span>),</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Sales left after each cleaning step"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Sales left after each cleaning step</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Step</th>
+<th style="text-align: right;">Sales</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Raw file</td>
+<td style="text-align: right;">18,396</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Remove duplicate sales</td>
+<td style="text-align: right;">18,394</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Drop rows missing core fields</td>
+<td style="text-align: right;">14,890</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Drop room-count conflicts</td>
+<td style="text-align: right;">14,885</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The big drop is the third row. Bathroom, bedroom, and parking counts go missing together, which points to listings that never had the detail. I dropped those rows instead of guessing three fields at once. Where only land size or parking was blank, I filled it with the median for that property type.</p>
+</section>
+<section id="step-3-decide-what-to-do-with-extreme-values" class="level3">
+<h3 data-anchor-id="step-3-decide-what-to-do-with-extreme-values">Step 3 · Decide what to do with extreme values</h3>
+<p>Prices run from about $85,000 to $9 million. Those are real sales, so they stay. But a few mansions can drag a model around, so the models predict the log of price, which pulls the long tail in.</p>
+<p>Land size is a different case. A value like 433,014 m² for a suburban house is a typing error, so I capped land at the 99th percentile.</p>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>cap <span class="ot">&lt;-</span> <span class="fu">quantile</span>(d<span class="sc">$</span>Landsize, <span class="fl">0.99</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Landsize =</span> <span class="fu">pmin</span>(Landsize, cap),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">logPrice =</span> <span class="fu">log</span>(Price))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># How many sales the usual 1.5 x IQR rule flags, on each scale</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>iqr_raw <span class="ot">&lt;-</span> <span class="fu">with</span>(d, <span class="fu">sum</span>(Price <span class="sc">&gt;</span> <span class="fu">quantile</span>(Price, .<span class="dv">75</span>) <span class="sc">+</span> <span class="fl">1.5</span> <span class="sc">*</span> <span class="fu">IQR</span>(Price)))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>iqr_log <span class="ot">&lt;-</span> <span class="fu">with</span>(d, <span class="fu">sum</span>(logPrice <span class="sc">&gt;</span> <span class="fu">quantile</span>(logPrice, .<span class="dv">75</span>) <span class="sc">+</span> <span class="fl">1.5</span> <span class="sc">*</span> <span class="fu">IQR</span>(logPrice) <span class="sc">|</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                       logPrice <span class="sc">&lt;</span> <span class="fu">quantile</span>(logPrice, .<span class="dv">25</span>) <span class="sc">-</span> <span class="fl">1.5</span> <span class="sc">*</span> <span class="fu">IQR</span>(logPrice)))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>shape <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">panel =</span> <span class="st">"Price, AUD millions"</span>, <span class="at">value =</span> d<span class="sc">$</span>Price <span class="sc">/</span> <span class="fl">1e6</span>),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">panel =</span> <span class="st">"log(Price)"</span>, <span class="at">value =</span> d<span class="sc">$</span>logPrice)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">panel =</span> <span class="fu">factor</span>(panel, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Price, AUD millions"</span>, <span class="st">"log(Price)"</span>)))</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(shape, <span class="fu">aes</span>(value)) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">55</span>) <span class="sc">+</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>panel, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Raw prices have a long right tail. Log prices are close to even."</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Sales"</span>) <span class="sc">+</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-outliers-1.png" class="img-fluid figure-img" loading="lazy" alt="Two histograms. Raw prices pile up on the left with a long tail to the right. Log prices form a roughly symmetric bell shape." width="768"></p>
+<figcaption>Fig. 2 · The same prices, before and after taking the log</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-outliers-2.png" class="img-fluid figure-img" loading="lazy" alt="Two histograms. Raw prices pile up on the left with a long tail to the right. Log prices form a roughly symmetric bell shape." width="768"></p>
+<figcaption>Fig. 2 · The same prices, before and after taking the log</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>On the raw scale the usual outlier rule flags 681 sales. On the log scale it flags 93.</p>
+</section>
+<section id="step-4-look-before-modeling" class="level3">
+<h3 data-anchor-id="step-4-look-before-modeling">Step 4 · Look before modeling</h3>
+<p>Four charts told me most of what the models later confirmed.</p>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(d, <span class="fu">aes</span>(Distance, Price <span class="sc">/</span> <span class="fl">1e6</span>, <span class="at">colour =</span> Type)) <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.22</span>, <span class="at">size =</span> <span class="fl">0.9</span>, <span class="at">stroke =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">setNames</span>(k<span class="sc">$</span>series, <span class="fu">levels</span>(d<span class="sc">$</span>Type))) <span class="sc">+</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>), <span class="at">labels =</span> bp_millions) <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">40</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">9.5</span>)) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">colour =</span> <span class="fu">guide_legend</span>(<span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="fl">2.5</span>))) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Houses lose value with distance from the city. Units barely move."</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"Each dot is one sale. Lines show the trend for each type."</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Distance to the city center (km)"</span>, <span class="at">y =</span> <span class="st">"Price, log scale"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-distance-1.png" class="img-fluid figure-img" loading="lazy" alt="Scatter plot with three trend lines. House and townhouse prices fall as distance from the city center grows. Unit prices stay close to flat. Houses sit highest near the city." width="768"></p>
+<figcaption>Fig. 3 · Price against distance from the city center, by property type</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-distance-2.png" class="img-fluid figure-img" loading="lazy" alt="Scatter plot with three trend lines. House and townhouse prices fall as distance from the city center grows. Unit prices stay close to flat. Houses sit highest near the city." width="768"></p>
+<figcaption>Fig. 3 · Price against distance from the city center, by property type</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>region_med <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Region) <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">median_price =</span> <span class="fu">median</span>(Price), <span class="at">n =</span> <span class="fu">n</span>())</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(region_med, <span class="fu">aes</span>(median_price <span class="sc">/</span> <span class="fl">1e6</span>, <span class="fu">reorder</span>(Region, median_price))) <span class="sc">+</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.62</span>) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">dollar</span>(median_price <span class="sc">/</span> <span class="fl">1e6</span>, <span class="at">suffix =</span> <span class="st">"M"</span>, <span class="at">accuracy =</span> <span class="fl">0.01</span>)),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.15</span>, <span class="at">size =</span> <span class="fl">3.6</span>) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), <span class="at">labels =</span> bp_millions) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The southern suburbs sell for about 60% more than the western ones"</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Median price (AUD)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-region-1.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of median price by region. Southern is highest at 1.24 million dollars and Regional Victoria lowest at 0.57 million." width="768"></p>
+<figcaption>Fig. 4 · Median sale price by region</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-region-2.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of median price by region. Southern is highest at 1.24 million dollars and Regional Victoria lowest at 0.57 million." width="768"></p>
+<figcaption>Fig. 4 · Median sale price by region</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cbd_lon <span class="ot">&lt;-</span> <span class="fl">144.9631</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cbd_lat <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">37.8136</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Rings at 10, 20 and 30 km, turned into map positions</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ring <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>), <span class="cf">function</span>(km) {</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">2</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> <span class="dv">181</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">km =</span> km,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">lon =</span> cbd_lon <span class="sc">+</span> km <span class="sc">*</span> <span class="fu">cos</span>(a) <span class="sc">/</span> (<span class="fl">111.32</span> <span class="sc">*</span> <span class="fu">cos</span>(cbd_lat <span class="sc">*</span> pi <span class="sc">/</span> <span class="dv">180</span>)),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">lat =</span> cbd_lat <span class="sc">+</span> km <span class="sc">*</span> <span class="fu">sin</span>(a) <span class="sc">/</span> <span class="fl">110.57</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  d <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Lattitude)) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(Price) <span class="sc">%&gt;%</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(Longtitude, Lattitude)) <span class="sc">+</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_path</span>(<span class="at">data =</span> ring, <span class="fu">aes</span>(lon, lat, <span class="at">group =</span> km), <span class="at">linewidth =</span> <span class="fl">0.3</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">"22"</span>, <span class="at">colour =</span> k<span class="sc">$</span>axis) <span class="sc">+</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="fu">log10</span>(Price)), <span class="at">size =</span> <span class="fl">0.85</span>, <span class="at">alpha =</span> <span class="fl">0.85</span>, <span class="at">stroke =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The city center: a cross, with a paper-colored outline so it shows over the dots</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(<span class="st">"point"</span>, <span class="at">x =</span> cbd_lon, <span class="at">y =</span> cbd_lat, <span class="at">shape =</span> <span class="dv">3</span>, <span class="at">size =</span> <span class="dv">5</span>, <span class="at">stroke =</span> <span class="fl">2.6</span>, <span class="at">colour =</span> k<span class="sc">$</span>paper) <span class="sc">+</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(<span class="st">"point"</span>, <span class="at">x =</span> cbd_lon, <span class="at">y =</span> cbd_lat, <span class="at">shape =</span> <span class="dv">3</span>, <span class="at">size =</span> <span class="dv">5</span>, <span class="at">stroke =</span> <span class="dv">1</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">144.865</span>, <span class="at">y =</span> <span class="sc">-</span><span class="fl">37.96</span>, <span class="at">label =</span> <span class="st">"Port Phillip Bay"</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>             <span class="at">size =</span> <span class="fl">3.4</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink3) <span class="sc">+</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Shade on a log scale, and clip the few extreme sales so the middle shows contrast</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_gradientn</span>(<span class="at">colours =</span> k<span class="sc">$</span>seq,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>                           <span class="at">limits =</span> <span class="fu">log10</span>(<span class="fu">c</span>(<span class="fl">4e5</span>, <span class="fl">3e6</span>)), <span class="at">oob =</span> squish,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>                           <span class="at">breaks =</span> <span class="fu">log10</span>(<span class="fu">c</span>(<span class="fl">5e5</span>, <span class="fl">1e6</span>, <span class="fl">2e6</span>)),</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>                           <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"$0.5M"</span>, <span class="st">"$1M"</span>, <span class="st">"$2M"</span>)) <span class="sc">+</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_quickmap</span>(<span class="at">xlim =</span> cbd_lon <span class="sc">+</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">42</span>, <span class="dv">42</span>) <span class="sc">/</span> <span class="fl">87.95</span>,</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>                   <span class="at">ylim =</span> cbd_lat <span class="sc">+</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">36</span>, <span class="dv">26</span>) <span class="sc">/</span> <span class="fl">110.57</span>) <span class="sc">+</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Expensive homes ring the bay, south-east of the city"</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_blank</span>(), <span class="at">axis.ticks =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.line =</span> <span class="fu">element_blank</span>(), <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.key.width =</span> <span class="fu">unit</span>(<span class="fl">1.4</span>, <span class="st">"cm"</span>), <span class="at">legend.key.height =</span> <span class="fu">unit</span>(<span class="fl">0.22</span>, <span class="st">"cm"</span>))</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-map-1.png" class="img-fluid figure-img" loading="lazy" alt="Dot map of Melbourne sales. The most expensive homes sit close to the city center and along the bay to the south-east." width="768"></p>
+<figcaption>Fig. 5 · Every sale with a map position, shaded by price. The cross marks the city center and the rings mark 10, 20 and 30 km from it.</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-map-2.png" class="img-fluid figure-img" loading="lazy" alt="Dot map of Melbourne sales. The most expensive homes sit close to the city center and along the bay to the south-east." width="768"></p>
+<figcaption>Fig. 5 · Every sale with a map position, shaded by price. The cross marks the city center and the rings mark 10, 20 and 30 km from it.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(d, <span class="fu">aes</span>(<span class="fu">factor</span>(<span class="fu">pmin</span>(Rooms, <span class="dv">6</span>)), Price <span class="sc">/</span> <span class="fl">1e6</span>, <span class="at">colour =</span> Type)) <span class="sc">+</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_boxplot</span>(<span class="at">outlier.alpha =</span> <span class="fl">0.12</span>, <span class="at">outlier.size =</span> <span class="fl">0.5</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">position =</span> <span class="fu">position_dodge2</span>(<span class="at">preserve =</span> <span class="st">"single"</span>, <span class="at">padding =</span> <span class="fl">0.25</span>)) <span class="sc">+</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">setNames</span>(k<span class="sc">$</span>series, <span class="fu">levels</span>(d<span class="sc">$</span>Type))) <span class="sc">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>), <span class="at">labels =</span> bp_millions) <span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Each extra room adds value, and houses sit above units at every size"</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Rooms (6 means 6 or more)"</span>, <span class="at">y =</span> <span class="st">"Price, log scale"</span>) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-rooms-1.png" class="img-fluid figure-img" loading="lazy" alt="Box plots of price by room count. Price rises with each added room, and houses sit above townhouses and units at every size." width="768"></p>
+<figcaption>Fig. 6 · Price by number of rooms, for each property type</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-rooms-2.png" class="img-fluid figure-img" loading="lazy" alt="Box plots of price by room count. Price rises with each added room, and houses sit above townhouses and units at every size." width="768"></p>
+<figcaption>Fig. 6 · Price by number of rooms, for each property type</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>tt  <span class="ot">&lt;-</span> <span class="fu">t.test</span>(logPrice <span class="sc">~</span> Type, <span class="at">data =</span> <span class="fu">filter</span>(d, Type <span class="sc">!=</span> <span class="st">"Townhouse"</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>gap <span class="ot">&lt;-</span> <span class="fu">unname</span>(<span class="fu">round</span>((<span class="fu">exp</span>(tt<span class="sc">$</span>estimate[<span class="dv">1</span>] <span class="sc">-</span> tt<span class="sc">$</span>estimate[<span class="dv">2</span>]) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>One formal check before moving on. A t-test on log price puts the typical house about 95% above the typical unit, and a gap that size would almost never show up by chance (p &lt; 0.001).</p>
+</section>
+<section id="step-5-build-three-models-on-the-same-facts" class="level3">
+<h3 data-anchor-id="step-5-build-three-models-on-the-same-facts">Step 5 · Build three models on the same facts</h3>
+<p>All three models see only what an agent knows on listing day, and all three are scored on the same 20% of sales held back from training.</p>
+<ul>
+<li><strong>Multiple linear regression</strong> on log price. Easy to explain: each coefficient turns into a percent effect.</li>
+<li><strong>Decision tree.</strong> Gives plain if-then pricing rules.</li>
+<li><strong>Random forest.</strong> Averages 300 trees. Usually the most accurate, and the hardest to explain.</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">6351</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>model_df <span class="ot">&lt;-</span> d <span class="sc">%&gt;%</span> <span class="fu">select</span>(Price, logPrice, Type, Rooms, Bathroom, Car,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                         Landsize, Distance, Region)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>idx   <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(model_df)), <span class="at">size =</span> <span class="fl">0.8</span> <span class="sc">*</span> <span class="fu">nrow</span>(model_df))</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> model_df[idx, ]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>test  <span class="ot">&lt;-</span> model_df[<span class="sc">-</span>idx, ]</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">train =</span> <span class="fu">nrow</span>(train), <span class="at">test =</span> <span class="fu">nrow</span>(test))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>train  test 
+11908  2977 </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> logPrice <span class="sc">~</span> Type <span class="sc">+</span> Rooms <span class="sc">+</span> Bathroom <span class="sc">+</span> Car <span class="sc">+</span> <span class="fu">log1p</span>(Landsize) <span class="sc">+</span> Distance <span class="sc">+</span> Region</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># One scoring function for all three, with prices back on the dollar scale</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>scores <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, pred_log, name) {</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">&lt;-</span> <span class="fu">exp</span>(pred_log)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">Model =</span> name,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">R2   =</span> <span class="fu">round</span>(<span class="dv">1</span> <span class="sc">-</span> <span class="fu">sum</span>((actual <span class="sc">-</span> pred)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">sum</span>((actual <span class="sc">-</span> <span class="fu">mean</span>(actual))<span class="sc">^</span><span class="dv">2</span>), <span class="dv">3</span>),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">RMSE =</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((actual <span class="sc">-</span> pred)<span class="sc">^</span><span class="dv">2</span>))),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">MAE  =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(actual <span class="sc">-</span> pred))),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">MAPE =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(actual <span class="sc">-</span> pred) <span class="sc">/</span> actual) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>))</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="linear-regression" class="level4">
+<h4 data-anchor-id="linear-regression">Linear regression</h4>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>lm_fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(f, <span class="at">data =</span> train)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Coefficients on log price, turned into percent change in price</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>pct <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">term =</span> <span class="fu">names</span>(<span class="fu">coef</span>(lm_fit))[<span class="sc">-</span><span class="dv">1</span>],</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">pct_effect =</span> <span class="fu">round</span>((<span class="fu">exp</span>(<span class="fu">coef</span>(lm_fit)[<span class="sc">-</span><span class="dv">1</span>]) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>))</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">TypeTownhouse =</span> <span class="st">"Townhouse, vs. house"</span>, <span class="at">TypeUnit =</span> <span class="st">"Unit, vs. house"</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">Rooms =</span> <span class="st">"Each extra room"</span>, <span class="at">Bathroom =</span> <span class="st">"Each extra bathroom"</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">Car =</span> <span class="st">"Each extra parking spot"</span>, <span class="st">`</span><span class="at">log1p(Landsize)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Land, per log step"</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">Distance =</span> <span class="st">"Each km from the city"</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">RegionNorthern =</span> <span class="st">"Northern, vs. Eastern"</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">RegionRegional Victoria</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Regional Victoria, vs. Eastern"</span>,</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">RegionSouth-Eastern</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"South-Eastern, vs. Eastern"</span>,</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">RegionSouthern =</span> <span class="st">"Southern, vs. Eastern"</span>, <span class="at">RegionWestern =</span> <span class="st">"Western, vs. Eastern"</span>)</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>pct<span class="sc">$</span>label <span class="ot">&lt;-</span> labels[pct<span class="sc">$</span>term]</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(pct, <span class="fu">aes</span>(pct_effect, <span class="fu">reorder</span>(label, pct_effect))) <span class="sc">+</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.62</span>) <span class="sc">+</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f%%"</span>, pct_effect),</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">hjust =</span> <span class="fu">ifelse</span>(pct_effect <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="sc">-</span><span class="fl">0.15</span>, <span class="fl">1.15</span>)), <span class="at">size =</span> <span class="fl">3.5</span>) <span class="sc">+</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">50</span>, <span class="dv">36</span>), <span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(x, <span class="st">"%"</span>)) <span class="sc">+</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Type and region move price the most. Parking and land barely count."</span>,</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"Region effects compare homes at the same distance from the city."</span>,</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Change in price"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-lm-1.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of regression effects. A unit sells for 38.8 percent less than a comparable house. Each extra room adds 17.4 percent. Each kilometer from the city takes off 4.1 percent." width="768"></p>
+<figcaption>Fig. 7 · What each factor does to price in the regression, with everything else held equal</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-lm-2.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of regression effects. A unit sells for 38.8 percent less than a comparable house. Each extra room adds 17.4 percent. Each kilometer from the city takes off 4.1 percent." width="768"></p>
+<figcaption>Fig. 7 · What each factor does to price in the regression, with everything else held equal</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>vif_max <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">vif</span>(lm_fit)[, <span class="st">"GVIF^(1/(2*Df))"</span>]<span class="sc">^</span><span class="dv">2</span>)   <span class="co"># squared, so it reads on the usual VIF scale</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">resid</span>(lm_fit)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>durbin_watson <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">diff</span>(e)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">sum</span>(e<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>qq <span class="ot">&lt;-</span> <span class="fu">qqnorm</span>(e, <span class="at">plot.it =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>checks <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">panel =</span> <span class="st">"Residuals vs. fitted"</span>, <span class="at">x =</span> <span class="fu">fitted</span>(lm_fit), <span class="at">y =</span> e),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">panel =</span> <span class="st">"Normal Q-Q"</span>, <span class="at">x =</span> qq<span class="sc">$</span>x, <span class="at">y =</span> qq<span class="sc">$</span>y)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">panel =</span> <span class="fu">factor</span>(panel, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Residuals vs. fitted"</span>, <span class="st">"Normal Q-Q"</span>)))</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>ref <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">panel =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="st">"Residuals vs. fitted"</span>, <span class="st">"Normal Q-Q"</span>),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">levels =</span> <span class="fu">levels</span>(checks<span class="sc">$</span>panel)),</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">slope =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">sd</span>(e)), <span class="at">intercept =</span> <span class="dv">0</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(checks, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">data =</span> ref, <span class="fu">aes</span>(<span class="at">slope =</span> slope, <span class="at">intercept =</span> intercept),</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.2</span>, <span class="at">size =</span> <span class="fl">0.8</span>, <span class="at">stroke =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>panel, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The regression's errors behave well once price is logged"</span>,</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Residual (log price)"</span>)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-checks-1.png" class="img-fluid figure-img" loading="lazy" alt="Two diagnostic plots. Residuals scatter evenly around zero across fitted values, and follow the normal line except at the far tails." width="768"></p>
+<figcaption>Fig. 8 · Regression checks: residuals against fitted values, and residuals against a normal curve</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-checks-2.png" class="img-fluid figure-img" loading="lazy" alt="Two diagnostic plots. Residuals scatter evenly around zero across fitted values, and follow the normal line except at the far tails." width="768"></p>
+<figcaption>Fig. 8 · Regression checks: residuals against fitted values, and residuals against a normal curve</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The checks hold up well enough to trust the coefficients. The spread of errors stays about constant, and the errors follow a normal curve except at the far tails. No two inputs overlap much: the largest VIF is 2.4, where 5 is the usual warning line. The Durbin-Watson statistic is 2.01, where 2 means independent errors.</p>
+</section>
+<section id="decision-tree" class="level4">
+<h4 data-anchor-id="decision-tree">Decision tree</h4>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>tree_fit <span class="ot">&lt;-</span> <span class="fu">rpart</span>(f, <span class="at">data =</span> train, <span class="at">method =</span> <span class="st">"anova"</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">control =</span> <span class="fu">rpart.control</span>(<span class="at">cp =</span> <span class="fl">0.01</span>, <span class="at">maxdepth =</span> <span class="dv">4</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Turn each leaf of the tree into one row: which homes land there, and their typical price</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>leaf  <span class="ot">&lt;-</span> tree_fit<span class="sc">$</span>frame <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">node =</span> <span class="fu">as.integer</span>(<span class="fu">rownames</span>(tree_fit<span class="sc">$</span>frame))) <span class="sc">%&gt;%</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(var <span class="sc">==</span> <span class="st">"&lt;leaf&gt;"</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>paths <span class="ot">&lt;-</span> <span class="fu">path.rpart</span>(tree_fit, <span class="at">nodes =</span> leaf<span class="sc">$</span>node, <span class="at">print.it =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Type and Region: a later split narrows an earlier one, so keep the last</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>which_levels <span class="ot">&lt;-</span> <span class="cf">function</span>(p, key, all_levels) {</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  hit <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="fu">paste0</span>(<span class="st">"^"</span>, key, <span class="st">"="</span>), p, <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">length</span>(hit)) <span class="fu">return</span>(<span class="st">"Any"</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  got <span class="ot">&lt;-</span> <span class="fu">strsplit</span>(<span class="fu">sub</span>(<span class="st">".*="</span>, <span class="st">""</span>, <span class="fu">tail</span>(hit, <span class="dv">1</span>)), <span class="st">","</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(got) <span class="sc">&gt;=</span> <span class="dv">4</span> <span class="sc">&amp;&amp;</span> <span class="fu">length</span>(got) <span class="sc">&lt;</span> <span class="fu">length</span>(all_levels))   <span class="co"># a long list reads better as "all but"</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">paste</span>(<span class="st">"All but"</span>, <span class="fu">paste</span>(<span class="fu">setdiff</span>(all_levels, got), <span class="at">collapse =</span> <span class="st">", "</span>)))</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste</span>(got, <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Counts split at x.5, so "Rooms&lt; 3.5" reads "up to 3" and "Rooms&gt;=3.5" reads "4 or more"</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>count_range <span class="ot">&lt;-</span> <span class="cf">function</span>(p, key) {</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  lo <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(<span class="fu">max</span>(<span class="fu">as.numeric</span>(<span class="fu">sub</span>(<span class="st">".*&gt;="</span>, <span class="st">""</span>, <span class="fu">grep</span>(<span class="fu">paste0</span>(<span class="st">"^"</span>, key, <span class="st">"&gt;="</span>), p, <span class="at">value =</span> <span class="cn">TRUE</span>)))))</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  hi <span class="ot">&lt;-</span> <span class="fu">suppressWarnings</span>(<span class="fu">min</span>(<span class="fu">as.numeric</span>(<span class="fu">sub</span>(<span class="st">".*&lt; "</span>, <span class="st">""</span>, <span class="fu">grep</span>(<span class="fu">paste0</span>(<span class="st">"^"</span>, key, <span class="st">"&lt; "</span>), p, <span class="at">value =</span> <span class="cn">TRUE</span>)))))</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  lo <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">is.finite</span>(lo)) <span class="fu">ceiling</span>(lo) <span class="cf">else</span> <span class="cn">NA</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  hi <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">is.finite</span>(hi)) <span class="fu">floor</span>(hi) <span class="cf">else</span> <span class="cn">NA</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.na</span>(lo) <span class="sc">&amp;&amp;</span> <span class="fu">is.na</span>(hi)) <span class="st">"Any"</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">is.na</span>(lo)) <span class="fu">ifelse</span>(hi <span class="sc">==</span> <span class="dv">1</span>, <span class="st">"1"</span>, <span class="fu">paste</span>(<span class="st">"Up to"</span>, hi))</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">is.na</span>(hi)) <span class="fu">paste</span>(lo, <span class="st">"or more"</span>)</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="fu">paste</span>(lo, <span class="st">"to"</span>, hi)</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>km_range <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>  hit <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"^Distance"</span>, p, <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">length</span>(hit)) <span class="fu">return</span>(<span class="st">"Any"</span>)</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>  hit <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">"Distance&gt;="</span>, <span class="st">"At least "</span>, hit)</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>  hit <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">"Distance&lt; "</span>, <span class="st">"Under "</span>, hit)</span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste</span>(<span class="fu">paste</span>(hit, <span class="st">"km"</span>), <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>rules <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(paths, <span class="cf">function</span>(p) <span class="fu">data.frame</span>(</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">Type =</span> <span class="fu">which_levels</span>(p, <span class="st">"Type"</span>, <span class="fu">levels</span>(d<span class="sc">$</span>Type)),</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">Region =</span> <span class="fu">which_levels</span>(p, <span class="st">"Region"</span>, <span class="fu">levels</span>(d<span class="sc">$</span>Region)),</span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>  <span class="at">Distance =</span> <span class="fu">km_range</span>(p),</span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">Rooms =</span> <span class="fu">count_range</span>(p, <span class="st">"Rooms"</span>),</span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>  <span class="at">Bathrooms =</span> <span class="fu">count_range</span>(p, <span class="st">"Bathroom"</span>))))</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>rules<span class="sc">$</span>Homes <span class="ot">&lt;-</span> leaf<span class="sc">$</span>n</span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>rules<span class="sc">$</span>price <span class="ot">&lt;-</span> <span class="fu">exp</span>(leaf<span class="sc">$</span>yval)</span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>rules <span class="ot">&lt;-</span> rules <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(price) <span class="sc">%&gt;%</span></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Typical price</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">dollar</span>(<span class="fu">round</span>(price, <span class="sc">-</span><span class="dv">3</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">Typical price</span><span class="st">`</span>, Type, Region, Distance, Rooms, Bathrooms, Homes)</span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(rules, <span class="at">row.names =</span> <span class="cn">FALSE</span>, <span class="at">format.args =</span> <span class="fu">list</span>(<span class="at">big.mark =</span> <span class="st">","</span>), <span class="at">align =</span> <span class="st">"rlllllr"</span>,</span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"The tree's pricing rules, cheapest to dearest (training set)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>The tree’s pricing rules, cheapest to dearest (training set)</caption>
+<colgroup>
+<col style="width: 12%">
+<col style="width: 15%">
+<col style="width: 33%">
+<col style="width: 15%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Typical price</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Region</th>
+<th style="text-align: left;">Distance</th>
+<th style="text-align: left;">Rooms</th>
+<th style="text-align: left;">Bathrooms</th>
+<th style="text-align: right;">Homes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">$375,000</td>
+<td style="text-align: left;">Unit</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">547</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">$574,000</td>
+<td style="text-align: left;">Unit</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">2 or more</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">1,667</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">$694,000</td>
+<td style="text-align: left;">House, Townhouse</td>
+<td style="text-align: left;">Northern, Regional Victoria, Western</td>
+<td style="text-align: left;">At least 9.15 km</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">2,403</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">$823,000</td>
+<td style="text-align: left;">Unit</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">2 or more</td>
+<td style="text-align: left;">2 or more</td>
+<td style="text-align: right;">503</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">$1,015,000</td>
+<td style="text-align: left;">House, Townhouse</td>
+<td style="text-align: left;">Eastern, South-Eastern</td>
+<td style="text-align: left;">At least 9.15 km</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">1,407</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">$1,026,000</td>
+<td style="text-align: left;">House, Townhouse</td>
+<td style="text-align: left;">All but Southern</td>
+<td style="text-align: left;">Under 9.15 km</td>
+<td style="text-align: left;">Up to 3</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">2,103</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">$1,366,000</td>
+<td style="text-align: left;">House, Townhouse</td>
+<td style="text-align: left;">Southern</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: left;">Up to 3</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">1,665</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">$1,445,000</td>
+<td style="text-align: left;">House, Townhouse</td>
+<td style="text-align: left;">All but Southern</td>
+<td style="text-align: left;">Under 9.15 km</td>
+<td style="text-align: left;">4 or more</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">580</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">$1,544,000</td>
+<td style="text-align: left;">House, Townhouse</td>
+<td style="text-align: left;">Southern</td>
+<td style="text-align: left;">At least 11.3 km</td>
+<td style="text-align: left;">4 or more</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">332</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">$2,295,000</td>
+<td style="text-align: left;">House, Townhouse</td>
+<td style="text-align: left;">Southern</td>
+<td style="text-align: left;">Under 11.3 km</td>
+<td style="text-align: left;">4 or more</td>
+<td style="text-align: left;">Any</td>
+<td style="text-align: right;">701</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The tree is the weakest of the three, but it is the one an agent could carry in their head. Its first cut is unit or not. For houses and townhouses, its next cut is whether the home sits in the southern suburbs.</p>
+</section>
+<section id="random-forest" class="level4">
+<h4 data-anchor-id="random-forest">Random forest</h4>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">6351</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(logPrice <span class="sc">~</span> Type <span class="sc">+</span> Rooms <span class="sc">+</span> Bathroom <span class="sc">+</span> Car <span class="sc">+</span> Landsize <span class="sc">+</span> Distance <span class="sc">+</span> Region,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">data =</span> train, <span class="at">ntree =</span> <span class="dv">300</span>, <span class="at">importance =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">feature =</span> <span class="fu">rownames</span>(<span class="fu">importance</span>(rf_fit)),</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">inc_mse =</span> <span class="fu">importance</span>(rf_fit)[, <span class="st">"%IncMSE"</span>]) <span class="sc">%&gt;%</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(inc_mse))</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>imp<span class="sc">$</span>share <span class="ot">&lt;-</span> <span class="fu">round</span>(imp<span class="sc">$</span>inc_mse <span class="sc">/</span> <span class="fu">sum</span>(imp<span class="sc">$</span>inc_mse) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(imp, <span class="fu">aes</span>(share, <span class="fu">reorder</span>(feature, share))) <span class="sc">+</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.62</span>) <span class="sc">+</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(share, <span class="st">"%"</span>)), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.2</span>, <span class="at">size =</span> <span class="fl">3.6</span>) <span class="sc">+</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">31</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Where the home is matters more than what it is"</span>,</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"Region and distance together carry almost half the weight."</span>,</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Share of total importance (%)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-rf-1.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of variable importance. Region and distance lead, then land size and property type. Rooms, bathrooms and parking matter least." width="768"></p>
+<figcaption>Fig. 9 · How much the random forest’s error grows when each input is scrambled</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-rf-2.png" class="img-fluid figure-img" loading="lazy" alt="Bar chart of variable importance. Region and distance lead, then land size and property type. Rooms, bathrooms and parking matter least." width="768"></p>
+<figcaption>Fig. 9 · How much the random forest’s error grows when each input is scrambled</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
 </section>
 </div>
 <div class="cs-sec">
@@ -391,14 +1144,179 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="results-and-impact" class="level2">
 <h2 data-anchor-id="results-and-impact">Results and impact</h2>
-<div class="pending" data-tag="To log">
-<p>Key charts from Project 1 and what they mean. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.</p>
+<section id="how-the-three-models-scored" class="level3">
+<h3 data-anchor-id="how-the-three-models-scored">How the three models scored</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scores</span>(test<span class="sc">$</span>Price, <span class="fu">predict</span>(lm_fit,   test), <span class="st">"Linear regression"</span>),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scores</span>(test<span class="sc">$</span>Price, <span class="fu">predict</span>(tree_fit, test), <span class="st">"Decision tree"</span>),</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scores</span>(test<span class="sc">$</span>Price, <span class="fu">predict</span>(rf_fit,   test), <span class="st">"Random forest"</span>))</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>test<span class="sc">$</span>pred_rf <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">predict</span>(rf_fit, test))</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>within10 <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(test<span class="sc">$</span>pred_rf <span class="sc">-</span> test<span class="sc">$</span>Price) <span class="sc">/</span> test<span class="sc">$</span>Price <span class="sc">&lt;=</span> <span class="fl">0.10</span>) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>within20 <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(test<span class="sc">$</span>pred_rf <span class="sc">-</span> test<span class="sc">$</span>Price) <span class="sc">/</span> test<span class="sc">$</span>Price <span class="sc">&lt;=</span> <span class="fl">0.20</span>) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>results <span class="sc">%&gt;%</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(Model,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">MAPE (average miss, %)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(MAPE, <span class="st">"%"</span>),</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">MAE (average miss)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">dollar</span>(MAE),</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">RMSE =</span> <span class="fu">dollar</span>(RMSE),</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span> <span class="ot">=</span> R2) <span class="sc">%&gt;%</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">"Accuracy on the 2,977 sales the models never saw"</span>, <span class="at">align =</span> <span class="st">"lrrrr"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Accuracy on the 2,977 sales the models never saw</caption>
+<colgroup>
+<col style="width: 22%">
+<col style="width: 29%">
+<col style="width: 24%">
+<col style="width: 11%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">MAPE (average miss, %)</th>
+<th style="text-align: right;">MAE (average miss)</th>
+<th style="text-align: right;">RMSE</th>
+<th style="text-align: right;">R-squared</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Linear regression</td>
+<td style="text-align: right;">23.9%</td>
+<td style="text-align: right;">$236,841</td>
+<td style="text-align: right;">$358,884</td>
+<td style="text-align: right;">0.648</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Decision tree</td>
+<td style="text-align: right;">26.9%</td>
+<td style="text-align: right;">$269,201</td>
+<td style="text-align: right;">$402,454</td>
+<td style="text-align: right;">0.557</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Random forest</td>
+<td style="text-align: right;">17.8%</td>
+<td style="text-align: right;">$184,310</td>
+<td style="text-align: right;">$298,479</td>
+<td style="text-align: right;">0.756</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="try-it">
-<p><span class="label label-orange">Try it</span></p>
-<p>To be decided once the findings are moved over.</p>
-<p><span class="muted">This panel goes live when the analysis is done.</span></p>
 </div>
+<p>The random forest wins on every measure. Its average miss is 17.8% of the sale price, against 23.9% for the regression and 26.9% for the tree. Put another way, 40% of its predictions land within 10% of the real price and 67% land within 20%.</p>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(test, <span class="fu">aes</span>(pred_rf <span class="sc">/</span> <span class="fl">1e6</span>, Price <span class="sc">/</span> <span class="fl">1e6</span>, <span class="at">colour =</span> Type)) <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">linetype =</span> <span class="st">"42"</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">stroke =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">setNames</span>(k<span class="sc">$</span>series, <span class="fu">levels</span>(test<span class="sc">$</span>Type))) <span class="sc">+</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>), <span class="at">labels =</span> bp_millions) <span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>), <span class="at">labels =</span> bp_millions) <span class="sc">+</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">colour =</span> <span class="fu">guide_legend</span>(<span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="fl">2.5</span>))) <span class="sc">+</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Most predictions sit near the line. The dear homes are the hard ones."</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"A dot on the dashed line is a perfect call."</span>,</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Predicted price, log scale"</span>, <span class="at">y =</span> <span class="st">"Actual price, log scale"</span>)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-pred-1.png" class="img-fluid figure-img" loading="lazy" alt="Scatter plot of predicted against actual price. Points cluster along the diagonal, with wider scatter above two million dollars." width="768"></p>
+<figcaption>Fig. 10 · Random forest predictions against real sale prices, on the test set</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="melbourne-housing_files/figure-html/chart-pred-2.png" class="img-fluid figure-img" loading="lazy" alt="Scatter plot of predicted against actual price. Points cluster along the diagonal, with wider scatter above two million dollars." width="768"></p>
+<figcaption>Fig. 10 · Random forest predictions against real sale prices, on the test set</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="what-id-tell-the-agency" class="level3">
+<h3 data-anchor-id="what-id-tell-the-agency">What I’d tell the agency</h3>
+<ol type="1">
+<li><strong>Start the guide from location.</strong> Each extra kilometer from the city takes about 4.1% off the price with everything else equal, and region moves it by up to a quarter either way against the eastern suburbs at the same distance. Set the location first, then adjust for the home.</li>
+<li><strong>Never price a unit off nearby house sales.</strong> A unit sells for about 38.8% less than a comparable house, and a townhouse for about 19.9% less.</li>
+<li><strong>Lead with layout in seller meetings.</strong> One more room adds about 17.4% and one more bathroom about 12.1%. A parking spot adds only 3.1%, and a bigger block moves the price very little once location is set.</li>
+<li><strong>Use the random forest as a first draft, and review the gaps.</strong> When an agent’s own guide and the model differ by more than 20%, one of them is missing something. That listing gets a second look before it goes out.</li>
+<li><strong>Collect floor area and build year at listing.</strong> They were blank for half the sales. Filling them in is the cheapest way to sharpen the model.</li>
+</ol>
+</section>
+<section id="what-this-doesnt-settle" class="level3">
+<h3 data-anchor-id="what-this-doesnt-settle">What this doesn’t settle</h3>
+<p>The model learned from 2016 and 2017, so its dollar figures are out of date and only the pattern carries over. It also can’t see condition, renovation, or street, which is most of what an agent walks through a home to judge. That’s why I’d use it to check a guide, not to set one.</p>
+<div id="try-it" class="try-it">
+<p><span class="label label-orange">Try it · Price guide</span></p>
+<p>Spec a home and the regression prices it, one line at a time. Drag the orange ring on the map to move the home closer to the city or farther out.</p>
+<div class="pg" id="price-guide" hidden="">
+  <div class="pg-top">
+    <figure class="pg-panel pg-map figure">
+      <figcaption class="label">Plan view · sales from the test set</figcaption>
+      <svg id="pg-map-svg" viewbox="0 0 400 400" role="img" aria-label="Map of Melbourne sales with a ring showing the chosen distance from the city center"></svg>
+    </figure>
+    <figure class="pg-panel pg-elev figure">
+      <figcaption class="label">Elevation · not to scale</figcaption>
+      <svg id="pg-elev-svg" viewbox="0 24 420 200" role="img" aria-label="Line drawing of the chosen home"></svg>
+      <div class="pg-price">
+        <span class="label">Guide price · 2016 to 2017 dollars</span>
+        <output id="pg-price">A$0</output>
+        <p class="pg-range" id="pg-range"></p>
+      </div>
+    </figure>
+  </div>
+
+  <div class="pg-controls">
+    <div class="pg-ctl pg-wide">
+      <span class="label" id="pg-type-l">Type</span>
+      <div class="pg-seg" role="group" aria-labelledby="pg-type-l" id="pg-type"></div>
+    </div>
+    <div class="pg-ctl"><span class="label">Rooms</span><div class="pg-step" data-key="rooms"></div></div>
+    <div class="pg-ctl"><span class="label">Bathrooms</span><div class="pg-step" data-key="bath"></div></div>
+    <div class="pg-ctl"><span class="label">Parking</span><div class="pg-step" data-key="car"></div></div>
+    <div class="pg-ctl pg-wide">
+      <span class="label" id="pg-region-l">Region</span>
+      <div class="pg-seg" role="group" aria-labelledby="pg-region-l" id="pg-region"></div>
+    </div>
+    <div class="pg-ctl pg-wide">
+      <label class="label" for="pg-dist">Distance from the city center · <span id="pg-dist-v">9 km</span></label>
+      <input type="range" id="pg-dist" min="1" max="30" step="0.5" value="9">
+    </div>
+  </div>
+  <p class="pg-warn" id="pg-warn" hidden=""></p>
+
+  <div class="pg-bom-wrap">
+  <table class="pg-bom" aria-live="polite" data-quarto-disable-processing="true">
+    <caption class="label">Bill of materials</caption>
+    <thead><tr><th>Item</th><th>Spec</th><th>Effect</th><th>Running price</th></tr></thead>
+    <tbody id="pg-bom"></tbody>
+  </table>
+  </div>
+
+  <div class="pg-test">
+    <button type="button" class="bp-btn" id="pg-real">Test it on a real sale</button>
+    <button type="button" class="bp-btn-ghost" id="pg-reset">Reset</button>
+    <p id="pg-real-out" aria-live="polite"></p>
+  </div>
+</div>
+<noscript><p class="muted">The price guide needs JavaScript.</p></noscript>
+<p><span class="muted">The tool runs the linear regression, because it can show its work line by line. The random forest is more accurate, but it can’t be laid out as a parts list.</span></p>
+</div>
+<script type="application/json" id="pg-data">{"coef":{"intercept":13.545115,"type":{"House":0,"Townhouse":-0.222283,"Unit":-0.491419},"rooms":0.160649,"bath":0.114166,"car":0.030201,"logLand":0.028777,"dist":-0.041744,"region":{"Eastern":0,"Northern":-0.267855,"Regional Victoria":0.076257,"South-Eastern":0.211673,"Southern":0.143276,"Western":-0.31977}},"land":{"House":560,"Townhouse":198.5,"Unit":0},"regionRange":{"Eastern":[7.8,24.8],"Northern":[1.6,20.6],"Regional Victoria":[21.8,47.4],"South-Eastern":[14.7,38],"Southern":[2.1,16],"Western":[4.3,18.4]},"err":{"p50":0.183,"within20":0.533,"mapeLm":23.9,"mapeRf":17.8},"types":["House","Townhouse","Unit"],"regions":["Eastern","Northern","Regional Victoria","South-Eastern","Southern","Western"],"sales":[[6.23,15.54,638,0,3,1,2,679,16.3,1],[10.06,12.31,800,0,3,2,2,595,14.9,1],[8.89,-16.52,751,1,2,1,1,171,17.9,4],[3.46,-4.5,910,0,2,1,1,183,4.5,4],[20,0.92,718,2,2,1,1,255,16.1,0],[10.13,14.12,1505,0,5,3,2,659,12.1,1],[6.08,-1.72,275,2,1,1,0,479,4.6,4],[9.36,-13.07,1410,0,3,2,3,722,13.8,4],[1.5,2.16,1000,0,2,1,0,128,1.6,1],[17.72,4.65,1385,0,4,3,2,560,15.5,0],[0.61,7.11,981,0,2,1,1,263,7.8,1],[3.79,-0.87,1600,1,3,3,2,198,2.4,1],[9.76,-10.07,1150,0,3,1,2,560,10.1,4],[6.12,1.44,520,2,1,1,1,0,5.4,4],[28.21,4.16,835,0,4,1,2,1717,23,0],[-15.35,2.61,521,1,3,3,2,134,13.5,5],[-0.55,-3.65,2550,0,4,2,2,152,3,4],[8.06,-2.29,430,2,1,1,1,2276,7.5,4],[6.02,-12.96,880,2,3,2,2,304,10.7,4],[18.78,-10.99,1100,0,5,2,2,672,16.7,3],[23.77,1.02,655,2,2,1,1,306,19.9,0],[12.24,-2.39,1518,0,5,2,1,632,11.2,4],[0.11,5.8,1050,0,3,1,2,264,5.2,1],[15.02,-8.38,1323,0,5,2,2,560,14.2,0],[5.11,-0.04,1712,0,3,1,1,342,4.6,4],[9.57,-4.88,2180,0,5,3,2,595,7.3,4],[0.36,-2.61,1050,2,2,2,2,0,2.1,4],[-27.24,-7.94,470,0,3,1,2,640,14.7,5],[-3.83,12.81,695,0,3,1,2,649,11.2,1],[-12.27,2.47,714,0,3,1,2,520,10.5,5],[-2.12,-2.92,720,2,2,2,1,0,3.8,4],[-0.4,5.42,705,0,2,1,1,161,5.2,1],[9.4,7.83,1200,0,2,1,1,757,11.4,0],[-12.13,3.76,319,1,2,1,1,0,13.9,5],[-10.97,-5.99,391,2,2,1,1,0,13.8,5],[3.14,16.93,955,0,4,2,2,560,16.3,1],[4.15,8.3,821,0,3,1,2,396,8.8,1],[7.4,-10.12,1486,0,4,2,1,618,11.8,4],[-0.33,3.96,601,2,2,1,1,0,5.2,1],[-2.68,12.85,572,0,3,1,2,627,13,1],[0.13,6.06,605,1,2,1,1,0,5.2,1],[18.22,-7.81,1500,2,4,2,2,248,16.7,0],[7.53,-5.18,5770,0,5,3,2,560,7.3,4],[2.4,5.63,754,2,2,2,2,0,5.3,1],[1.35,-7.56,392,2,1,1,0,0,7.7,4],[4.03,-1.15,1120,1,3,2,1,198,2.4,1],[2.78,-7.28,605,2,2,1,1,722,7.4,4],[16.99,12.36,840,0,4,3,2,903,18,0],[11.62,24.89,570,0,4,2,2,560,25.9,1],[7.27,-12.75,1280,1,4,3,2,306,11.4,4],[-10.53,2.26,1030,0,4,2,2,803,12.6,5],[9.04,6.9,920,1,3,2,2,198,8.9,0],[15.87,0.94,1250,0,4,2,2,580,13.4,0],[2.59,-9.96,2415,0,4,3,2,402,11.2,4],[-1.92,-2.93,1631,2,3,2,2,0,3.5,4],[-2.98,3.1,1130,0,3,1,0,294,4.4,1],[4.98,-4.21,1330,0,2,2,1,560,6.3,4],[19.85,-3.42,1260,0,4,2,3,682,17.2,0],[15.17,10.49,980,0,4,3,2,701,16.2,0],[7.8,5.83,2100,0,5,3,2,740,7.8,0],[-3.69,12.1,434,1,2,1,1,125,13,1],[7.21,8.25,675,0,3,1,2,665,9.4,0],[12.85,-2.44,3100,0,4,2,3,832,10.2,4],[-9.59,6.81,725,0,3,1,4,606,10.5,5],[4.4,11.47,358,2,2,1,1,129,11.2,1],[-2.26,11.84,691,0,3,1,2,753,13,1],[0.32,-1.24,642,2,2,1,1,2783,0.7,4],[-5.09,6.78,1535,0,4,1,2,638,8,5],[-4.7,9.85,630,0,2,2,1,378,9.7,5],[-4.19,6.66,2390,0,3,1,1,669,8,5],[13.1,5.25,1350,0,3,2,3,725,12.4,0],[6.31,-1.37,530,2,2,1,1,0,4.6,4],[-7.75,0.86,790,0,2,1,1,259,8.2,5],[5.27,-2.49,3260,0,2,2,2,334,4.6,4],[1.57,2.5,1116,0,2,1,0,152,3.5,1],[8.38,-4.18,1440,0,3,2,2,0,7.3,4],[4.87,-11.44,1035,0,2,1,1,542,10.3,4],[10.61,-9.53,1360,0,3,1,1,560,12.3,4],[-2.76,6.17,1295,0,3,1,3,688,8,5],[-0.96,7.53,550,0,2,1,1,560,6.7,1],[9.4,8.64,1426,0,4,2,4,621,8.9,0],[14.41,3.95,1924,0,4,4,2,1157,13.9,0],[4.46,-11.6,1800,0,3,1,1,703,10.7,4],[8.91,-1.77,2385,0,4,2,2,671,7.7,4],[4.28,-14.32,916,1,2,2,1,0,13.7,4],[7.7,5.5,3020,0,4,2,1,1250,7.9,0],[3.1,-10.86,2750,0,5,3,1,509,11.2,4],[9.54,-9.51,1355,0,3,1,6,612,12.1,4],[-5.91,7.31,645,2,2,1,1,170,8,5],[5.37,-3.22,920,2,2,1,1,0,4.6,4],[10.92,-10.79,778,0,2,1,1,806,14.7,3],[-4.7,13.71,435,1,3,1,2,198,14,1],[9.43,8.82,1051,0,4,2,2,651,11.4,0],[-7.66,7.42,772,0,3,2,3,672,12.8,5],[-5.63,6.38,1195,0,3,2,2,496,9.1,5],[3.12,-12.69,2020,0,3,6,2,685,11.2,4],[1.53,-6.48,360,2,1,1,1,0,5,4],[1.63,9.22,1172,0,5,3,2,425,9.2,1],[-1.49,-2.86,1350,0,2,1,1,195,3.8,4],[4.07,0.1,380,2,1,1,1,0,2.6,1],[-6.57,-0.57,1218,0,3,3,1,217,7,5],[-7.84,0.44,270,2,2,1,1,0,7.8,5],[16.73,-17.61,850,0,4,2,2,584,22.2,3],[-1.83,-2.38,1764,0,3,2,2,131,3.5,4],[2.21,-2.54,3475,1,3,3,1,296,3.3,4],[-7.94,1.95,805,0,3,1,3,372,8.2,5],[13.07,-5.92,785,0,3,1,1,557,12.2,4],[-3.71,6.59,360,2,2,1,1,0,8,5],[2.06,-4.53,1850,0,3,1,2,361,5.1,4],[8.91,-3.57,2000,0,3,1,2,821,7.8,4],[0.3,8.58,600,1,3,1,1,102,7.8,1],[2.56,-4.04,440,2,1,1,1,0,4.6,4],[6.58,-12.95,670,1,2,2,1,123,13,4],[-8.36,6.5,905,0,4,1,2,560,9.5,5],[2.54,-1.07,576,2,2,1,1,0,2.4,1],[-8.54,5.72,1600,0,4,3,3,857,10.5,5],[-6.38,-0.66,950,0,2,1,0,150,6.3,5],[3.61,6.09,1135,0,3,1,1,294,6.5,1],[2.27,-7.2,635,2,2,1,1,371,7.2,4],[13.25,5.08,1381,0,5,2,2,733,12.4,0],[9.3,-12.78,830,0,3,1,2,290,13.9,4],[-3.24,9.49,580,2,2,1,1,103,8.5,1],[-6.43,1.93,885,0,2,1,0,267,6.4,5],[5.55,-4.5,599,2,2,1,1,0,6.3,4],[-6.34,7.77,1007,0,2,1,1,646,11.2,5],[-0.09,7.32,599,1,2,2,1,76,7.8,1],[5.22,-4.81,1900,0,2,2,0,207,6.3,4],[2.62,3.69,905,0,2,1,0,114,5.3,1],[10.34,-5.74,955,1,3,2,2,203,11,4],[11.04,-10.52,1180,0,4,1,2,604,14,4],[-3.83,8.75,1280,0,4,2,2,689,9.7,5],[1.92,-3.51,805,2,3,2,3,2783,3.3,4],[0,-2.53,1405,0,3,1,1,181,2.1,4],[-5.88,7.49,745,0,2,1,1,342,8,5],[-13.45,2.59,621,0,4,1,1,700,13.5,5],[3.18,1.24,1876,0,3,2,0,245,2.5,1],[5.32,-4.84,2000,0,2,2,1,560,6.3,4],[-7.28,-5.22,906,0,3,2,2,270,8,5],[14.21,-1.48,1525,0,3,1,1,904,10.9,0],[3.7,-4.65,1365,0,2,1,2,206,4.6,4],[-1.14,10.49,636,1,2,1,2,198,8.5,1],[11.38,-5.15,1700,0,3,2,2,625,9.2,4],[5.35,-10.78,890,2,2,1,2,275,10.3,4],[0.26,-2.22,1550,2,3,4,2,0,2.1,4],[2.49,-10.63,590,2,2,1,1,0,11.2,4],[17.94,-1.75,1850,0,4,2,2,628,13.4,0],[0.83,4.42,771,1,2,2,2,0,4.5,1],[6.19,6.99,625,0,3,1,2,609,9.5,0],[10,1.19,2570,0,5,3,2,715,9.7,4],[-5.72,12.33,635,0,4,2,2,2679,12.9,5],[1.63,3.33,1371,0,3,1,1,197,3.5,1],[12.86,-2.62,2100,0,3,1,9,841,10.2,4],[12.31,0.88,2750,0,5,5,2,1235,7.9,4],[-1.35,5.45,403,2,2,1,2,0,5.9,1],[9.14,2.11,1350,0,2,1,2,467,9.2,4],[7.01,-0.22,2800,0,4,2,2,750,5.3,4],[-6.78,-3.33,1210,0,4,1,0,325,6.2,5],[-7.35,-3.17,1115,0,4,1,1,0,8.4,5],[2.91,5.98,891,0,3,2,2,199,7,1],[12.02,12.47,1000,0,5,2,2,900,16.1,1],[0.45,-2.02,742,2,3,2,2,0,2.1,4],[4.58,8.21,830,0,4,1,2,540,8.4,1],[2.36,-2.29,780,2,2,1,1,0,3.3,4],[0.81,3.15,468,2,1,1,1,861,3.2,1],[18.18,-3.13,1131,0,3,1,2,697,15.4,0],[6.78,8.71,810,0,3,2,0,747,9.4,0],[11.48,-4.28,585,2,2,1,1,0,9.2,4],[3.85,12.43,737,0,3,3,6,957,11.2,1],[-4.74,11.4,865,0,3,1,1,746,11.2,1],[10.35,-11.8,935,1,3,2,2,244,13.8,4],[-5.59,-4.72,492,2,2,1,1,0,8,5],[-8.72,5.83,1100,0,4,3,2,873,10.5,5],[10.93,12.7,710,0,3,1,2,600,14.5,1],[-2.4,-2.32,2700,0,4,3,2,317,3.8,4],[7.71,6.1,880,2,3,2,1,252,7.8,0],[4.33,-8.62,1400,0,4,1,1,489,8.5,4],[8.4,-11.55,580,2,1,1,1,105,13.9,4],[-11.13,3.14,810,0,3,1,2,459,10.5,5],[16.76,2.06,925,2,3,2,1,0,14.3,0],[3.73,-4.21,1610,0,3,2,2,111,4.6,4],[-2.64,12.94,525,0,3,1,1,665,13,1],[8.16,-8.45,588,2,2,1,1,133,11.4,4],[-13.74,11.31,704,0,4,2,2,644,15.5,5],[5.07,6.03,560,2,2,1,2,0,6.5,1],[-0.16,13.09,730,0,3,1,2,638,12.4,1],[7.73,-4.48,1280,0,2,1,1,412,9.2,4],[7.16,-13.04,1165,0,3,1,2,694,13,4],[2.66,5.51,1020,0,2,1,1,354,5.5,1],[2.44,-6.76,521,2,2,1,1,0,7.2,4],[-15.32,2.47,280,0,1,1,2,0,13.5,5],[10.81,1.9,3000,0,4,3,2,1247,9.2,4],[3.78,-0.54,1775,0,4,1,0,434,2.6,1],[-8.35,-0.48,1005,0,3,1,2,451,6.3,5],[0.17,-2.48,2180,0,4,3,1,200,2.1,4],[-13.22,5.95,528,0,3,1,1,560,14,5],[1.15,0.2,895,2,1,1,1,0,1.3,1],[2.29,-5.24,535,2,2,1,1,0,6.1,4],[-7.82,-1.08,845,0,3,1,2,494,7,5],[6.97,8.4,580,0,2,1,2,498,8.8,0],[4.67,3.91,445,2,2,1,1,0,5.8,1],[0.14,5.71,272,2,1,1,1,0,5.2,1],[-4.85,7.95,810,1,2,2,1,175,9.4,5],[10.05,-6.27,1415,0,3,1,1,605,11,4],[9.93,-0.15,2900,0,4,3,2,596,9.7,4],[1.96,-6.51,875,2,2,1,1,0,7.7,4],[4.29,-8.51,1250,0,2,1,2,560,7.2,4],[-10.45,-1.39,620,0,3,2,2,276,11.1,5],[4.62,20.64,940,0,4,3,2,508,19.6,1],[-26.55,-7.54,430,0,3,1,1,454,14.7,5],[24.86,-7.15,1440,0,4,3,6,717,14.7,0],[2.99,6.32,1110,0,2,1,0,288,6.5,1],[-0.67,8.07,700,0,3,1,1,138,7.8,1],[3.5,-2.94,400,2,1,1,1,1424,3.3,4],[3.12,5.63,1340,0,2,1,1,297,5.5,1],[9.3,-8.92,1220,0,3,1,2,735,12.1,4],[11.37,-0.34,1960,0,3,2,2,585,11.2,4],[-0.21,-3.81,2090,0,3,1,0,199,3,4],[11.98,-22.37,970,0,3,2,2,612,21.5,3],[24.67,-17.06,710,0,3,2,2,560,28.5,3],[9.85,-11.18,1370,0,4,1,2,684,13.9,4],[6.42,-4.18,650,2,2,2,1,0,7.4,4],[9.33,-6.46,1440,0,2,1,1,687,11,4],[1.13,-5.34,400,2,2,1,1,0,6.1,4],[-6.16,7.26,960,0,3,1,2,549,8,5],[10.55,17.03,722,0,4,2,2,643,17.9,1],[-7.13,4.64,355,1,2,1,1,0,8.7,5],[6.14,22.09,401,1,2,1,1,115,25.5,1],[3.07,-6.1,328,2,1,1,1,0,6.4,4],[-4.57,14.06,421,0,3,1,1,607,14.5,1],[8.21,-1.57,460,2,2,1,1,0,7.5,4],[-12.09,1.88,940,0,3,2,2,572,12.6,5],[-2.13,11.36,640,0,2,1,1,612,12.1,1],[7.26,-8.2,1160,0,3,1,2,553,10.4,4],[9.36,-3.31,1615,1,3,1,2,389,7.8,4],[14.87,-12.18,1040,0,4,2,2,735,16.7,3],[13.32,-0.47,1462,0,4,2,0,420,10.2,0],[5.77,5.73,785,1,2,2,1,124,7.9,0],[3.71,-4.65,1055,0,2,1,0,203,4.5,4],[-0.85,5.58,1260,0,2,1,1,385,5.2,1],[-6.08,-4.35,1080,0,3,1,2,560,6.8,5],[-7.83,-3.06,335,2,1,1,1,0,8.4,5],[-2.3,12.88,485,0,3,1,1,560,11.2,1],[7.37,-11.2,1560,0,4,3,1,695,13,4],[-3.54,2.64,410,2,2,1,1,0,4.2,1],[13.38,-7.75,611,2,2,1,1,161,14.2,0],[5.96,-0.06,690,2,3,1,1,1396,5.3,4],[-5.29,-5.87,1010,0,3,2,2,250,8,5],[2.38,-9.34,4225,0,4,2,2,920,11.2,4],[-7.45,2,1061,0,3,1,1,533,8.2,5],[-8.34,7.4,970,0,4,2,4,659,12.8,5],[6.7,-13.19,620,1,2,2,1,0,13,4],[-16.12,6.33,750,0,4,2,2,447,14.8,5],[-9.43,6.72,750,0,3,1,2,561,9.5,5],[12.83,9.4,420,2,2,1,1,119,14.6,0],[-15.65,5.72,821,0,4,2,2,638,14.8,5],[6.31,-6.16,500,1,2,1,1,0,7.4,4],[-5.25,11.12,955,0,5,2,4,838,11.2,1],[1.1,3.33,2400,0,4,1,1,163,3.5,1],[1.35,3.21,720,2,2,2,1,2783,3.5,1],[-1.09,9.99,790,0,2,1,1,560,8.5,1],[9.52,-6.68,2050,1,3,3,4,310,11,4],[4.52,-8.38,1916,0,4,2,2,630,9.3,4],[-5.55,-5.88,880,2,2,1,2,169,6.8,5],[-16.21,6.69,560,0,3,2,1,295,14.8,5],[6.8,1.25,1410,0,3,1,2,304,5.6,4],[12,-10.76,865,0,3,1,2,691,14,4],[29.18,-3.76,770,0,4,2,2,723,25,0],[-7.33,4.35,550,1,3,2,2,77,8.7,5],[10.73,8.55,1042,0,4,2,2,648,13.8,0],[-9.25,9.7,722,0,3,1,1,695,14.5,5],[4.11,5.4,810,2,3,1,2,150,5.5,1],[-11.24,-1.51,1030,0,4,3,2,533,9.4,5],[4,-3.75,1300,0,2,1,0,338,4.6,4],[12.66,-3.62,975,1,3,2,2,267,11.7,4],[-5.69,12.12,525,0,3,2,1,223,13.6,5],[-6.66,9.42,720,0,3,2,2,305,13.5,5],[0.6,6.84,2250,2,8,2,4,983,7.8,1],[-1.69,1.26,606,2,2,1,2,0,2.3,1],[8.26,-4.02,1222,0,3,1,1,215,9.2,4],[2.54,4.05,1343,0,2,1,1,263,5.5,1],[11.63,11.1,1010,0,3,2,2,582,16.1,1],[12.21,-2.11,899,2,2,1,1,226,11.2,4],[1.71,-4.83,435,2,1,1,1,0,6.1,4],[1.79,-5.19,475,2,1,1,1,0,6.1,4],[2.26,-3.52,1125,0,3,1,0,146,3.3,4],[4.59,7.26,660,1,2,1,1,113,8.8,1],[-10.5,2.69,590,0,4,1,1,490,12.6,5],[16.56,9.79,915,0,3,2,2,795,18,0],[0.06,8.4,835,0,3,1,2,385,7.8,1],[4.05,5.58,940,0,2,1,1,372,6.5,1],[-1.69,2.45,1330,0,4,2,1,246,2.3,1],[12.75,4.83,838,0,3,2,1,467,13.8,0],[1.29,3.35,650,2,2,1,1,0,3.6,1],[-4.19,8.44,1285,0,3,2,2,616,9.7,5],[-8.23,0.09,1050,0,3,2,1,462,7,5],[4.58,-12.74,2525,0,4,2,2,725,10.3,4],[5.83,20.29,375,0,3,1,1,167,19.6,1],[3.25,-13.37,2800,0,4,3,2,1093,13.7,4],[1.94,3.35,1870,0,4,3,1,248,3.6,1],[-0.52,5.57,1000,0,3,1,1,370,5.2,1],[12.53,-2.06,2100,0,3,2,2,1255,11.2,4],[2.34,-1.61,546,2,2,1,1,0,2.5,1],[12.29,-2.43,640,2,2,1,1,0,11.2,4],[-1.69,6.17,910,0,2,1,4,576,5.9,1],[0.55,2.84,1065,0,2,1,2,2783,3.5,1],[1.69,-5.36,395,2,1,1,1,1286,6.1,4],[9.1,-8.25,605,2,2,2,2,2783,12.1,4],[10.98,-11.4,800,1,3,1,2,252,14.7,3],[8.35,-3.32,1622,0,3,1,1,544,7.8,4],[3.4,11.41,672,1,2,1,1,243,12,1],[-3.65,11.02,910,0,2,1,1,718,11.2,1],[6.12,1.43,1507,0,2,1,2,667,5.6,4],[-6.34,2.37,752,0,2,1,0,215,6.4,5],[4.4,-0.59,615,2,2,2,1,2783,2.4,1],[-0.49,2.3,2200,0,2,2,1,190,2.6,1],[7.73,-9.67,1410,0,4,3,3,650,11.4,4],[10.16,-2.44,1185,0,2,2,2,259,7.8,4],[-1.22,2,320,2,1,1,1,0,2.3,1],[15.39,-11.47,696,2,3,1,2,259,16.7,3],[0.45,-2.02,1250,2,3,2,3,0,1.9,4],[-11.67,6.49,600,0,3,1,2,465,13.3,5],[10.33,-13.05,850,1,3,2,2,321,13.9,4],[9.55,-18.11,1002,0,3,1,2,560,20,3],[-4.42,5.95,606,2,2,1,2,0,8,5],[11.9,11.82,670,2,2,1,1,704,16.1,1],[8.66,-2.18,1905,0,3,1,2,400,7.8,4],[-2.69,5.64,1400,0,4,2,1,375,6.2,5],[9.23,-5.31,1770,0,4,3,2,276,7.3,4],[9.56,-8.3,1420,0,3,1,1,700,12.1,4],[-8.32,9.72,950,1,4,2,1,255,10.4,5],[-0.01,-3.98,2250,0,3,2,1,148,4.1,4],[3.03,-1.25,1361,0,3,2,1,99,2.6,1],[22.69,-6.11,1330,0,4,2,2,717,14.7,0],[10.09,0.49,812,2,2,1,1,206,9.7,4],[12.13,2.52,1670,0,4,1,4,1042,9.2,4],[6.86,-11.88,1100,0,3,1,2,632,13,4],[5.26,9.85,817,0,3,1,2,700,12,1],[-5.55,14.97,800,0,3,2,2,898,16.5,1],[1.77,-5.87,2000,0,4,2,3,420,6.1,4],[7.1,-11.69,770,0,3,2,2,0,13,4],[11.66,5.3,1235,0,4,2,2,556,11.8,0],[4.1,3.65,970,0,2,2,1,173,5.5,1],[5.42,-5.64,490,2,2,1,1,0,6.3,4],[9.97,-8.77,692,0,2,1,2,0,12.1,4],[7.73,-6.5,1800,0,3,2,1,460,8.4,4],[-1.22,2,550,2,2,1,2,0,2.3,1],[10.48,9.21,721,0,3,1,1,687,15,1],[3.83,6.36,470,2,2,1,1,0,6.5,1],[1.54,13.26,605,0,3,1,1,540,12,1],[-2.32,10.47,721,0,3,1,2,542,9.9,1],[-24.36,-6.23,520,0,3,1,0,609,18.4,5],[-3.49,10.37,1300,0,4,2,2,866,11.2,1],[8.98,-16.57,745,1,2,1,2,359,17.9,4],[4.44,-7.97,591,2,2,1,1,815,8.5,4],[10.79,-0.82,758,2,2,1,1,0,8.4,4],[-13.4,-6.37,1480,0,5,3,4,725,13.8,5],[9.78,-3.64,895,0,2,1,1,424,7.8,4],[3.68,-0.85,1220,0,2,1,1,80,2.6,1],[-14.91,1.71,621,0,5,2,2,596,13.5,5],[-7.87,-1.87,930,0,4,1,3,669,9.1,5],[3.28,-4.77,420,2,1,1,1,0,4.6,4],[3.2,5.86,1260,0,2,1,0,317,6.5,1],[2.28,8.66,1000,0,4,1,2,568,8.8,1],[9.22,0.39,1680,1,4,2,1,254,7.9,4],[11.09,-20.83,1170,1,4,2,2,312,21.5,3],[6.84,1.02,1350,0,3,2,1,275,5.4,4],[2.02,7.15,1110,0,4,1,2,556,8.8,1],[4.36,-1.38,1591,0,4,2,1,263,2.6,1],[-2.16,-2.6,964,0,1,1,0,85,3.5,4],[-1.18,9.97,600,2,3,1,1,204,9.9,1],[8.62,-3.55,1987,0,3,2,2,706,7.8,4],[2.98,-13.27,1140,1,3,2,2,224,13.7,4],[-5.7,7.42,1295,0,4,2,2,696,8,5],[-1.98,10.15,496,2,2,1,1,136,9.9,1],[0.52,5.83,620,1,2,2,1,72,5.2,1],[7.91,-7.82,405,2,2,1,1,967,11.4,4],[6.84,18.12,595,0,3,1,2,536,19.6,1],[-13.47,1.37,584,0,3,1,1,672,10.5,5],[0.2,9.59,782,0,3,1,3,576,9.2,1],[-6.95,0.59,678,0,2,1,1,224,7.8,5],[7.21,-1.91,1575,0,3,1,0,305,7.5,4],[-3.32,11.13,900,0,5,2,2,568,11.5,1],[-5.96,0.12,920,0,3,2,2,182,6.3,5],[4.16,-0.93,696,2,2,2,1,0,2.6,1],[-5.86,0.1,955,0,3,2,2,206,7,5],[6.8,-8.38,450,2,2,1,1,0,10.1,4],[-4.58,4.99,1425,0,4,2,2,388,6.2,5],[-8.09,-1.68,300,2,2,1,1,0,9.1,5],[3.36,-13.05,2550,0,4,2,2,726,13.8,4],[18.9,-9.39,1035,0,3,2,2,560,16.7,3],[10.21,-12.25,1100,0,4,2,4,653,13.9,4],[-2.02,5.62,1500,0,4,2,3,444,5.2,1],[7.8,11.55,505,1,2,1,2,90,12.1,1],[29.33,2.42,878,0,3,2,1,979,23,0],[-8.87,-2.91,870,0,3,1,4,559,9.4,5],[11.6,-21.06,800,0,4,3,3,638,21.5,3],[8.61,-10.38,860,1,3,2,1,210,13.9,4],[-8.39,3.57,821,1,4,3,2,294,6.4,5],[10.61,2.01,2550,0,4,1,4,847,9.2,4],[0.24,13.26,670,0,3,1,2,585,12.4,1],[11.12,4.94,1000,0,4,2,3,672,11.8,0],[8.84,-8.56,1300,0,2,1,1,640,11.4,4],[7.75,16.53,704,0,5,3,2,656,17.9,1],[-0.04,-1.17,505,2,2,1,1,0,1.2,4],[2.41,-3.98,920,2,3,2,2,0,4.6,4],[-6.33,-4.83,935,1,3,2,1,233,8,5],[10,-16.98,560,2,2,1,2,182,17.9,4],[-7.15,2.37,935,0,3,1,2,325,8.2,5],[3.5,-0.98,1456,0,3,2,1,157,2.6,1],[2.3,-4.62,2056,0,3,1,2,560,4.6,4],[14.11,-1.08,636,2,2,1,1,151,13.1,0],[-2.27,-2.37,825,0,2,1,0,111,3.8,4],[16.91,-7.18,2650,0,5,3,2,662,16.7,0],[-1.16,-2.73,2000,0,3,2,1,161,2.1,4],[-3.33,10.01,975,0,3,1,3,686,9.9,1],[7.44,-8.83,1630,0,2,1,1,618,10.1,4],[-7.3,1.91,900,0,3,1,0,218,8.2,5],[6.94,-15.37,1257,0,3,1,2,572,16,4],[13.01,-0.62,1200,1,3,2,2,255,11.8,0],[8.07,4.28,1651,0,3,1,1,1073,9,0],[1.05,4.39,1050,1,3,3,2,87,4.5,1],[-6.34,6.7,850,0,3,2,1,580,8,5],[10.37,9.19,742,0,3,1,1,614,15,1],[-26.85,-10.56,570,0,3,1,2,660,14.7,5],[-5.67,12.13,680,0,3,2,1,277,13.6,5],[-9.49,4.17,1000,0,4,3,2,475,10.8,5],[-2.25,-2.13,1234,0,2,1,0,183,3.8,4],[12.03,-6.71,970,0,2,1,2,560,11.7,4],[3.54,-0.25,935,0,2,1,1,67,2.6,1],[-1.77,10.84,600,0,3,1,4,557,9.9,1],[-0.29,6.21,377,2,1,1,1,0,5.2,1],[1.54,3.18,1232,0,2,1,0,0,3.5,1],[-5.07,3.48,1425,0,3,2,2,495,5.9,5],[3.47,-9.07,1761,0,4,2,3,615,11.2,4],[11.71,-13.9,800,0,4,2,2,558,14.7,3],[9.96,-4.26,710,2,2,1,2,0,9.2,4],[1.93,1.12,950,2,3,2,1,2783,1.6,1],[-0.24,0.93,875,2,3,1,1,0,1.8,1],[2.53,-5.75,450,2,2,1,1,0,6.6,4],[1.73,8.29,930,0,3,1,0,453,8.8,1],[-12.07,1.32,530,0,3,1,1,573,13.5,5],[-2.08,9.12,530,1,2,1,1,156,9.9,1],[-7.42,10.6,440,2,2,1,1,192,13.5,5],[2.96,9.56,998,0,3,2,3,479,11.2,1],[-6.52,-1.91,831,0,3,1,0,353,7.7,5],[9.01,-7.27,2030,0,3,2,2,660,8.4,4],[10.86,-6.19,1210,0,3,1,3,407,10.2,4],[5.19,-0.62,415,2,1,1,1,0,4.6,4],[-13.22,3.75,820,0,4,2,1,604,10.5,5],[10.99,-2.12,2225,0,3,1,2,829,10.2,4],[9.19,-5.86,1555,0,3,2,2,731,11,4],[6.2,5.45,1029,0,3,1,1,560,7.9,0],[-4.61,25.97,552,0,3,2,2,448,20.6,1],[3.15,9.67,1200,0,4,2,2,499,12,1],[-5.38,12.42,655,1,4,3,2,170,12.9,5],[-27.02,-8.94,485,0,3,1,1,633,14.7,5],[6.09,0.6,2117,0,4,1,2,520,5.6,4],[2.08,-0.18,885,2,2,1,1,1489,1.3,1],[2.19,6.04,910,1,3,2,2,157,6.5,1],[3.15,-1.64,1506,0,2,2,1,220,2.6,1],[4.42,-3.95,1300,0,3,1,1,266,4.6,4],[-0.48,7.15,1400,0,4,2,2,426,6.7,1],[16.65,-6.65,2450,0,3,1,0,984,16.7,0],[13.09,5.44,1051,0,3,2,1,962,13.8,0],[28.71,-1.57,900,0,4,2,2,656,23.2,0],[21.75,-17.26,880,0,3,2,10,734,24.7,3],[-3.39,5.06,570,2,2,1,1,0,6.2,5],[0.19,5.65,754,1,2,2,1,177,5.2,1],[-6.06,-5.76,1630,0,4,2,2,260,8,5],[-1.38,-2.23,1080,0,2,1,0,105,3.8,4],[10.98,-5.34,1830,0,3,2,3,724,11,4],[7.94,8.52,1010,0,3,1,2,648,8.8,0],[-2.88,1.84,1675,0,4,2,2,279,4.2,1],[-7.26,4.76,372,2,2,1,2,0,4.3,5],[10.29,-2.43,1171,1,3,2,2,350,7.7,4],[-7.25,1.65,757,1,3,2,2,102,6.4,5],[-8.06,-2.16,392,0,2,1,2,462,9.1,5],[-12.74,-6.08,510,2,2,1,1,127,13.8,5],[4.65,-4.6,700,2,2,1,2,0,6.3,4],[-0.67,-3.57,1275,0,2,1,0,120,3.3,4],[10.24,-5.7,2300,0,3,2,3,634,10.2,4],[-3.25,5.82,726,1,4,2,1,67,6.9,5],[-7.78,7.07,1100,0,5,2,2,781,12.8,5],[-1.98,24.89,477,0,4,2,1,560,20.6,1],[-4.73,6.47,2210,0,5,3,2,590,7.5,5],[3.27,-7.86,900,2,3,2,2,0,7.2,4],[28.65,6.02,900,0,3,2,2,0,25.2,2],[8.92,-17.11,861,1,3,2,2,305,17.9,4],[2.17,5.9,1110,0,3,1,1,562,6.5,1],[3.38,-10.45,2700,0,6,3,3,0,11.2,4],[4.07,6.13,1200,0,3,2,1,345,6.5,1],[7.8,-4.63,600,2,2,1,1,0,9.2,4],[1.93,-5.26,720,2,3,1,1,0,6.1,4],[11.61,0.84,3812,0,5,4,2,729,7.9,4],[11.04,-7.73,1150,0,2,1,2,604,11.2,4],[2.44,-10.79,756,2,2,1,1,0,11.2,4],[4.04,-1.11,530,2,2,1,1,0,2.6,1],[-7.72,20.91,465,0,3,2,1,560,20.4,1],[14.73,-13.45,575,2,2,1,2,914,17.5,3],[21.62,-1.11,1010,0,3,2,2,672,17.2,0],[1.91,1.28,515,2,2,1,1,816,1.6,1],[-4.18,10.49,850,0,3,2,1,560,11.2,1],[16.95,2.01,937,0,3,1,2,560,14.3,0],[5.09,-0.32,2065,0,3,1,1,351,4.6,4],[5.94,11.18,608,0,3,2,1,468,12.4,1],[-3.25,1.79,501,2,2,1,1,2783,3.4,1],[20.65,-10,1136,0,4,2,2,560,16.7,3],[12.44,-2.48,1150,0,3,2,1,247,11.2,4],[10.96,-3.95,430,2,2,1,1,0,7.8,4],[3,1.34,500,2,2,1,1,0,2.5,1],[-11.06,3.59,841,0,3,1,2,557,12.6,5],[-0.61,6.26,1360,0,3,1,2,560,5.2,1],[10.85,2.22,1700,0,3,2,3,763,9.2,4],[12.06,1.43,1400,0,4,2,2,714,9.2,4],[-3.65,22.37,555,0,4,3,2,560,20.6,1],[1.33,-2.48,920,2,3,1,1,0,3.3,4],[5.85,10.9,1250,0,5,3,2,544,12.1,1],[-8.33,0.3,502,0,2,1,1,2701,8.2,5],[2.02,4.91,1685,0,4,1,1,442,5.3,1],[8.72,-7.07,1810,0,5,3,2,751,11.2,4],[0.53,-1.98,580,2,2,1,1,0,1.9,4],[6.13,-0.09,751,2,2,1,1,711,4.6,4],[2.5,4.9,503,2,2,1,1,0,5.3,1],[17.82,5.28,1700,0,4,2,2,560,15.5,0],[3.62,-3.07,660,2,2,1,1,0,3.3,4],[28.55,3.39,840,0,3,1,2,850,23,0],[-0.73,8.83,1000,0,4,2,1,381,7.8,1],[-5.85,11.29,780,0,4,2,2,539,12.5,5],[-7.33,4.42,410,1,2,1,2,53,8.7,5],[9.02,-4.26,2725,0,4,3,2,603,9.2,4],[10.91,-11.52,1260,0,3,1,1,774,14.7,3],[6.51,-9.92,485,2,2,1,1,0,11.4,4],[2.52,-7.68,485,2,1,1,1,0,7.7,4],[9.66,-8.49,1260,0,3,1,1,345,12.1,4],[-6.12,5.05,399,0,2,1,1,904,8.7,5],[24.57,-2.52,901,0,3,2,2,678,21.3,0],[6.18,6.94,600,0,2,1,1,560,8.8,0],[-3.5,6.48,1870,0,4,1,1,700,8,5],[8.26,-13.73,1130,0,4,1,2,638,14.6,4],[4.15,5.56,466,2,2,1,1,909,6.5,1],[-12,3.35,145,2,1,1,1,36,13.9,5],[-1.06,1.28,585,2,2,1,1,0,2.3,1],[4.06,6.29,745,2,2,1,1,120,7,1],[14.49,-6.67,1205,0,3,2,2,402,14.2,0],[4.61,10.36,780,0,3,1,2,457,11.2,1],[10.66,1.23,1850,0,4,2,2,619,9.2,4],[9.71,-12.39,1100,0,4,2,1,274,13.9,4],[5.3,4.48,1300,0,3,2,1,560,5.7,1],[7.93,5.24,1925,0,3,2,2,780,8.9,0],[5.79,11.37,450,2,3,1,2,179,11.2,1],[2.23,-2.42,451,2,1,1,1,0,2.7,4],[3.08,-10.15,1180,2,3,2,2,0,10.5,4],[10.56,11.53,920,0,3,1,1,560,14.5,1],[6.59,0.9,672,2,2,1,1,710,5.4,4],[-4.67,6.07,1900,0,4,1,2,733,8,5],[-1.31,7.41,610,1,2,2,1,114,7.8,1],[11.3,0.63,2330,0,3,2,4,656,7.9,4],[-0.82,-3.31,2035,0,3,1,1,185,3.3,4],[4.92,-5.45,1750,0,3,2,2,692,8.1,4],[-3.65,2.13,1250,0,3,1,2,340,3.4,1],[3.32,-11.89,897,2,3,1,1,164,10.5,4],[-4.75,24.16,548,0,4,2,2,400,20.6,1],[-3.46,8.67,790,0,2,2,1,213,8.2,5],[3.24,11.44,762,0,3,1,2,677,11.2,1],[3.22,-10.01,550,2,2,2,2,0,10.5,4],[-12.06,5.97,502,0,3,1,3,331,10.5,5],[4.72,-4.98,1850,0,3,2,2,348,6.3,4],[11.39,3.38,1389,0,4,2,1,517,9.2,4],[10.92,-7.11,268,2,1,1,1,2410,11.2,4],[8.56,1.8,1700,0,3,1,2,579,7.3,4],[1.54,5.87,937,1,3,2,1,110,4,1],[3.25,-1.23,1695,0,3,1,3,210,2.6,1],[0.51,-1.39,732,2,2,1,0,2783,0.7,4],[9.74,-10.79,920,1,3,2,1,343,13.9,4],[-12.39,11.13,678,0,3,1,2,539,14.5,5],[-6.81,0.2,1230,0,3,1,2,433,6.3,5],[-10.19,-3.45,770,0,3,1,2,549,9.4,5],[4.92,10.92,741,0,4,1,2,659,11.2,1],[2.46,-5.47,480,2,1,1,1,0,5,4],[17.68,0.13,1660,0,4,2,2,697,13.4,0],[3.57,-3.41,310,2,1,1,1,0,3.3,4],[7.22,0.54,1100,2,3,1,1,0,5.6,4],[5.01,12.23,452,2,2,1,1,0,11.2,1],[-9.74,-1.35,708,0,3,1,2,585,11.1,5],[17.65,2.95,1620,0,3,2,1,848,14.3,0],[5.73,-10.02,2110,0,5,3,4,664,11.4,4],[12.2,-23.67,805,1,3,2,2,0,21.5,3],[5.83,0.95,590,2,2,1,1,0,5.6,4],[17.64,-11.91,912,0,3,2,1,753,18.8,3],[0.08,11.99,950,0,2,1,1,689,12.4,1],[4.26,-13.53,1820,0,4,2,2,412,13.8,4],[4.22,-3.98,2200,0,3,2,2,142,4.6,4],[5.04,-13.96,1560,0,3,1,3,593,13.7,4],[-3.79,25.82,523,0,4,2,2,484,20.6,1],[3.19,5.05,630,2,2,2,1,0,5.5,1],[-5.02,4.36,1180,0,3,2,2,617,5.9,5],[-7.01,3.07,725,0,3,1,2,305,9.2,5],[0.96,-5.43,462,2,1,1,2,0,5,4],[4.5,-5.49,1520,0,3,2,2,426,7.8,4],[5.67,16.82,560,0,3,1,2,535,16.3,1],[12.22,10.86,740,0,3,1,3,580,16.1,1],[-1.18,5.71,901,0,3,1,4,357,5.9,1],[2.77,-1.63,1300,0,3,1,1,326,2.5,1],[10.37,0.02,1005,2,2,1,1,0,7.9,4],[-19.67,-10.96,620,0,4,2,2,448,14.7,5],[-4.79,11.74,417,0,2,1,1,172,13,1],[6.42,6.25,720,1,3,1,1,198,7.8,0],[-6.89,7.65,1080,0,4,3,2,539,11.2,5],[0.5,-2.32,1200,0,3,2,0,113,2.1,4],[2.05,12.12,718,0,3,1,6,807,11.2,1],[-6.61,-0.43,1165,0,3,1,0,191,7,5],[-7.55,-0.78,1190,0,3,1,2,515,6.3,5],[9.36,-3.28,1300,1,3,2,2,342,7.8,4],[15.95,-3.42,1291,0,3,2,2,548,13.4,0],[6.8,-1.74,445,2,2,1,1,0,5.3,4],[9.28,-8.47,470,1,1,1,1,0,10.1,4],[0.99,4.21,1170,0,3,2,0,185,4.5,1],[7.95,-3.69,1660,0,3,1,2,297,9.2,4],[0.58,6.26,1056,0,2,1,1,315,5.2,1],[6.63,4.81,1110,2,3,2,1,366,7.9,0],[0.33,12.71,720,0,3,1,2,603,13.1,1],[-3.05,2.54,1150,0,2,1,0,147,3.4,1],[14.19,-7.41,1586,0,3,1,1,718,14.2,0],[-3,10.32,955,0,3,1,4,645,8.5,1],[-0.08,-1.33,430,2,2,2,0,2295,1.2,4],[1.34,-5.66,385,2,2,1,1,0,6.1,4],[10.37,-20.02,1000,1,3,2,2,298,21.5,3],[-9.72,7.38,690,0,3,2,2,568,12.8,5],[1.83,1.9,458,2,1,1,1,0,1.6,1],[16.12,15.54,898,0,4,3,2,705,21.8,2],[-13.46,7.81,645,0,3,1,1,690,14,5],[-6.64,-5.05,2200,0,4,3,2,650,6.8,5],[-0.41,8.39,1020,0,3,2,0,341,7.8,1],[6.33,-11.99,2310,0,4,3,4,560,11.4,4],[6.32,-7.18,1835,0,4,3,2,560,7.8,4],[17.43,6.1,1275,0,4,2,2,812,15.5,0],[-6.58,0.93,780,0,2,1,1,176,6.6,5],[-2.01,-2.31,1722,0,2,1,0,101,3.5,4],[-7.88,3.08,930,0,3,1,4,545,6.4,5],[2.93,-0.94,1785,0,3,1,0,240,2.6,1],[3.86,11.01,631,2,3,1,1,267,11.2,1],[-4,11.23,610,1,2,1,1,182,11.2,1],[-5.16,10.47,910,0,5,2,2,533,9.7,5],[11.68,-3.1,1980,0,4,3,2,728,7.8,4],[11.99,-0,1750,0,3,3,1,790,7.9,4],[-6.45,14.37,635,0,4,2,2,634,12.9,5],[1.74,4.59,1615,0,3,1,3,471,4,1],[3.62,-8.33,577,2,2,1,0,0,8.5,4],[9.52,1.07,3400,0,5,6,4,739,9.7,4],[10.83,5.84,1300,0,4,1,2,717,11.8,0],[28.12,2.65,986,0,3,1,2,973,23,0],[-3.83,7.71,1467,0,4,2,1,683,8,5],[10.48,-20.07,672,2,2,1,1,158,21.5,3],[4.69,6.66,1242,0,3,2,3,468,8.4,1],[-5.04,5.02,850,0,3,2,1,271,6.9,5],[2.39,2.63,1420,0,2,1,0,180,3.4,1],[1.66,9.3,815,0,3,2,2,376,9.2,1],[9.14,-15.91,1010,0,3,1,2,532,17.9,4],[-5.5,12.46,845,0,3,2,2,560,12.9,5],[7.4,-12.77,1328,0,4,2,2,610,13,4],[6.22,-5.5,566,2,2,1,1,0,7.4,4],[-7.42,0.52,210,2,1,1,1,0,6.4,5],[0.92,11.33,800,0,4,2,4,625,13.1,1],[2,2.36,880,0,2,1,0,100,3.4,1],[-7.71,-3.72,716,0,3,1,2,268,8.4,5],[-10.83,-2.06,910,0,3,1,3,535,11.1,5],[3.8,5.17,770,2,2,1,1,129,5.5,1],[-6.17,1.07,920,0,4,1,0,274,6.6,5],[6.41,1.14,1275,0,2,1,0,381,5.6,4],[9.37,-2.44,683,2,2,1,1,146,7.8,4],[3.88,9.43,786,0,4,3,1,595,11.2,1],[-4.1,4.15,1020,0,2,1,1,226,5.9,5],[0.4,12.37,850,0,3,1,2,604,12.4,1],[-5,2,585,1,3,1,1,259,6.4,5],[23.04,-1.57,935,0,4,3,2,540,19.9,0],[15.19,3.42,1396,0,4,1,2,658,13.9,0],[6.73,-4.64,575,2,2,1,1,0,5.9,4],[1.52,4.13,1600,0,3,2,0,251,3.6,1],[11.58,-5.04,1385,0,3,2,4,697,11.7,4],[5.72,-12.55,870,1,3,2,2,158,10.7,4],[-2.49,11.27,420,1,2,1,1,307,13,1],[2.4,-1.82,565,2,2,1,1,0,2.5,1],[9.3,1.7,1400,1,4,2,1,283,9.2,4],[-0.11,13.12,550,0,3,1,1,583,12.4,1],[3.16,12.46,660,0,3,1,1,754,11.2,1],[-7.38,10.75,715,0,3,2,2,422,13.5,5],[-7.04,-0.73,925,0,4,1,1,288,7,5],[11.54,-0.11,1620,0,3,1,2,665,10.2,4],[-1.19,5.13,1094,0,2,1,2,301,5.2,1],[5.73,-13.08,725,2,3,1,1,137,10.7,4],[-0.51,6.41,1260,0,3,2,1,470,5.2,1],[-15.74,6.91,630,0,3,2,2,397,14.8,5],[6.8,18.73,600,0,3,1,2,555,19.6,1],[12.38,-1.47,680,0,2,1,1,387,11.2,4],[8.52,6.77,1271,0,3,2,2,330,10.6,0],[4.02,-9.54,1880,0,5,2,2,538,7.2,4],[24.63,-1.81,912,0,3,2,2,471,21.3,0],[2.13,-3.14,2430,0,2,1,2,367,3.3,4],[-5.09,1.23,400,2,2,1,1,0,6.4,5],[7.94,0.11,891,2,2,1,1,121,5.6,4],[5.44,3.18,650,1,2,1,0,0,6.4,1],[2.89,-0.36,1346,0,3,1,0,187,2.6,1],[8.64,-15.83,960,0,3,1,2,560,17.9,4],[-15.8,13.68,800,0,4,3,6,876,15.5,5],[15.47,-8.56,1030,0,3,1,1,560,14.2,0],[-4.92,-5.84,1310,0,3,2,1,185,8,5],[-8.95,7.42,860,0,3,1,1,568,11.7,5],[-5.83,7.13,700,2,2,1,1,251,8,5],[-22.84,-2.77,526,0,3,2,2,407,18.4,5],[13.16,-4.46,1601,0,4,2,1,863,11.7,4],[5.73,10.43,790,0,3,1,4,560,12,1],[-0.77,5.9,1250,0,3,1,1,483,5.2,1],[3.33,-13.41,1405,1,3,2,2,220,13.8,4],[1.09,13.48,601,0,3,1,2,460,11.2,1],[-3.94,-2.58,1305,0,3,2,2,303,3.8,4],[9.86,10.94,711,0,3,1,2,658,14.9,1],[-4.02,10.57,892,0,3,1,3,757,11.5,1],[-2.18,3.2,342,2,2,1,1,2783,4.3,5],[7.69,6.8,1588,0,5,5,2,599,10.5,0],[0.19,6.08,735,2,2,1,2,173,5.2,1],[10.22,0.24,1670,0,3,1,1,534,9.7,4],[11.02,-5.27,1775,0,3,2,2,721,10.2,4],[-4.63,4.2,925,0,2,1,1,407,5.9,5],[-8.6,8.91,850,0,3,1,1,597,11.7,5],[-4.31,3.87,490,2,2,2,1,0,4.3,5],[18.52,-10.29,1211,0,4,3,4,653,16.7,3],[6.09,12.34,420,1,2,1,2,153,11.2,1],[3.41,2.32,712,2,2,1,1,36,3.4,1],[-21.72,-3.66,523,0,3,2,2,560,18.4,5],[-2.15,23.7,499,0,3,2,0,598,20.6,1],[-4.42,6.13,2355,0,4,2,3,715,8,5],[6.6,1,1410,0,3,2,1,442,5.6,4],[-1.42,7.52,1150,0,4,2,2,43,7.8,1],[4.19,-10.78,1650,0,4,2,4,506,10.7,4],[3.14,-9.08,845,2,2,1,1,100,10.5,4],[0.35,11.94,562,0,4,2,2,374,12.4,1],[-14.78,12.05,693,0,3,2,3,723,15.5,5],[-0.44,-2.3,460,2,1,1,1,0,2.1,4],[4.11,6.57,278,2,1,1,1,0,6.5,1],[-6.77,3.18,752,0,2,1,2,488,4.3,5],[2.01,-4.27,1350,0,2,1,1,157,5.1,4],[2.21,-3.45,1540,0,3,2,1,149,3.3,4],[-4.05,4.91,1395,0,4,1,2,603,6.9,5],[-7.99,3.33,472,0,2,1,0,315,9.2,5],[1.44,7.45,824,1,3,1,2,120,7.8,1],[-5.87,11.81,532,1,3,2,1,149,13.6,5],[3.92,-13.24,2135,0,4,2,2,560,13.8,4],[5.14,-3.91,870,2,2,2,2,0,4.6,4],[3.72,-5.04,480,2,2,1,2,0,4.5,4],[-1.66,-3.39,600,2,2,1,1,0,3.8,4],[3.29,-8.75,1830,0,4,2,2,436,11.2,4],[-3.63,17.58,560,0,4,3,2,572,17.4,1],[-8.72,2.58,850,0,4,2,2,497,8.2,5],[7.41,-13.07,1300,0,4,2,2,697,13,4],[2.74,-4.17,645,2,2,1,1,2783,4.5,4],[4.73,6.16,1635,0,4,2,2,464,6.5,1],[9.07,-11.2,1370,0,4,3,3,605,13.8,4],[5.11,-0.3,1460,0,3,1,1,259,5.3,4],[0.93,5.43,910,0,2,1,0,560,4,1],[6.13,0.94,920,2,2,2,1,0,5.4,4],[3.72,4.73,1382,0,3,2,2,286,5.5,1],[0.55,6.48,1286,0,3,1,2,560,6.7,1],[4.12,-0.77,1510,0,4,2,0,0,2.6,1],[8.51,-8.17,255,2,1,1,1,0,11.4,4],[7.41,-14.3,800,0,3,2,2,261,14.6,4],[-7.41,8.86,770,1,3,2,1,313,11.2,5],[-1.49,5.61,316,2,1,1,1,0,5.2,1],[6.48,-1.69,697,2,2,1,1,0,5.3,4],[12.12,-9.56,634,2,3,2,2,279,14,4],[11.16,2.54,1951,0,5,3,3,711,9.7,4],[6.76,-10.22,900,2,3,1,1,265,11.8,4],[28.88,4.4,677,0,3,1,2,560,23,0],[-6.69,9.58,700,1,3,2,2,165,13.5,5],[-7.68,-4.62,1190,0,3,2,2,297,6.8,5],[4.61,15.3,931,0,6,3,3,646,15.3,1],[4.94,-0.99,805,2,2,1,1,0,5.3,4],[25.22,-1.07,655,0,3,1,1,348,21.3,0],[0.12,9.28,631,1,3,1,1,178,9.2,1],[6.16,5.07,2400,0,2,1,0,1110,7.8,0],[-7.19,2.36,900,0,3,2,3,446,8.2,5],[13.38,4.77,755,2,3,1,2,265,13.8,0],[4.93,5.46,874,0,2,1,2,333,6.5,1],[8.05,4.27,3350,0,5,3,2,560,7.8,0],[11.46,-7.99,650,0,3,2,2,160,13.6,4],[1.86,8.19,840,0,4,1,2,390,8.8,1],[3.14,-11.28,3200,0,4,3,2,635,10.5,4],[7.14,-14.54,828,2,3,2,2,301,14.3,4],[4.27,-4.75,1586,1,3,2,2,246,6.3,4],[-2.09,12.64,500,0,3,1,1,589,13,1],[11.69,-5.74,1500,0,4,2,1,593,12.2,4],[11.2,-3.01,2155,0,3,1,1,891,7.8,4],[11.08,3.24,1740,0,4,2,2,610,9.2,4],[3.68,-1.19,1301,0,3,1,1,163,2.4,1],[-12.55,8.67,572,0,3,1,2,554,14,5],[6.68,7.97,715,0,2,1,3,609,9.4,0],[8.21,1.26,4005,0,4,3,3,800,5.6,4],[4.17,5.85,1290,0,3,1,2,435,6.5,1],[3.53,-11.65,1700,1,4,3,2,198,10.5,4],[-1.41,1.64,542,2,2,1,1,0,1.8,1],[0.46,-1.59,600,2,2,2,1,0,1.2,4],[-13.22,3.55,600,2,3,1,1,181,13.9,5],[10.37,-2.1,1305,0,2,1,1,342,9,4],[6.25,20.2,600,0,4,2,2,560,19.6,1],[8.74,-9.35,250,2,1,1,1,0,11.4,4],[2.66,0.63,1035,0,2,1,0,156,2.5,1],[6.69,-4.85,1617,0,4,1,0,337,7.4,4],[6.3,1.06,520,2,2,1,1,0,5.6,4],[1.11,8.47,975,0,4,2,2,301,6.7,1],[7.78,6.8,780,0,2,1,1,433,10.5,0],[5.89,-5.53,1950,0,3,1,1,325,7.4,4],[12.98,-12.97,850,0,3,1,2,613,17.5,3],[3.34,-14.1,1475,0,3,1,2,251,13.7,4],[0.53,1.04,735,2,3,1,2,2783,1.8,1],[-3.04,1.77,442,2,2,2,1,2783,4.2,1],[-4.5,6.53,1195,0,2,1,1,337,7.5,5],[-7.71,-3.38,990,0,3,2,0,337,6.2,5],[3.74,-4.21,1220,0,3,2,1,112,4.5,4],[-5.93,3.03,999,0,2,2,2,560,4.3,5],[8.43,-8.37,525,2,2,1,2,0,11.4,4],[-2.26,11.06,725,0,3,2,4,560,12.1,1],[6.3,8.95,360,2,2,1,1,139,11.2,1],[-6.65,0.23,1000,0,2,1,1,220,7,5],[13.66,2.29,1955,0,4,2,2,1033,13.9,0],[9.62,-10.2,1321,0,3,1,1,586,10.1,4],[3.34,9.69,850,0,2,1,2,494,12,1],[6.05,-0.08,300,0,1,1,1,0,4.6,4],[1.93,8.37,810,0,4,2,2,1034,8.8,1],[-8.36,2.48,860,0,3,1,2,501,8.2,5],[11.27,3.94,1002,0,4,1,2,650,11.8,0],[2.49,2.21,1385,0,3,1,2,560,3.6,1],[-1.97,4.51,1150,0,2,1,1,539,5.2,1],[-1.2,11.64,815,0,4,2,2,672,12.1,1],[-6.22,1.26,875,0,3,1,0,262,6.4,5],[-4.27,7.57,590,1,2,1,1,0,8,5],[4.38,4.43,1516,0,3,1,2,504,5.3,1],[7.89,7.67,910,0,2,1,2,733,10.5,0],[7.51,-4.52,955,1,2,1,1,197,7.3,4],[-7.8,9.54,600,0,3,1,1,290,13.5,5],[-2.76,6.09,1425,0,3,2,2,684,8,5],[3.42,8.75,972,0,3,1,1,448,8.4,1],[-4.54,22.15,532,0,4,2,2,560,20.4,1],[8.14,-9.41,765,2,2,1,1,134,11.4,4],[-0.84,5.64,985,0,3,1,2,384,5.2,1],[-1.09,10.87,610,0,2,1,1,394,12.1,1],[-0.5,3.39,526,2,1,1,1,2488,2.6,1],[9.74,-2,2930,0,5,3,4,645,9,4],[10.32,-18.3,1322,0,4,2,2,556,20,3],[-2.48,26.73,1000,0,6,3,2,752,20.6,1],[-6.44,0.85,1270,0,4,1,1,352,6.6,5],[3.15,12.77,730,0,4,1,2,770,11.2,1],[7.38,-12.53,1005,0,7,3,4,607,13,4],[-8.06,2.55,495,0,2,1,2,161,8.2,5],[10.89,3.12,1875,0,5,3,2,842,9.2,4],[13.4,6.01,1260,0,4,2,2,560,12.4,0],[3.72,-2.7,2840,0,3,2,4,1317,4.6,4],[0.79,2.37,1400,0,3,2,0,107,3.5,1],[0.71,1.8,995,2,2,2,1,0,1.8,1],[3.46,-2.97,411,2,1,1,1,1369,3.3,4],[-8.53,3.74,695,0,3,1,2,214,9.2,5],[13.57,-25.39,895,1,3,2,2,198,27,3],[7.91,-9.25,968,0,2,1,2,299,11.4,4],[2.09,3.33,1620,0,4,1,1,241,3.6,1],[0.28,2.18,480,2,2,1,1,0,1.8,1],[-3.68,21.05,580,0,3,2,1,560,20.6,1],[3.9,11.15,465,2,2,1,1,111,11.2,1],[4.4,-12.94,1680,0,3,1,2,605,10.3,4],[-3.12,2.63,811,1,2,1,0,113,4.2,1],[3.94,-11.84,692,2,2,1,1,74,10.7,4],[2.3,-2.95,1036,0,2,1,0,105,3.3,4],[8.79,-12.82,1040,0,4,2,2,643,13.9,4],[-8.31,0.51,530,2,4,2,1,0,8.2,5],[8.2,8.36,725,0,3,1,2,580,10.5,0],[-20.95,10.98,626,0,4,2,2,477,23.8,5],[5.47,-3.15,2076,0,3,1,2,302,4.1,4],[-10.46,3.59,710,0,5,2,5,560,10.5,5],[-3.03,10.01,676,1,3,2,2,122,8.5,1],[6.77,-5.44,1366,0,2,2,1,241,7.3,4],[-1.03,7.4,1070,0,3,1,2,392,6.7,1],[-1.95,3.01,307,0,1,1,1,0,2.6,1],[8.25,-17.96,1325,0,4,2,1,560,20,3],[0.98,12.15,836,0,4,2,2,560,13.1,1],[8.25,-6.1,725,2,2,1,1,0,8.4,4],[6.38,-6.96,1160,0,2,1,1,560,7.8,4],[-4.38,7.64,890,0,2,1,1,649,8,5],[-0.22,0.17,520,2,2,1,1,0,0,1],[-4.43,7.04,825,0,3,1,3,477,8,5],[-7.67,-2.51,1230,0,3,1,1,396,6.2,5],[11.83,1.25,1500,0,5,1,1,800,9.2,4],[-1.1,5.69,1217,0,4,1,0,363,5.2,1],[3.2,-4.39,1970,0,3,2,0,362,4.6,4],[-24.54,-5.98,418,0,3,2,1,435,18.4,5],[-0.48,9.95,720,0,3,1,2,499,9.2,1],[-7.38,2.49,1100,0,3,2,2,427,6.4,5],[-1.58,1.15,1100,0,2,1,0,129,1.8,1],[3.32,-3.2,490,2,1,1,1,0,3.3,4],[6.94,-9.4,475,2,2,1,1,0,11.8,4],[7.77,-6.38,536,2,2,1,1,0,11.2,4],[9.27,-4.92,2000,0,3,1,2,821,9.2,4],[-1.27,4.7,545,0,2,1,1,0,5.9,1],[7.02,-16.26,950,1,3,3,2,160,17.9,4],[3.95,-8.41,2600,0,4,3,2,701,8.5,4],[2.52,-7.82,878,0,3,2,1,75,7.7,4],[1.05,11.09,544,1,3,3,3,247,12.4,1],[1.69,8.89,770,0,3,1,1,520,6.7,1],[8.18,-4.95,450,2,1,1,1,0,7.3,4],[9.69,8.29,560,2,3,1,1,213,11.4,0],[2.88,1.43,1290,0,3,1,1,168,2.5,1],[5.38,-13.54,1400,0,5,2,2,434,13.7,4],[6.53,1.36,1690,0,4,2,4,350,5.4,4],[6.49,-0.2,610,2,2,2,1,85,4.6,4],[8.33,-13.66,930,0,4,3,2,443,14.6,4],[-2.57,1.9,903,0,2,1,0,184,4.2,1],[6.84,8.3,710,0,3,1,1,594,9.4,0],[1.08,7.6,650,2,2,1,1,136,7.8,1],[5.28,15.63,410,2,2,1,1,143,16.3,1],[0.14,9.62,887,0,3,1,2,560,9.2,1],[-2.06,-2.62,1380,0,3,1,0,0,3.8,4],[-1.42,-2.06,1115,0,2,1,0,120,3.8,4],[-5.09,5.61,884,0,2,1,2,560,6.2,5],[-2.82,3.08,1110,0,3,1,1,272,4.4,1],[7.09,-0.86,1420,0,3,1,0,218,4.6,4],[-4.74,4.88,860,0,2,1,1,301,6.9,5],[-5.13,7,485,2,2,1,1,0,7.5,5],[22.1,-16.65,585,0,3,1,2,560,24.7,3],[-2.63,4.49,940,0,2,1,2,428,6.9,5],[8.12,-18.31,300,2,1,1,1,0,20,3],[-2.73,2.65,370,2,1,1,2,0,4.2,1],[11.3,-3.44,1515,1,3,2,2,318,7.8,4],[-4.78,11.41,702,0,4,1,4,606,13,1],[0.39,-2.42,1024,0,2,1,0,102,2.1,4],[0.83,8.61,1020,0,4,2,2,441,6.7,1],[23.83,1.24,930,0,3,1,1,835,19.9,0],[3.1,-3.36,1460,0,2,1,2,175,2.7,4],[12.59,5.21,1250,0,3,2,2,838,12.4,0],[-4.1,4.2,455,2,2,1,2,0,5.9,5],[8.94,8.09,710,1,3,1,1,174,11.4,0],[6.56,-3.68,4525,0,4,4,2,716,7.4,4],[2.52,-5.87,474,2,2,1,1,0,6.6,4],[4.77,-10.16,1014,1,2,1,1,267,10.7,4],[2.48,-2.69,990,2,2,2,2,0,3.3,4],[-4.25,4.2,1435,0,3,1,1,450,5.9,5],[1.04,-5.63,520,2,2,1,1,1235,6.1,4],[2.44,-3.95,1350,2,3,2,2,0,4.5,4],[13.13,-1.33,1950,0,2,1,1,858,10.2,4],[2.55,-2.47,625,2,2,1,1,1283,3.3,4],[3.38,-1.16,1100,0,3,1,0,162,2.6,1],[4.08,-7.76,537,2,2,1,1,0,8.5,4],[-6.84,1.91,431,2,2,1,1,0,6.4,5],[-6.84,3.28,940,0,4,2,1,516,8.7,5],[3.99,-9.01,700,2,2,1,2,99,8.5,4],[-6.04,3.13,570,2,2,2,1,2783,8.7,5],[13.99,4.89,1421,0,4,2,2,650,13.8,0],[16.12,0.04,1530,0,3,1,2,785,13.4,0],[2.3,-7.43,940,1,3,1,1,0,7.7,4],[19.09,-8.43,1311,0,3,2,1,853,16.7,0],[-9.81,2.62,696,0,3,1,0,557,10.8,5],[5.8,-1.32,1300,1,3,2,1,126,4.6,4],[-12.72,-6.35,425,2,2,1,2,115,13.8,5],[3.48,-4.8,500,2,1,1,1,0,4.5,4],[-16.87,10.96,475,0,3,2,2,358,18,5],[13.53,-9.65,875,0,3,2,2,295,12.3,4],[14.21,4.78,1222,0,4,2,4,732,13.8,0],[-11.59,6.26,520,0,3,1,1,535,13.3,5],[14.84,-19.06,800,0,3,2,4,801,22.2,3],[12.51,2.14,1005,1,3,2,2,198,9.7,4],[-0.58,5.68,1204,0,3,1,0,186,5.2,1],[0.19,10.69,700,0,3,2,2,400,13.1,1],[2.66,-6.68,981,0,2,1,0,159,6.6,4],[0.79,2.99,1950,0,3,1,1,309,3.5,1],[9.35,-17.8,840,1,3,2,2,163,20,3],[0.78,-0.25,436,2,1,1,0,0,2.8,1],[6.85,-4.47,584,2,2,1,1,0,7.4,4],[-10.24,-2.82,693,0,4,2,4,315,11.1,5],[10.79,-9.19,516,2,2,1,1,0,13,4],[17.99,-19.12,761,0,4,1,2,680,25.2,3],[-1.91,6.14,1350,0,5,2,2,510,5.9,1],[29.33,2.4,865,0,5,2,2,974,23,0],[-3.24,10.27,1100,0,5,2,4,783,11.5,1],[-16.22,13.11,502,1,3,2,2,198,15.5,5],[3.13,-10.55,4050,0,4,4,4,508,10.5,4],[-1,10.48,650,0,2,1,2,605,8.5,1],[10.72,2.48,1080,0,2,1,1,253,9.2,4],[12.47,-14.44,878,0,4,2,2,560,17.5,3],[-4.64,5.41,1205,0,3,1,1,375,6.2,5],[3.47,-1.17,306,2,1,1,1,0,2.6,1],[10.67,-10.82,750,0,3,2,1,337,13.9,4],[1.5,5.19,1185,0,1,1,0,365,4.5,1],[-9.35,-2.84,848,1,4,3,1,252,11.1,5],[1.44,5.89,570,2,3,1,1,0,4.5,1],[24.39,8.83,1550,0,5,3,4,2783,21.1,0],[9.69,-9.3,1220,2,3,2,2,462,10.1,4],[4.06,-10.85,2000,0,4,2,2,687,10.7,4],[1.17,6.55,1210,0,3,1,1,379,7.8,1],[-4.78,12.04,600,1,3,1,2,258,13,1],[3.68,-0.84,1130,0,2,2,3,114,2.6,1],[11.41,-1.95,1750,0,4,2,3,817,11.2,4],[10.42,-2.04,615,2,2,1,1,0,8.4,4],[-3.4,10.55,770,1,3,2,2,272,11.5,1],[4.43,-4.47,1205,1,3,2,2,101,6.3,4],[-2.66,-2.71,1753,0,3,2,1,225,3.8,4],[8.82,-5.37,1350,1,4,2,2,342,9.2,4],[-10.63,4.75,680,0,3,1,2,553,13.3,5],[-16.31,5.7,720,0,4,2,2,595,14.8,5],[1.94,-2.58,2400,2,3,2,1,0,2.7,4],[-2.13,9.47,870,0,3,1,2,654,8.5,1],[15.3,2.82,1102,1,3,2,2,233,13.9,0],[-6.29,3.53,770,0,4,2,2,215,8.7,5],[-1.7,-3.4,625,2,2,1,1,2783,3.5,4],[-4.17,5.61,2400,0,4,4,2,636,6.9,5],[3.02,-0.65,1495,0,3,2,1,159,2.6,1],[24.86,2.69,1050,0,4,2,2,770,19.9,0],[2.16,5.88,920,0,3,1,2,410,6.5,1],[2.18,3.79,1055,0,2,1,0,192,3.5,1],[-4.19,8.4,1430,0,4,2,1,607,9.7,5],[-1.68,1.97,2920,0,4,3,4,310,2.3,1],[8.02,4.08,405,2,1,1,1,0,9,0],[-5.94,-0.95,600,0,3,1,1,0,7,5],[9.18,2.19,1830,0,3,2,2,493,9.2,4],[0.14,4.77,1100,0,2,1,0,153,5.2,1],[8.36,8.09,1086,0,4,2,2,724,10.5,0],[3.27,-2.51,468,2,1,1,1,0,3.3,4],[2.99,21.28,550,0,4,2,2,400,19.6,1],[2.95,2.83,1500,0,3,1,1,230,3.4,1],[19.8,-18.31,650,0,4,1,2,660,22.7,3],[5.95,11.89,655,0,3,2,2,456,11.2,1],[6.12,2.12,835,1,3,2,2,247,5.6,4],[-1.72,6.18,1225,0,2,1,2,501,5.2,1],[9.91,-6.5,1600,0,5,3,4,700,11,4],[8.22,-3.78,2100,0,5,3,2,696,9.2,4],[6.25,-1.55,335,2,1,1,1,2783,4.6,4],[-20.02,8.27,700,0,3,2,3,660,14.8,5],[25.45,-4.5,860,1,4,3,2,304,23.2,0],[3.19,5.05,680,2,2,2,1,1106,5.5,1],[9.59,-6.08,1912,0,3,2,2,869,11,4],[5.19,-10.48,1600,0,5,2,2,616,10.7,4],[5.13,9.33,731,0,3,1,2,779,11.2,1],[6.35,-5.74,3400,0,4,2,2,561,5.9,4],[10.45,11.33,856,0,3,2,1,560,14.5,1],[10.96,-20.99,1500,0,4,3,2,557,21.5,3],[2.88,-6.58,410,2,2,1,2,0,6.6,4],[-7.04,2.37,699,1,3,1,1,125,6.4,5],[-1.06,1.28,785,2,2,2,1,0,1.8,1],[14.63,10.24,1130,0,3,2,2,842,16.2,0],[15.38,2.74,985,1,4,2,2,182,13.9,0],[-3.99,9.06,1485,0,5,2,4,502,9.7,5],[2.12,5.53,1310,0,4,2,1,355,5.5,1],[-10.92,-5.95,730,2,2,1,1,0,11,5],[5.05,11.23,852,0,2,1,2,705,11.2,1],[-4.32,10.49,900,0,3,1,1,705,11.5,1],[8.54,-12.26,1232,0,3,1,4,560,13.8,4],[2.84,3.7,1676,0,3,1,2,401,5.5,1],[6.8,7.63,686,0,2,1,2,650,9.4,0],[2.31,-3.09,402,2,1,1,1,10,2.7,4],[7.58,-12.87,1045,0,3,1,1,401,11.4,4],[0.34,0.52,671,2,2,1,1,0,2.8,1],[3.46,5.59,944,0,2,1,1,185,6.5,1],[9.8,-18.28,1051,1,3,2,2,435,20,3],[-0.93,5.38,1405,0,3,2,2,401,5.2,1],[3.95,-2.83,463,2,1,1,1,0,4.6,4],[6.02,4.35,1830,0,4,2,2,606,6.4,1],[-0.12,8.43,955,0,4,2,1,295,7.8,1],[-12.62,1.65,470,0,3,1,1,591,13.5,5],[17.48,4.88,2000,0,4,2,2,457,15.5,0],[2.13,-4.78,542,2,2,1,1,0,6.1,4],[-14.77,13.12,780,0,5,2,2,663,15.5,5],[5.08,9.02,750,0,4,2,2,500,8.8,1],[8.64,9.25,850,0,3,1,2,690,8.9,0],[-6.01,0.03,1285,0,3,1,1,284,6.3,5],[9.87,-12.43,1311,0,3,2,3,632,13.8,4],[10.2,-7.67,2250,0,3,1,2,840,11.2,4],[7.27,-6.53,2273,0,3,3,1,376,11.2,4],[2.75,-4.17,735,2,2,1,1,0,4.6,4],[3,-9.16,3320,0,4,3,2,644,11.2,4],[4.97,6.62,1045,0,3,1,2,520,8.4,1],[-2.23,-2.15,1375,0,4,1,1,190,3.8,4],[3.05,-3.15,330,2,1,1,1,0,3.3,4],[7.62,-10.22,1250,0,2,1,1,516,11.8,4],[-1.46,-2.69,1260,0,2,1,2,112,3.5,4],[8.17,-0.35,2770,0,3,3,4,1197,5.6,4],[12.29,2.36,1350,0,7,2,0,942,9.2,4],[2.59,1.44,910,1,3,1,1,171,1.6,1],[15.06,-18.99,840,0,3,2,2,542,22.2,3],[5.89,-5.53,2000,0,3,1,2,360,7.4,4],[-3.83,5.46,1055,0,2,1,1,292,6.9,5],[12.29,-5.49,1060,1,3,2,2,343,10.2,4],[1.83,-2.31,1220,2,2,1,1,0,2.7,4],[7.74,-3.63,1723,0,2,1,1,553,9.2,4],[-0.4,-3.98,1750,0,3,2,0,138,3,4],[-5.8,5.24,1320,0,3,2,2,645,8.7,5],[22.5,-8.11,1015,0,3,2,2,550,14.7,0],[6,-3.1,690,2,2,1,1,0,4.6,4],[-6.22,2.16,1155,0,3,1,3,585,6.4,5],[5.72,1.7,1750,0,4,3,2,641,5.6,4],[-9.92,7.68,650,0,3,1,1,538,12.8,5],[-10.42,4.35,830,0,3,1,2,608,13.3,5],[3.25,-13.92,842,2,2,1,1,0,13.8,4],[-11.85,2.37,550,2,2,1,1,0,12.6,5],[2.87,4.5,2042,0,4,1,0,566,5.3,1],[3.28,-2.95,1235,2,3,2,1,0,2.7,4],[3.15,-0.83,666,2,2,1,1,0,2.4,1],[3.76,10.61,1700,0,4,2,4,601,11.2,1],[12.08,-7.61,1080,0,3,1,1,588,11.7,4],[4.75,-3.23,2650,1,3,3,2,0,4.6,4],[3.74,-4.7,1358,0,3,1,1,189,4.5,4],[-7.18,2.64,798,0,3,2,2,159,6.4,5],[9.42,-4.46,1310,0,3,1,2,464,9.2,4],[2.7,-9.81,617,2,2,1,1,0,10.5,4],[2.45,-6.79,684,2,2,1,0,0,7.7,4],[-8.79,-3.17,988,0,3,1,4,715,11.1,5],[3.95,-3.75,1170,0,3,1,1,405,4.6,4],[8.63,-12.32,1206,0,4,1,1,636,13.9,4],[-2.74,3.38,476,2,2,1,1,0,4.4,1],[24.5,-1.83,1825,0,5,3,2,779,21.3,0],[6.17,-4.93,1990,0,3,2,2,560,5.9,4],[12.93,-0.23,660,1,2,2,1,146,11.8,0],[14.46,2.26,974,1,4,2,2,234,13.9,0],[-2.54,2.97,730,0,2,1,1,140,4.4,1],[4.71,-4.36,422,2,1,1,0,0,6.3,4],[1.48,-6.78,526,2,2,1,1,0,7.7,4],[-6.85,6.87,2200,0,5,3,2,607,7.5,5],[4.27,-2.62,550,2,1,1,1,0,4.1,4],[16.37,0.95,1475,0,4,2,2,582,13.4,0],[-6.55,-2.94,1075,0,3,1,0,452,8.4,5],[3.8,-4.34,2085,0,3,2,2,560,4.6,4],[7.56,8.6,810,0,3,1,3,619,8.8,0],[-1.54,-2.19,1355,0,2,1,0,156,3.5,4],[-13.61,2.93,510,0,4,1,1,672,13.5,5],[9.62,-19.66,500,2,2,1,1,0,21.5,3],[5.45,-11.01,2255,0,4,3,2,557,13,4],[13.13,13.18,785,0,3,1,2,840,16.1,1],[3.78,-10.15,1850,0,4,3,3,421,10.5,4],[1.54,3,390,2,1,1,0,0,3.6,1],[5.74,4.57,2220,0,4,2,3,580,5.7,1],[11.99,-1.03,985,2,2,2,1,0,10.2,4],[-7.77,2.94,510,1,2,1,2,118,9.2,5],[9.6,-3.45,950,0,2,1,2,230,7.8,4],[7.65,6.03,413,2,1,1,1,845,7.9,0],[28.47,-6.65,783,0,4,1,3,730,25,0],[-0.4,5.34,1055,0,3,1,1,324,5.2,1],[1.5,-2.47,805,2,2,1,1,0,3.3,4],[-7.55,12.96,660,0,4,2,1,560,12.9,5],[0.48,6.24,830,0,2,1,1,319,5.2,1],[-7.33,4.38,440,1,2,1,2,54,8.7,5],[2.97,-6.53,540,2,2,1,1,483,6.6,4],[6.66,5.09,985,1,4,3,2,181,7.8,0],[4.65,-4.6,995,2,3,2,2,0,6.3,4],[10.89,23.35,520,0,4,2,2,482,25.9,1],[9.49,0.88,2410,0,4,2,1,685,9.7,4],[-0.46,7.35,1260,0,3,2,0,407,7.8,1],[10.98,-0.02,520,2,2,1,1,0,11.2,4],[7.25,4.69,504,2,2,1,1,0,7.9,0],[-14.29,2.67,859,0,4,2,2,699,10.5,5],[-1,7.88,1000,0,4,2,1,343,6.7,1],[-1.67,-3.39,800,2,3,1,2,0,3.5,4],[-3.02,6.88,320,2,2,1,1,0,5.9,1],[2.41,-6.99,326,2,1,1,1,0,7.7,4],[6.51,-0.52,2670,0,4,2,1,336,4.6,4],[6.56,5.96,1230,0,3,2,2,560,7.8,0],[0.95,-5.58,2000,0,3,2,2,176,6.1,4],[16.34,2.62,1050,2,3,2,2,0,14.3,0],[-16.65,4.57,632,0,3,1,1,562,14.8,5],[25.94,-3.52,425,0,2,1,1,560,23.2,0],[6.77,4.08,2530,0,4,2,0,637,7.8,0],[7.96,-11.29,1575,0,2,1,5,587,13.8,4],[8.86,-9.1,370,2,2,1,1,0,11.4,4],[8.47,6.8,1250,0,3,1,0,668,8.9,0],[7.26,-8.72,695,2,2,1,1,1035,10.4,4],[11.2,23.43,780,0,4,2,2,1037,25.9,1],[9.96,-12.22,910,0,3,1,1,587,13.9,4],[-10.58,-5.99,1410,0,4,1,2,521,11,5],[-18.87,-10.2,635,0,4,2,2,334,14.7,5],[2.15,9.95,760,0,3,2,2,567,11.2,1],[21.19,-2.22,975,1,4,2,2,0,17.2,0],[2.88,-4.54,1325,0,2,1,0,140,5.1,4],[-6.59,6.46,810,0,3,1,2,613,9.8,5],[5.05,15.89,685,0,2,1,2,766,16.3,1],[2.43,-8.47,655,2,2,1,1,0,7.7,4],[25.43,0.97,1315,0,4,2,3,560,21.3,0],[-7.69,3.07,760,0,3,1,2,584,9.2,5],[-10.48,-1.39,760,0,4,1,3,668,11.1,5],[8.53,13.28,1405,0,3,2,2,639,12.1,1],[9.42,-0.53,3400,0,4,1,4,845,9,4],[1.91,-4.71,808,0,2,1,0,124,6.1,4],[4.78,-4.85,315,2,1,1,1,0,6.3,4],[4.25,-0.83,1400,0,3,1,2,0,2.6,1],[3.38,10.42,801,0,3,1,1,551,11.2,1],[3.84,-1.15,1000,0,2,1,0,164,2.4,1],[2.37,11.17,340,2,2,1,1,151,11.2,1],[-1.24,1.35,1325,0,3,2,1,97,2.3,1],[-7.27,0.18,968,0,3,1,1,325,7.8,5],[-2.01,6.2,922,0,4,1,1,575,5.9,1],[11.87,-0.32,1560,0,3,2,1,335,11.2,4],[-1.38,9.81,586,1,2,1,1,100,8.5,1],[-0.38,0.24,1075,2,2,2,1,0,0,1],[11.3,-3.12,1861,0,3,2,2,324,7.8,4],[9.34,-15.81,795,1,3,2,2,138,17.9,4],[3.92,4.33,1610,0,3,2,1,411,5.5,1],[-8.57,4.85,440,2,2,1,1,263,10.5,5],[8.2,-12.84,1165,0,3,1,2,589,13.9,4],[8.32,6.6,1401,0,5,2,2,580,10.6,0],[-2.85,24.67,506,0,6,2,2,655,20.6,1],[4,-2.23,4000,0,4,2,2,632,4.6,4],[16.62,-4.55,780,1,3,2,2,306,14.7,0],[7.86,-5.71,2500,0,3,3,3,1011,8.4,4],[-25.56,-8.1,510,0,3,2,2,658,14.7,5],[19.16,0.59,1100,0,4,2,3,596,15.4,0],[-1.31,10.01,665,1,4,2,2,148,9.9,1],[-8.09,2.73,650,0,2,1,2,249,6.4,5],[-8.87,5.57,628,0,3,1,1,550,10.5,5],[-4.75,11.11,601,2,3,1,2,220,11.5,1],[5.94,18.46,660,0,4,1,3,558,19.6,1],[2.34,8.81,1000,0,3,1,2,463,8.8,1],[4.85,5.51,1275,0,3,1,2,517,6.5,1],[9.01,-8.9,435,2,2,1,1,0,12.1,4],[-2.06,13.08,576,0,3,1,1,701,13,1],[-6.34,1,785,0,2,1,1,116,6.6,5],[13.66,3.51,1545,0,4,3,2,647,13.9,0],[15.59,3.75,1285,0,3,1,2,645,12.4,0],[-0.25,0.22,432,2,1,1,1,0,2.8,1],[-17.22,7.17,540,0,3,2,2,560,14,5],[1.85,-7.68,435,2,1,1,1,1192,7.2,4],[4.36,10.49,830,0,3,1,2,671,11.2,1],[2.88,3.99,1240,0,3,1,1,247,5.3,1],[-5.09,5.74,1780,0,4,3,2,615,6.9,5],[0.82,1.98,957,0,2,1,1,122,1.8,1],[9.82,-1.82,1750,0,3,2,2,560,8.4,4],[2.24,-2.85,775,2,2,1,1,0,3.3,4],[8.37,-0.79,865,1,3,2,2,198,6.2,4],[-3.55,17.66,520,0,3,1,2,798,17.4,1],[7.39,-7.67,300,2,2,1,1,1961,8.4,4],[3.84,-14.52,3325,0,4,3,2,627,13.7,4],[7.17,-1.35,545,2,2,1,1,0,4.6,4],[10.37,-12.63,800,0,4,2,2,601,13.9,4],[6.5,8.47,580,0,3,1,2,429,8.8,0],[-6.65,8.86,700,2,3,2,1,239,10.4,5],[3.5,0.18,391,2,2,1,1,0,2.6,1],[-12.32,2.71,548,0,3,1,2,603,13.5,5],[3.76,9.4,805,0,3,1,2,227,11.2,1],[-4.57,13.68,576,0,2,1,1,662,14,1],[5.23,12.13,725,0,3,1,1,547,11.2,1],[-0.21,3.99,370,2,1,1,1,0,5.2,1],[-7.29,10.01,540,1,3,2,1,161,13.5,5],[-8.49,-3.81,808,0,3,1,3,647,8.4,5],[-5.07,4.52,1382,0,3,2,2,416,5.9,5],[4.16,-12.11,2550,0,5,3,2,915,10.7,4],[0.85,8.8,860,0,3,2,3,472,9.2,1],[13.36,-5.26,1335,0,4,1,3,731,14.2,0],[3.57,-9.07,2000,0,4,2,2,471,11.2,4],[3.04,-0.61,950,0,2,1,0,150,2.6,1],[7.48,-13.36,867,0,3,2,1,578,13,4],[-0.03,0.1,720,2,2,1,1,0,0,1],[-25.31,-7.25,325,2,2,1,1,0,14.7,5],[-6.97,-0.66,955,0,3,1,1,202,7,5],[22.9,2.17,965,0,4,3,2,560,19.9,0],[13.82,2.34,1420,0,3,1,2,721,12.4,0],[-1.51,5.62,1000,0,4,1,1,589,5.9,1],[4.19,-14.15,3201,0,5,3,2,760,13.7,4],[-2.18,-2.1,1265,0,3,2,0,560,3.5,4],[11.66,6.4,1020,0,4,2,2,652,13.8,0],[1.52,-7.3,770,2,3,1,1,0,7.2,4],[6.88,8.61,330,0,3,1,1,468,9.4,0],[-9.55,10.22,575,0,3,1,1,338,14.5,5],[15.64,11.09,925,0,3,1,2,1027,18,0],[-6.85,1.85,560,1,2,1,1,111,6.4,5],[-4.3,4.2,1130,0,3,1,1,560,4.3,5],[-3.94,4.99,1015,0,2,1,1,228,6.9,5],[-2.63,2.36,1010,0,3,1,0,234,4.2,1],[-5.65,11.78,990,0,4,2,2,702,13.6,5],[3.39,-0.7,1410,0,3,1,0,224,2.6,1],[-4.72,4.57,488,2,3,1,3,0,5.9,5],[15.23,-11.45,780,2,3,2,1,318,16.7,3],[8.94,16.9,715,0,4,2,2,560,17.9,1],[17.62,11.83,810,0,3,2,2,868,18,0],[11.53,-4.25,1600,0,3,2,1,704,9.2,4],[15.06,-0.39,761,2,2,2,1,176,13.1,0],[0.46,3.98,640,1,2,1,1,82,5.2,1],[4.83,11.11,519,2,2,1,1,0,12,1],[-0.57,-3.36,2120,0,3,1,2,225,3,4],[1.42,-5.59,400,2,2,1,1,797,6.1,4],[2.02,13.38,851,0,4,2,2,581,11.2,1],[-1.6,-3.18,600,2,2,1,1,0,3.8,4],[7.77,-7.8,796,2,2,1,2,0,10.1,4],[-1.85,-2.83,400,2,1,1,1,0,3.8,4],[7.31,2.68,1850,0,5,3,4,787,7.5,4],[7.87,1.14,2600,0,4,3,2,700,5.6,4],[-6.91,8.67,1020,0,3,1,1,650,11.2,5],[10.66,-3.56,2850,0,4,2,8,905,7.7,4],[-0.03,-2.51,1600,0,3,2,1,88,2.1,4],[-6.85,-3.08,923,0,3,1,0,221,8.4,5],[2.67,-7.36,3175,0,4,2,3,558,7.2,4],[-3.91,4,770,0,2,1,1,226,5.9,5],[2.08,7.84,900,0,2,1,1,529,8.8,1],[7.19,-14.45,1140,0,4,2,1,318,14.6,4],[-1.07,-2.51,1250,0,3,2,1,108,2.1,4],[10.37,-6.28,1550,0,4,2,2,670,10.2,4],[9.94,-8.52,926,2,2,1,2,308,12.1,4],[-6.37,8.66,780,0,3,2,2,274,11.2,5],[0.46,-2.16,560,2,2,2,1,0,2.1,4],[8.79,8.87,1380,0,4,2,2,607,11.4,0],[8.17,-9.78,1500,0,3,2,2,603,10.1,4],[7.41,-4.06,1802,0,3,2,3,560,7.3,4],[-11.83,-6.02,730,2,3,2,1,69,13.8,5],[-6.69,0.51,1502,0,4,3,1,934,5.1,5],[-1.04,4.27,1900,0,4,3,2,0,5.2,1],[6.52,0.24,3175,0,5,4,2,769,5.4,4],[6.84,-8.71,812,2,2,1,1,0,10.4,4],[0.35,5.66,1500,0,4,3,1,365,5.2,1],[8.74,-9.35,363,2,1,1,1,0,11.4,4],[-0.84,4.27,945,0,2,1,2,246,5.2,1],[8.14,-1.29,802,2,2,1,2,966,6.2,4],[-0.86,4.78,350,2,1,1,1,0,5.2,1],[11.17,-1.41,855,0,2,1,1,560,10.2,4],[1.99,-2.57,572,2,2,1,1,0,3.3,4],[14.2,5.41,1165,0,4,2,4,673,13.8,0],[-4.55,4.1,890,0,3,1,1,242,5.9,5],[-0.86,10.18,780,0,3,1,2,307,9.2,1],[9.53,1.11,2120,0,3,1,2,651,9.7,4],[8.35,-1.01,555,2,2,1,1,2685,7.7,4],[-7.4,-1.5,1040,0,3,1,3,690,7.7,5],[12.04,18.72,690,0,3,2,2,545,20.5,1],[-1.97,11.76,800,0,3,1,3,560,11.2,1],[-14.22,12.43,640,0,4,2,1,729,15.5,5],[8.25,5.67,1190,2,3,2,2,0,10.3,0],[3,10.46,790,0,2,1,1,585,11.2,1],[3.09,-1.04,712,2,2,1,1,0,2.6,1],[-5.48,3,635,2,2,2,1,0,8.7,5],[4.8,4.94,1220,0,2,1,2,537,5.8,1],[-7.02,3.44,725,0,3,2,2,260,9.2,5],[28.17,2.48,745,0,3,2,2,297,23,0],[4.22,-11.91,1400,0,3,2,2,486,10.7,4],[19.64,-2.86,1270,0,4,2,2,600,17.2,0],[-6.19,4.47,429,1,2,1,1,83,8.7,5],[-4.81,14,425,0,3,1,2,650,14.5,1],[2.6,5.27,1000,0,3,1,1,188,5.3,1],[1.73,-5.06,504,2,2,1,1,683,6.1,4],[-15.16,-7.62,415,2,2,1,1,0,15.5,5],[26.12,-7.35,1100,0,5,3,2,836,24.8,0],[3.32,-9.98,985,2,2,1,1,611,11.2,4],[3.24,3.42,385,2,1,1,0,0,5.5,1],[7.4,7.66,444,2,2,1,1,94,8.8,0],[-6.54,-0.05,900,0,2,2,1,560,6.3,5],[4.85,-9.97,1300,0,4,3,2,221,10.3,4],[-4.98,1.01,855,2,3,2,2,0,5.1,5],[15.99,2.34,1430,0,3,1,2,560,14.3,0],[11.41,-9.33,1840,0,4,2,2,598,14,4],[-0.95,4.32,1755,0,4,2,1,354,5.2,1],[-1.08,10.23,616,0,3,1,1,190,9.9,1],[-23.45,-3.06,452,0,3,1,1,346,18.4,5],[-7.94,13.58,533,2,3,1,1,0,12.9,5],[-12.23,8.5,365,0,3,1,0,543,15,5],[4.28,-12.37,2050,0,4,2,4,678,10.7,4],[-0.96,6.73,466,2,2,1,1,0,7.8,1],[5,-13.32,1450,0,4,2,3,450,13.7,4],[2.45,-7.43,1200,1,2,2,2,198,7.2,4],[-6.33,7,1290,0,5,2,2,560,7.5,5],[-14.64,9.62,675,0,3,2,4,708,15.5,5],[-19.44,-9.25,760,0,4,2,2,560,14.7,5],[5.6,-13.49,952,0,3,2,2,246,14.5,4],[11.54,-12.2,1310,0,4,2,4,993,14.7,3],[-7.84,-2.22,380,2,2,1,1,78,9.1,5],[4.02,-4.44,630,2,2,1,1,0,4.5,4],[-10.6,-5.59,1360,0,3,2,6,663,11,5],[9.43,-5.71,2152,0,3,2,2,656,7.3,4],[4.13,-10.18,1900,0,5,3,2,583,10.7,4],[4.1,5.68,1000,0,2,1,2,443,7,1],[9.88,-12.04,870,2,3,2,2,365,13.9,4],[16.21,-9.47,1130,0,3,1,1,836,16.7,0],[10.22,-13.1,1216,0,4,1,2,583,13.8,4],[9.69,-10.21,1255,0,3,1,2,557,12.1,4],[8.69,-9.34,635,2,2,1,1,0,11.4,4],[-8.14,-1.85,941,0,3,2,3,669,9.1,5],[-7.02,-5.5,1630,0,4,3,2,400,6.8,5],[5.1,6.03,510,2,3,1,1,0,6.5,1],[-8.28,6.97,900,0,4,2,1,289,12.8,5],[9.46,1.67,2155,0,4,2,3,620,9.2,4],[0.84,8.4,1335,0,5,3,2,390,7.8,1],[-0.57,5.94,1150,0,3,1,1,360,5.2,1],[-1.18,-2.47,1800,0,4,3,1,153,1.9,4],[5.7,4.68,1492,0,3,2,2,411,6.4,1],[-20.24,-10.08,599,0,4,2,2,560,14.7,5],[7.59,-10.42,1790,0,3,2,1,560,11.4,4],[9.76,-1.42,2200,0,3,3,2,468,9,4],[-0.07,0.71,520,2,2,1,1,2783,2.8,1],[5.98,-1.12,2100,0,4,1,2,383,4.6,4],[2.79,14.62,653,0,4,1,4,632,15.3,1],[3.32,5.8,972,0,2,1,0,229,6.5,1],[5.39,4.38,1010,0,2,1,1,285,5.8,1],[4.65,5.24,390,2,2,1,1,0,5.3,1],[-3.02,8.99,555,0,2,1,2,336,9.9,1],[-10.34,-1.47,923,0,3,1,2,740,11.1,5],[6.59,-6.08,1475,0,2,1,1,232,7.4,4],[-8.12,1.86,580,2,3,1,0,183,8.2,5],[1.69,-6.76,1035,1,3,2,2,0,7.2,4],[-3.21,-2.36,2105,0,4,2,3,611,3.8,4],[-8.14,-1.67,815,1,3,2,2,148,9.1,5],[2.9,8.91,876,0,2,1,2,479,8.8,1],[11.49,11.71,705,2,2,1,1,0,16.1,1],[2.88,5.47,460,2,2,1,1,0,5.5,1],[5.85,-6.17,2005,0,3,2,3,361,8.1,4],[12.51,-6.66,700,2,3,2,1,224,13.6,4],[4.71,-4.15,2250,0,3,3,1,301,6.3,4],[7.28,-2.81,505,2,2,1,1,0,7.5,4],[2.23,-3.28,666,2,2,1,1,0,2.7,4],[5.29,-5.65,450,2,2,1,1,1092,8.1,4],[-12.96,-5.68,853,0,3,1,1,600,11,5],[-20.21,14.35,660,0,3,2,2,666,18,5],[-10.33,3.15,718,0,3,1,1,554,10.5,5],[-4.45,6.87,350,0,1,1,1,46,8,5],[-16.09,7.34,670,0,3,2,2,560,14.8,5],[9.97,11.62,902,0,4,2,2,560,14.5,1],[8.25,-0.4,2225,0,3,1,2,616,6.2,4],[-1.79,12.54,410,2,2,1,2,200,13,1],[10.09,11.92,830,0,3,1,2,696,14.5,1],[-5.12,-5.56,622,1,2,2,1,198,6.8,5],[11.93,-7.66,930,1,3,2,1,0,11.7,4],[-24.18,-6.29,640,0,3,2,8,560,18.4,5],[-9.52,6.68,881,0,3,1,2,615,10.5,5],[3.91,-5.08,330,2,1,1,1,0,4.5,4],[3.88,-1.13,911,1,3,2,1,0,2.6,1],[-2.76,3.46,1205,0,3,1,0,251,4.4,1],[2.16,-7.92,490,2,1,1,1,0,7.7,4],[5.54,10.29,760,0,3,1,1,606,12,1],[27.58,0.72,885,0,3,2,2,560,23,0],[1.64,3.87,1950,0,4,2,2,233,3.5,1],[-12.04,-5.84,890,0,4,1,1,499,11,5],[3.18,9.18,530,2,2,1,1,106,8.8,1],[3.25,1.32,1448,0,3,3,1,166,2.5,1],[9.12,-3.38,805,2,2,2,2,188,7.8,4],[14.58,-1.51,1430,0,4,2,0,585,13.1,0],[-6.49,-3.01,940,0,4,2,1,379,8.4,5],[8.05,11.86,710,0,3,1,1,540,12.1,1],[5.71,-10.19,1708,0,3,1,1,703,11.8,4],[9.98,2.22,1900,0,3,1,1,912,9.7,4],[11.06,4.39,1751,0,4,3,4,646,10.8,0],[-1.55,-2.13,1155,0,2,1,0,112,3.8,4],[3.1,-0.3,1600,0,3,2,1,115,2.6,1],[-12.63,3.68,760,0,3,1,1,697,10.5,5],[-2.31,11.57,901,0,3,1,2,702,13,1],[3.28,9.8,1040,0,3,2,1,461,12,1],[-10.31,3.48,830,0,4,1,3,502,10.5,5],[13.75,-4.47,1755,0,3,1,1,931,11.7,4],[28.5,2.22,640,2,3,1,2,0,23,0],[8.42,-8.96,632,2,2,1,1,99,11.4,4],[-7.34,10.65,1042,0,3,2,5,612,13.5,5],[6.43,-4.16,752,2,2,1,2,0,5.9,4],[1.11,5.93,460,2,2,1,1,0,4.5,1],[-1.54,10.4,770,0,4,1,2,596,9.9,1],[9.19,5.79,2600,0,4,2,3,871,10.3,0],[22.81,0.21,1335,0,4,1,0,697,19.9,0],[1.46,-7.46,680,2,2,1,1,0,7.7,4],[12.44,3.21,885,2,4,2,2,493,12.4,0],[5.95,3.67,805,1,2,2,3,155,6.4,1],[7.26,17.76,675,0,3,1,4,640,17.9,1],[-18.07,12.01,471,0,3,2,1,338,18,5],[10.63,-18.42,950,0,3,1,2,531,20,3],[-8.52,7.37,620,0,3,2,1,292,11.7,5],[0.97,3.2,2210,0,3,2,1,190,3.2,1],[10.54,-9.73,1570,0,4,2,1,455,12.3,4],[-3.69,5.67,415,2,1,1,1,0,6.9,5],[-8.25,7.23,630,0,4,1,2,185,11.7,5],[0.05,4.58,871,0,2,1,1,215,5.2,1],[-3.72,1.8,1190,0,3,2,1,180,4.2,1],[4.28,5.77,1100,1,3,2,2,2783,6.5,1],[2.95,-2.49,930,2,2,2,2,0,3.3,4],[4.86,-3.18,525,2,2,1,1,0,4.6,4],[4.65,10.24,862,0,2,1,1,419,11.2,1],[-0.55,4.49,916,0,2,1,0,1328,5.2,1],[5.46,-0.07,1936,0,4,2,1,218,4.6,4],[3.51,10.69,565,2,2,1,1,0,12,1],[4.09,3.41,592,2,2,1,2,0,5.5,1],[-3.15,9.66,522,2,2,1,1,0,9.9,1],[-5.65,1.96,841,1,4,2,2,250,6.4,5],[1.66,-5.33,2000,0,5,2,2,436,6.1,4],[-2.79,5.85,842,1,3,2,1,216,6.9,5],[10.14,-13.71,670,1,3,1,2,233,13.9,4],[6.58,7.68,516,0,2,1,1,331,9.4,0],[16.51,10.43,975,0,3,1,0,841,18,0],[-2.74,3.38,420,2,2,1,1,0,4.4,1],[9.88,-20.07,2475,0,4,3,3,665,21.5,3],[3.62,-10.45,536,2,2,1,2,0,11.2,4],[1.52,-7.28,950,2,3,1,1,0,7.7,4],[3.7,11.34,341,2,1,1,1,125,11.2,1],[3.1,2.62,1060,0,3,1,0,193,3.4,1],[2.35,-10.34,3695,0,4,3,2,836,11.2,4],[8.04,0.31,672,2,2,1,1,0,5.6,4],[6.53,-0.69,160,2,1,1,0,322,4.6,4],[-4.45,4.08,1060,0,3,1,1,555,5.9,5],[7.95,-10.25,758,0,2,1,1,250,11.8,4],[14.98,4.71,1663,0,4,3,2,674,12.4,0],[7.82,5.16,750,2,2,1,1,112,8.9,0],[3.24,3.92,1386,0,2,1,0,270,5.3,1],[-4.28,23.68,600,0,4,2,2,560,20.6,1],[13.93,-1.59,880,0,4,2,2,206,13.1,0],[-1.87,9.72,937,0,4,2,2,708,9.9,1],[-8.47,7.15,601,0,3,1,1,560,11.7,5],[11.6,-10.2,760,0,3,1,1,692,12.3,4],[4.45,11.12,655,0,3,1,1,644,11.2,1],[8.51,-2.49,530,2,2,1,1,0,7.8,4],[15.15,-0.49,1506,0,4,2,3,669,13.1,0],[7.03,0.12,2315,0,4,2,0,364,5.6,4],[5.36,-7.92,550,2,2,1,1,806,8.9,4],[7.63,-6.35,1060,1,3,1,1,206,8.4,4],[0.82,6.15,835,0,3,1,0,302,5.2,1],[-25.98,-6.73,540,0,3,2,2,580,18.4,5],[-0.23,9.2,770,0,4,1,1,545,9.2,1],[22.85,-9.14,870,0,3,2,2,590,22.2,0],[4.99,-5.71,570,2,2,1,2,0,8.1,4],[13.53,4.1,1100,0,3,2,2,771,13.9,0],[0.16,4.96,820,1,3,2,2,2783,5.2,1],[13.25,2.54,1300,0,4,2,2,872,13.9,0],[-1.1,10.39,629,1,3,2,2,495,8.5,1],[7.69,-8.23,950,0,3,1,1,586,11.4,4],[4.73,-3.86,4000,0,4,2,2,684,4.6,4],[7.01,-12.99,1425,0,3,2,2,613,13,4],[10.1,-8.86,900,1,3,2,1,360,13,4],[22.86,8.01,1050,0,4,2,2,1529,21.1,0],[14.07,-4.64,1170,0,3,1,3,590,10.4,4],[6.08,-8.07,341,2,1,1,1,0,8.7,4],[3.71,-11.12,1960,1,3,2,2,709,10.5,4],[7.96,2.22,1020,1,3,2,2,198,7.3,4],[11.24,-2.68,1620,0,3,2,2,575,7.8,4],[4.74,-13.52,1620,0,3,1,2,783,13.7,4],[12.35,-9.72,1360,0,3,2,2,560,12.3,4],[-1.81,5.21,471,2,2,1,1,564,5.9,1],[-13.11,3.81,787,0,3,1,3,716,10.5,5],[6.67,2.33,972,0,3,2,2,0,5.6,4],[5.59,-14.32,926,0,3,2,2,393,14.5,4],[-26.41,-8.89,597,0,3,1,1,672,14.7,5],[3.98,5.9,1370,0,3,2,3,417,6.5,1],[9.29,-8.83,900,1,3,2,2,238,10.1,4],[6,-1.62,450,2,2,1,1,1540,5.3,4],[19.73,-8.37,1214,0,4,2,2,694,16.7,0],[-4.08,9.22,622,0,3,2,2,254,9.7,5],[-19.54,14.58,738,0,4,2,2,704,18,5],[16.51,-6.16,1135,2,3,2,2,328,16.7,0],[-1.17,1.46,962,0,2,1,0,91,1.8,1],[3,-0.45,438,2,1,1,1,778,2.6,1],[-4.97,6.56,630,2,2,1,1,0,8,5],[0.55,4.57,1652,0,3,1,2,506,5.2,1],[6.91,-9.79,480,2,2,1,1,0,11.8,4],[21.13,-18.82,500,0,3,1,1,372,24.7,3],[-6.67,10.69,590,2,2,1,1,0,10.4,5],[10.31,-16.47,948,0,3,1,2,570,17.9,4],[3.88,-2.58,1900,0,3,2,1,268,4.6,4],[-6.8,0.94,1080,0,3,1,0,234,6.6,5],[1.33,3.39,1210,0,2,1,1,223,3.5,1],[23.09,-2.44,1450,0,3,2,2,1555,19.9,0],[4.02,-4.32,1240,0,3,1,0,223,4.5,4],[-6.69,-0.23,856,0,2,1,1,261,7,5],[5.28,-0.39,2825,0,6,5,2,560,5.3,4],[5.46,-0.39,2375,0,3,2,2,472,4.6,4],[-1.45,4.53,650,1,2,1,1,198,5.2,1],[-2.08,23.25,516,0,3,1,4,651,20.6,1],[3.53,6.19,1164,0,2,2,0,206,6.5,1],[0.72,1.63,1010,0,2,1,0,101,1.8,1],[-3.47,2.6,535,2,2,2,1,0,3.4,1],[9.03,-1.63,3190,0,5,4,2,788,7.7,4],[1.41,2.83,938,0,2,1,0,100,3.5,1],[8.81,-2.06,682,2,3,1,2,2783,7.7,4],[-4.56,7.11,1800,0,4,2,2,648,8,5],[-4.86,5.36,900,0,2,1,1,339,6.9,5],[14.66,-1.54,1200,0,3,1,2,550,13.1,0],[7.55,1.12,2660,0,5,2,2,696,5.4,4],[2.89,1.28,1255,0,3,2,1,560,3,1],[8.42,-12.53,1175,0,3,1,2,700,13.8,4],[13.13,-7.1,1600,0,5,3,3,728,14.2,0],[-3.52,2.62,420,2,2,1,1,0,4.2,1],[28.46,2.07,662,0,3,1,1,396,23,0],[10.8,0.21,3050,0,4,4,2,613,7.9,4],[-7.12,-4.5,862,0,3,1,1,353,6.8,5],[3.06,-0.69,1205,0,3,1,0,164,2.6,1],[4.78,-11.75,1500,0,3,2,2,315,10.7,4],[3.68,2.89,495,2,2,1,1,515,3.4,1],[6.64,-3.6,2415,0,3,1,3,696,7.4,4],[3.02,-4.78,410,2,1,1,1,0,4.6,4],[3.96,10.63,350,2,1,1,2,96,11.2,1],[-12.22,8.23,515,0,3,1,4,597,15,5],[-1.02,7.36,472,0,2,1,1,500,7.8,1],[20.13,-4.83,750,2,3,2,1,302,17.2,0],[-2.84,2.45,715,1,1,1,0,91,3.4,1],[6.82,-12.56,1222,0,3,2,2,299,13,4],[2.16,5.03,910,0,2,1,2,229,5.5,1],[-6.79,8.62,935,0,3,1,2,657,11.2,5],[4.22,6.68,1100,0,3,2,3,560,8.4,1],[-2.62,9.91,792,0,3,1,2,582,9.9,1],[7.98,-1.45,887,2,2,2,2,0,7.5,4],[-5.01,3.96,940,0,3,2,2,285,5.9,5],[2.23,-1.57,1280,0,3,2,2,324,2.5,1],[-1.28,10.39,810,0,2,1,1,783,9.9,1],[3.11,5.55,995,0,2,1,2,228,5.5,1],[10.45,-17.66,975,0,3,2,2,595,17.9,4],[10.56,-5,1550,0,4,2,2,662,9.2,4],[-6.46,0.59,1025,0,2,1,0,248,6.6,5],[-7.63,7.26,732,0,4,2,2,544,12.8,5],[-4.49,13.62,600,0,3,1,2,647,14.5,1],[2.1,-4.81,461,2,1,1,1,0,6.1,4],[8.87,6.06,325,2,1,1,1,0,8.9,0],[-8.94,10.34,635,0,3,2,2,174,10.4,5],[5.67,-13.48,1150,1,3,2,1,0,14.5,4],[1.33,-5.75,380,2,1,1,1,0,6.1,4],[2.92,-2.61,315,2,1,1,0,2783,3.3,4],[3.07,9.22,875,0,3,2,1,650,8.8,1],[-7.99,3.98,335,2,2,1,1,0,9.2,5],[7,1.62,1410,0,3,1,1,404,5.4,4],[0.47,-1.51,580,2,2,1,1,0,1.2,4],[2.83,-11.65,2900,0,3,1,1,659,11.2,4],[-7.63,2.9,865,0,3,1,3,381,9.2,5],[18.88,5.45,1330,0,5,3,3,751,14.3,0],[4.32,-11.82,1940,0,4,2,2,682,10.7,4],[3.59,-2.95,515,2,2,1,0,0,2.7,4],[2.6,-0.72,810,1,2,1,1,94,2.6,1],[10.29,0.83,2250,0,5,3,2,600,9.7,4],[6.08,-8.07,323,2,1,1,1,820,8.9,4],[21.32,-17.01,465,0,3,1,1,375,24.7,3],[-1.48,-2.13,790,0,2,1,1,108,3.8,4],[17.31,0.95,800,0,3,2,2,560,13.4,0],[-1.67,2.32,550,2,2,1,2,1004,2.3,1],[3.88,4.86,1650,0,4,3,4,423,5.3,1],[2.54,-12.73,2600,0,3,2,3,588,11.2,4],[-3.15,11.86,1000,0,4,2,8,977,13,1],[4.57,6.18,300,2,1,1,1,948,6.5,1],[2.56,4.96,1255,0,3,2,1,259,5.5,1],[10.83,-9.18,828,1,3,2,1,206,13,4],[-4.03,12.38,380,2,2,1,2,0,11.2,1],[-4.17,7.09,1400,0,3,1,1,476,8,5],[0.68,10.84,860,0,3,1,4,1075,12.4,1],[10.92,8.96,870,0,3,2,2,291,8.9,0],[-19.89,14.75,637,0,3,2,2,560,18,5],[-12.04,2.06,245,2,1,1,1,44,10.5,5],[-3.19,1.7,445,2,2,1,1,1775,3.4,1],[-1.41,11.98,539,1,2,2,2,160,11.2,1],[-3.59,4.07,1305,0,3,1,1,278,5.9,5],[-4.08,11.05,592,0,2,1,2,577,11.5,1],[-2.81,9.44,940,0,3,1,1,589,9.9,1],[7.86,-18.55,1221,0,4,2,3,554,17.3,4],[14.45,12.48,900,0,4,3,1,807,16.1,1],[11.61,-1.82,1571,0,3,1,1,560,10.2,4],[8.28,8.64,570,0,2,1,3,428,10.5,0],[8.12,-2.38,2200,0,6,3,3,622,6.2,4],[8.33,-3.38,2700,0,5,3,2,802,7.8,4],[-4.67,7.42,1170,2,4,2,2,0,8,5],[3.04,-0.76,1720,0,3,2,2,560,2.4,1],[1.7,-5.72,561,2,2,1,1,0,6.1,4],[-16.97,7.07,506,0,3,1,2,544,14,5],[9.42,7.15,835,1,3,2,2,161,8.9,0],[-7.19,-0.66,1142,0,4,3,2,234,6.3,5],[-10.69,-5.84,2000,0,5,3,4,697,12.7,5],[9.09,1.19,2220,0,4,3,6,560,7.9,4],[1.13,4.17,910,0,3,1,1,231,4.5,1],[-5.45,5.01,481,2,2,1,1,0,4.3,5],[9.3,-1.53,2090,0,4,2,2,650,7.8,4],[1.11,11.51,660,0,3,1,2,622,12.4,1],[9.73,-1.48,1640,0,3,3,2,352,9,4],[-10.48,2.8,608,0,3,1,2,487,12.6,5],[9.68,2.19,2000,0,3,1,3,772,9.2,4],[-10.11,-1.83,585,0,3,1,1,402,9.4,5],[1.91,-7.77,470,2,1,1,1,900,7.7,4],[5.22,9.32,635,0,2,1,1,608,11.2,1],[3.45,6.74,450,2,2,1,1,0,6.5,1],[11.01,-5.1,1510,0,3,2,2,370,9.2,4],[4.16,3.44,865,1,3,1,2,184,5.5,1],[12.27,1.35,1800,0,5,2,2,560,9.7,4],[-5.67,-5.69,1290,0,3,1,0,273,8,5],[13.56,13.01,950,0,4,2,3,795,16.1,1],[14.62,-1.48,1900,0,5,3,2,613,10.9,0],[2.66,-7.04,1005,0,2,2,2,290,7.2,4],[5.14,9.32,620,1,3,2,1,158,11.2,1],[0.74,4.82,510,2,2,1,0,0,5.2,1],[4.03,-1.69,1435,0,3,1,0,182,3.5,1],[-10.24,3.62,655,0,3,1,1,497,12.6,5],[3.04,0.63,1100,0,2,2,1,124,2.5,1],[6.24,-1.9,315,2,1,1,1,0,5.3,4],[-0.17,-3.67,1335,0,2,1,1,107,4.1,4],[1.97,-4.06,830,2,2,1,1,727,4.5,4],[1.33,-5.75,530,2,2,1,1,2783,6.1,4],[1.2,3.46,595,2,1,1,0,0,3.2,1],[6.49,8.46,605,0,3,1,2,377,8.8,0],[2.48,-7.59,2400,0,4,2,2,560,7.7,4],[15.42,-4.06,980,0,3,1,1,590,14.7,0],[5.16,-9.21,1550,0,4,1,2,584,8.7,4],[3.98,11.53,406,2,2,1,1,0,11.2,1],[26.27,-1.8,1031,0,4,2,0,1060,21.3,0],[-3.76,12.06,420,1,2,2,1,1137,13,1],[-5.86,0.15,800,1,3,2,1,169,7,5],[-3.77,8.58,1205,0,3,1,2,650,9.7,5],[-6.43,-0.93,630,0,2,1,1,148,7,5],[10.9,10.76,601,0,3,1,1,653,14.9,1],[9.35,1.21,1801,0,4,2,2,583,9.7,4],[6.67,10.8,706,0,2,1,1,770,12.4,1],[-10.19,3.24,510,0,3,1,2,587,10.8,5],[5.04,11.52,592,0,3,2,1,215,11.2,1],[4.24,3.42,280,2,1,1,1,0,5.5,1],[4.06,-5.1,690,2,2,2,2,1146,4.5,4],[12.93,-5.12,1255,0,4,2,2,438,11.7,4],[8.72,-9.27,920,2,3,2,1,283,11.4,4],[11.98,-9.54,1600,0,4,3,4,691,14,4],[0.26,4.61,1210,0,3,2,1,280,5.2,1],[2.49,-1.03,717,2,2,1,0,316,2.4,1],[1.76,1.78,2700,0,3,3,1,2783,2.1,1],[17.05,0.91,990,1,4,2,1,296,13.4,0],[18.98,-1.35,725,2,2,1,2,848,15.4,0],[7.52,-2.06,1585,0,2,1,2,390,7.5,4],[17.73,11.55,805,0,3,2,0,848,18,0],[6.65,8.29,722,0,3,1,2,593,9.4,0],[-1.78,10.41,740,0,2,1,1,487,8.5,1],[-7.12,3.01,1005,0,3,1,5,653,6.4,5],[11.8,-4.3,780,1,3,2,2,160,11.7,4],[2.22,7.34,950,0,2,1,2,560,8.4,1],[4.27,4.12,1900,0,4,2,1,537,5.5,1],[8.52,1.11,2200,0,3,2,4,650,5.4,4],[-6.67,7.45,820,1,3,2,1,229,11.2,5],[3.21,-12.07,1785,0,3,2,1,404,11.2,4],[12.83,14.14,922,0,3,2,2,587,16.1,1],[-7.54,8.16,960,0,3,2,2,404,11.7,5],[9.23,-1.99,558,2,2,1,1,0,7.8,4],[0.14,7.29,642,0,2,1,0,167,7.8,1],[5.59,-14.44,1450,0,3,2,2,560,16,4],[2.02,1.38,1300,0,3,1,1,209,1.6,1],[7.11,8.76,1375,0,3,1,1,368,9.4,0],[-6.88,14.06,586,0,3,1,1,534,12.9,5],[-27,-5.95,350,0,3,1,1,466,18.4,5],[3.69,-10.42,1037,1,2,1,2,125,11.2,4],[-1.32,11.34,585,0,5,2,1,590,12.1,1],[13.53,-4.14,1390,0,3,1,2,697,11.7,4],[13.91,-0.92,572,2,2,1,1,0,13.1,0],[-5.83,-4.23,830,1,4,1,2,0,8,5],[2.25,12.28,260,0,1,1,1,141,11.2,1],[-6.33,1.69,977,0,4,2,1,154,6.4,5],[1.31,7.11,1370,0,3,1,1,563,7.8,1],[-11.7,-5.66,672,2,2,1,1,0,11,5],[7.93,-13.87,725,0,3,2,1,374,14.6,4],[-6.43,15.12,560,0,5,2,2,626,16.5,1],[4.56,5.17,1575,0,2,1,3,607,5.5,1],[3.63,7.45,700,0,2,1,1,214,8.8,1],[-16.78,4.38,650,0,3,1,2,697,14.8,5],[16.12,-9.41,1170,1,4,3,2,725,16.7,0],[26.43,3.69,905,0,4,2,2,731,23,0],[-10.98,2.68,840,0,3,1,1,462,12.6,5],[-7.88,1.86,470,2,2,1,1,0,8.2,5],[9.2,-15.63,1295,0,3,2,2,657,17.9,4],[19.75,-3.83,1650,0,4,2,2,1250,17.2,0],[6.03,15.74,635,0,3,1,4,536,16.3,1],[3.78,-0.36,1200,0,2,2,1,189,2.4,1],[10.19,-17.54,1050,0,3,1,2,539,17.9,4],[-4.89,1.27,605,2,3,1,2,2783,5.1,5],[4.81,10.17,495,2,2,1,1,134,12,1],[-7.19,3.6,815,0,3,1,2,0,9.2,5],[2.71,1.23,1000,0,3,1,0,198,2.5,1],[5.71,-9.94,1715,0,4,2,2,705,11.8,4],[3.96,-3.23,552,2,1,1,1,0,4.6,4],[16.7,1.84,1050,0,3,2,2,560,14.3,0],[10.5,-16.47,877,0,3,1,2,533,17.9,4],[7.88,-1.84,1264,1,3,2,2,0,7.5,4],[-7.64,1.99,450,0,2,1,1,0,8.2,5],[-1.81,12.9,683,0,3,1,2,697,13,1],[2.15,-2.09,651,2,2,1,1,0,2.7,4],[4.61,10,855,0,3,1,2,464,12,1],[10.95,8.08,556,2,2,1,1,195,13.8,0],[7.15,6.72,906,0,2,1,1,617,8.8,0],[18.79,0.27,1060,0,5,3,2,766,15.4,0],[2.29,4.2,1050,0,3,1,0,158,5.5,1],[-6.57,2.51,950,0,2,1,2,657,6.4,5],[-5.03,11.09,1072,0,4,2,4,553,11.2,1],[-3.57,12.35,660,0,3,1,2,657,13,1],[1.65,-5.24,2220,0,4,2,2,402,6.1,4],[2.94,1.27,1176,0,3,1,1,138,2.5,1],[7.86,1.99,1300,0,3,1,2,378,7.5,4],[-8.63,-3.63,1100,0,3,1,6,761,8.4,5],[3.35,-3.47,613,2,2,1,1,0,3.3,4],[-11.97,2.7,596,0,3,1,1,750,12.6,5],[-6.71,6.65,800,1,3,3,2,242,9.8,5],[7.21,0.8,3800,0,5,5,3,609,5.6,4],[0.37,-2.32,612,2,2,1,1,0,2.1,4],[1.17,5.08,1265,0,2,1,3,439,4,1],[10.89,5.83,833,0,2,1,0,359,11.8,0],[0.61,2.59,570,2,2,1,1,0,3.2,1],[-12.12,1.95,720,0,3,1,2,560,10.5,5],[1.74,4.56,1290,0,4,2,2,468,4.5,1],[10.76,-0.79,1843,1,3,2,2,0,9,4],[5.34,-11.13,1000,0,2,1,2,564,10.7,4],[4.4,-0.59,592,2,2,2,1,2783,2.4,1],[1.53,5.92,856,0,4,2,2,136,4.5,1],[6.89,-9.73,454,2,1,1,1,1006,11.4,4],[-2.6,2.73,840,0,3,1,0,114,3.4,1],[7,4.1,2600,0,5,3,1,1006,7.9,0],[3.17,3.28,340,2,1,1,1,0,5.5,1],[5.96,-10.66,1830,0,4,2,1,567,11.4,4],[-6.72,-5.65,2230,0,4,2,2,782,8,5],[18.79,-1.7,1175,1,4,3,2,289,15.4,0],[-1.65,-2.34,1384,0,3,1,0,184,3.8,4],[-11.42,2.02,691,0,4,1,1,521,12.6,5],[9.71,-3.71,677,2,2,1,1,131,7.7,4],[7.46,2.35,1650,0,3,1,2,650,7.3,4],[12.98,-2.58,724,2,2,1,1,0,10.2,4],[0.4,5.38,1900,0,3,2,3,372,5.2,1],[4.46,-4.93,4200,0,4,3,3,563,6.3,4],[-8.19,2.53,850,0,4,2,1,560,6.4,5],[8.2,-12.12,1197,0,3,1,2,692,13.9,4],[5.85,-9.92,1850,0,4,2,2,668,11.8,4],[10.03,-0.35,800,2,2,1,1,0,7.9,4]]}</script>
+</section>
 </section>
 </div>
 <div class="cs-sec">
@@ -407,12 +1325,17 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="code" class="level2">
 <h2 data-anchor-id="code">Code</h2>
-<div class="pending" data-tag="Repo">
-<p>github.com/ducle26/melbourne-housing: the R Markdown file, the data source, and comments on each step.</p>
-</div>
+<p>Every chart and number on this page comes from the R code folded under each step. Press “Show all code” at the top to open it all at once.</p>
+<ul>
+<li><strong>This page’s source:</strong> <a href="https://github.com/ducle26/bill-portfolio/blob/main/projects/melbourne-housing.qmd">projects/melbourne-housing.qmd</a> in the site’s repo, with the data file beside it.</li>
+<li><strong>The class version:</strong> <a href="https://github.com/ducle26/melbourne-housing">github.com/ducle26/melbourne-housing</a> holds the R Markdown file I turned in for Project 1, the data, and a note on how to run it.</li>
+</ul>
+<p>Data: Becker, D. (2018). <em>Melbourne Housing Snapshot</em>, scraped by T. Pino from Domain.com.au. <a href="https://www.kaggle.com/datasets/dansbecker/melbourne-housing-snapshot">Kaggle</a>.</p>
 </section>
 </div>
 <nav class="sample-nav"><a href="ofs-financials.html">← CS-03 · Oilfield services health check</a><a href="../play.html">Bottom of the well →</a></nav>
+<script src="../assets/js/casestudy.js"></script>
+<script src="../assets/js/priceguide.js"></script>
 
 
 

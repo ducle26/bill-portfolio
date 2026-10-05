@@ -153,7 +153,7 @@ body-classes: home
         <a class="card-bp" href="projects/rig-count.html"><span class="go">→</span><span class="label">CS-01 · Forecasting</span><h3>Rig count forecast</h3><p>How many rigs will be running in six months, and what that means for long-lead parts.</p></a>
         <a class="card-bp" href="projects/late-delivery.html"><span class="go">→</span><span class="label">CS-02 · Classification</span><h3>Late delivery risk</h3><p>Which orders will ship late, and what drives it.</p></a>
         <a class="card-bp" href="projects/ofs-financials.html"><span class="go">→</span><span class="label">CS-03 · Financial analysis</span><h3>Oilfield services health check</h3><p>How SLB, Halliburton, and Baker Hughes move with oil prices.</p></a>
-        <a class="card-bp" href="projects/melbourne-housing.html"><span class="go">→</span><span class="label">CS-04 · Exploratory analysis</span><h3>Melbourne housing</h3><p>What drives house prices across Melbourne's suburbs.</p></a>
+        <a class="card-bp" href="projects/melbourne-housing.html"><span class="go">→</span><span class="label">CS-04 · Regression and trees</span><h3>Melbourne housing</h3><p>What drives house prices across Melbourne's suburbs, with a price guide you can try.</p></a>
       </div>
     </div>
   </section>

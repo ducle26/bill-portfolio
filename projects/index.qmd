@@ -22,7 +22,7 @@ pagetitle: "Core samples · Duc (Bill) Le"
   </a>
   <a class="core" href="melbourne-housing.html">
     <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>
-    <div><span class="label">CS-04 · 3,350 ft</span><h3>Melbourne housing</h3><p>What drives house prices across Melbourne's suburbs?</p><span class="status live">Done in class · moving over</span></div>
+    <div><span class="label">CS-04 · 3,350 ft</span><h3>Melbourne housing</h3><p>What drives house prices across Melbourne's suburbs, and can a model back up an agent's price guide?</p><span class="status">Logged · Sep 2026</span></div>
   </a>
 </div>
 ```

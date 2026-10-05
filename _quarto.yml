@@ -39,6 +39,15 @@ website:
     left: "© 2026 Duc (Bill) Le · Built in R with Quarto"
     right: "Rev 2026.10 · Sheet set BL-01"
 
+# Keep the results of each page's R code. A page reruns its R only when that
+# page's own file changes, so the rest of the site builds in seconds.
+execute:
+  freeze: auto
+
+# Load chart images only when they scroll into view.
+filters:
+  - _includes/lazy-images.lua
+
 format:
   html:
     theme:

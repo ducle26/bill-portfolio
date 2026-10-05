@@ -23,7 +23,7 @@ pagetitle: "CS-02 Late delivery risk · Duc (Bill) Le"
 ## Project overview
 
 ::: {.pending data-tag="To log"}
-Two or three sentences: the business question, what the analysis found, and what someone should do about it. Written last.
+Summary to come once the analysis is done.
 :::
 ::::
 :::::
@@ -55,7 +55,7 @@ Planned steps:
 4. Compare the two with a confusion matrix and ROC curve
 5. Turn the strongest drivers into plain rules a buyer can use
 
-The R code, with comments, goes here. Each step becomes a short section with its code chunk and one line on why.
+The R code, with comments, will sit under each step.
 :::
 ::::
 :::::

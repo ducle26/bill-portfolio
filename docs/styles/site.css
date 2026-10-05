@@ -756,3 +756,139 @@ details.role.flash { animation: flash 1.4s ease; }
   .oo-row { flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; }
   .oo-row .status { white-space: nowrap; }
 }
+
+/* =========================================================
+   Case study pages: folded code, charts, tables
+   ========================================================= */
+.cs-tools { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: -0.9rem 0 0.25rem; }
+.cs-tools .bp-btn-ghost { font-size: 0.72rem; padding: 0.45rem 0.8rem; }
+.cs-sec h3 { margin-top: 2.2rem; font-size: 1.14rem; }
+.cs-sec h4 { margin-top: 1.8rem; font-family: "Space Mono", monospace; font-weight: 400; font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.cs-sec > * { min-width: 0; }
+
+/* Folded R code: orange because you can press it */
+details.code-fold { margin: 0.75rem 0 1rem; border-left: 2px solid var(--grid-strong); padding-left: 0.8rem; }
+details.code-fold[open] { border-left-color: var(--orange); }
+details.code-fold > summary { font-family: "Space Mono", monospace; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--orange-ink); cursor: pointer; list-style: none; padding: 0.15rem 0; }
+details.code-fold > summary::-webkit-details-marker { display: none; }
+details.code-fold > summary::before { content: "+ "; }
+details.code-fold[open] > summary::before { content: "\2212  "; }
+details.code-fold[open] > summary { margin-bottom: 0.4rem; }
+.cs-sec div.sourceCode { background: var(--paper-2); border: 1px solid var(--grid-strong); border-radius: 2px; margin: 0; }
+.cs-sec pre { font-size: 0.78rem; line-height: 1.55; margin: 0; }
+.cs-sec div.sourceCode pre { padding: 0.75rem 0.9rem; }
+.cs-sec .cell-output-stdout pre { background: transparent; border-left: 2px solid var(--grid-strong); padding: 0.2rem 0.8rem; color: var(--ink-2); margin: 0.5rem 0 1rem; }
+
+/* Charts: framed like a figure on a drawing */
+.cs-sec .cell figure.figure { display: block; margin: 1.1rem 0 1.6rem; border: 1px solid var(--grid-strong); background: var(--paper); padding: 0.9rem 0.9rem 0.6rem; }
+.cs-sec .cell figure.figure > p { margin: 0; }
+.cs-sec .cell figure.figure img { display: block; width: 100%; height: auto; }
+.cs-sec .cell figure.figure figcaption { font-family: "Space Mono", monospace; font-size: 0.7rem; letter-spacing: 0.02em; line-height: 1.5; color: var(--ink-3); text-align: left; border-top: 1px solid var(--grid-strong); margin-top: 0.6rem; padding-top: 0.5rem; }
+@media (max-width: 575.98px) {
+  /* On a phone, let a chart scroll sideways instead of shrinking its labels to nothing */
+  .cs-sec .cell figure.figure > p { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cs-sec .cell figure.figure img { min-width: 540px; }
+  .cs-sec .cell figure.figure figcaption::after { content: " Swipe the chart sideways to see all of it."; color: var(--ink-2); }
+}
+
+/* Tables from R */
+.cs-sec .table { --bs-table-bg: transparent; --bs-table-color: var(--ink); --bs-table-striped-bg: var(--shade); --bs-table-striped-color: var(--ink); --bs-table-border-color: var(--grid-strong); font-size: 0.9rem; border: 1px solid var(--ink); margin: 0.9rem 0 1.4rem; width: 100%; }
+.cs-sec .table > caption { caption-side: top; text-align: left; font-family: "Space Mono", monospace; font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); padding: 0 0 0.4rem; }
+.cs-sec .table thead th { font-family: "Space Mono", monospace; font-weight: 400; font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); border-bottom: 1px solid var(--ink); }
+.cs-sec .table td, .cs-sec .table th { padding: 0.4rem 0.65rem; font-variant-numeric: tabular-nums; vertical-align: top; }
+.cs-sec .table > tbody > tr > * { border-bottom: 1px solid var(--grid-strong); }
+.cs-sec .table > tbody > tr:last-child > * { border-bottom: 0; }
+.cs-sec .cell-output-display:has(> table), .cs-sec .cell-output-display:has(> div > table) { overflow-x: auto; }
+
+/* =========================================================
+   Price guide tool (CS-04)
+   ========================================================= */
+#try-it { scroll-margin-top: 90px; }
+@media (min-width: 992px) { .cs-sec #try-it { margin-left: calc(-72px - 1rem); } }
+.pg { margin: 1rem 0 0.9rem; --q0: #C5D5EA; --q1: #8FAED6; --q2: #3F6FB0; --q3: #13233A; }
+body.quarto-dark .pg { --q0: #2F5C99; --q1: #5B8FCF; --q2: #A5CDF7; --q3: #FFFFFF; }
+.pg-top { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 14px; }
+.pg-panel { margin: 0; border: 1px solid var(--grid-strong); background: var(--paper); padding: 0.55rem 0.7rem 0.7rem; display: flex; flex-direction: column; min-width: 0; }
+.pg-panel figcaption { margin-bottom: 0.3rem; }
+.pg-panel svg { width: 100%; height: auto; display: block; }
+#pg-map-svg { cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.pg-t { font-family: "Space Mono", monospace; font-size: 11.5px; letter-spacing: 0.03em; text-transform: uppercase; fill: var(--ink-2); }
+.pg-t-mid { text-anchor: middle; }
+.pg-t-soft { fill: var(--ink-3); }
+.pg-t-halo { paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
+.pg-ref { fill: none; stroke: var(--ink-3); stroke-width: 0.8; stroke-dasharray: 2 4; opacity: 0.7; }
+.pg-ink { fill: none; stroke: var(--ink); stroke-width: 1.3; }
+.pg-dot.q0 { fill: var(--q0); } .pg-dot.q1 { fill: var(--q1); } .pg-dot.q2 { fill: var(--q2); } .pg-dot.q3 { fill: var(--q3); }
+.pg-reg { opacity: 0.3; transition: opacity 220ms ease; }
+.pg-reg.on { opacity: 1; }
+.pg-ring { fill: none; stroke: var(--orange); stroke-width: 2; }
+.pg-ring-hit { fill: none; stroke: transparent; stroke-width: 26; pointer-events: stroke; cursor: grab; touch-action: none; }
+.pg-ring-hit.pg-fill-hit { fill: transparent; stroke: none; pointer-events: all; }
+.pg-dragging .pg-ring-hit { cursor: grabbing; }
+.pg-handle > circle:first-child { fill: var(--orange); stroke: var(--paper); stroke-width: 2; }
+.pg-handle > path { fill: var(--on-orange); }
+.pg-t-ring { fill: var(--orange-ink); font-size: 13px; font-weight: 700; paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
+.pg-real-mark circle, .pg-real-mark path { fill: none; stroke: var(--ink); stroke-width: 1.7; }
+
+.pg-ln { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+.pg-ln.pg-thin { stroke-width: 1.15; }
+.pg-ln.pg-hair { stroke-width: 0.75; stroke: var(--ink-2); }
+.pg-ln.pg-dash { stroke-dasharray: 3 3; }
+.pg-ln.pg-soft { stroke: var(--ink-3); opacity: 0.55; }
+.pg-ln.pg-paper { fill: var(--paper); }
+.pg-ln.pg-mine { stroke-width: 2.3; fill: var(--shade); }
+.pg-earth { fill: url(#pg-hatch); stroke: none; }
+.pg-hatch-line { stroke: var(--hatch); stroke-width: 1.4; }
+@keyframes pg-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.pg-in { animation: pg-in 240ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .pg-in { animation: none; } .pg-reg { transition: none; } }
+
+.pg-price { border-top: 1px solid var(--grid-strong); margin-top: auto; padding-top: 0.55rem; }
+#pg-price { display: block; font-family: "Space Grotesk", sans-serif; font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.15; font-variant-numeric: tabular-nums; color: var(--ink); }
+.pg-range { margin: 0.25rem 0 0; font-size: 0.86rem; line-height: 1.5; color: var(--ink-2); }
+
+.pg-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; margin: 14px 0 10px; }
+.pg-wide { grid-column: 1 / -1; }
+.pg-ctl > .label { display: block; margin-bottom: 0.3rem; }
+.pg-ctl > .label span { color: var(--ink); }
+.pg-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.pg-seg button, .pg-step button { font-family: "Space Mono", monospace; font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase; background: transparent; color: var(--ink); border: 1px solid var(--orange); border-radius: 2px; padding: 0.35rem 0.7rem; min-height: 36px; cursor: pointer; }
+.pg-seg button:hover, .pg-step button:hover:not(:disabled) { color: var(--orange-ink); }
+.pg-seg button[aria-pressed="true"] { background: var(--orange); color: var(--on-orange); }
+.pg-step { display: inline-grid; grid-template-columns: 38px 2.6rem 38px; align-items: center; }
+.pg-step button { padding: 0; font-size: 1rem; }
+.pg-step button:disabled { border-color: var(--grid-strong); color: var(--ink-3); cursor: default; }
+.pg-step output { text-align: center; font-family: "Space Grotesk", sans-serif; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+#pg-dist { width: 100%; accent-color: var(--orange); margin-top: 0.2rem; }
+.pg-warn { border-left: 3px solid var(--ink); background: var(--shade); padding: 0.45rem 0.75rem; font-size: 0.9rem; margin: 0 0 10px; }
+
+.pg-bom-wrap { overflow-x: auto; }
+.pg-bom { width: 100%; border-collapse: collapse; font-size: 0.9rem; border: 1px solid var(--ink); margin: 0; }
+.pg-bom caption { caption-side: top; text-align: left; padding: 0.4rem 0 0.35rem; }
+.pg-bom th, .pg-bom td { padding: 0.38rem 0.65rem; border-bottom: 1px solid var(--grid-strong); text-align: left; vertical-align: top; }
+.pg-bom thead th { font-family: "Space Mono", monospace; font-weight: 400; font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); border-bottom: 1px solid var(--ink); }
+.pg-bom tbody th { font-family: "Space Mono", monospace; font-weight: 400; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.pg-bom td:nth-child(3), .pg-bom td:nth-child(4), .pg-bom thead th:nth-child(3), .pg-bom thead th:nth-child(4) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pg-bom .pg-zero th, .pg-bom .pg-zero td { color: var(--ink-3); }
+.pg-spec-m { display: none; }
+.pg-bom .pg-total th, .pg-bom .pg-total td { border-top: 1px solid var(--ink); border-bottom: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.05rem; letter-spacing: 0; text-transform: none; text-align: left; }
+.pg-bom .pg-total td { text-align: right; }
+
+.pg-test { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 14px; }
+.pg-test p { flex-basis: 100%; margin: 0.15rem 0 0; min-height: 1.6em; font-size: 0.95rem; }
+@media (max-width: 767.98px) {
+  .pg-top { grid-template-columns: 1fr; }
+  .pg-controls { grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+}
+@media (max-width: 575.98px) {
+  /* Phone: drop the spec column and tuck each spec under its item */
+  .pg-bom thead th:nth-child(2), .pg-bom tbody td:nth-child(2), .pg-bom .pg-spacer { display: none; }
+  .pg-bom { table-layout: fixed; }
+  .pg-bom thead th { white-space: normal !important; }
+  .pg-bom thead th:first-child { width: 50%; }
+  .pg-bom thead th:nth-child(3) { width: 21%; }
+  .pg-bom tbody th { white-space: normal; }
+  .pg-spec-m { display: block; margin-top: 0.15rem; font-family: "Be Vietnam Pro", sans-serif; font-size: 0.82rem; letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+  .pg-bom th, .pg-bom td { padding: 0.38rem 0.5rem; }
+}
+@media print { .cs-tools, .pg-test, .pg-controls { display: none; } }
