@@ -429,6 +429,7 @@ body.playing .title-block-fixed > div:not(.tb-name):not(.tb-k-depth):not(.tb-dep
 .dv-readout span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dv-readout b { font-weight: 400; color: var(--ink); }
 .dv-hint { text-transform: none; letter-spacing: 0.02em; margin: 0; }
+.dv-rigs { margin-top: 2px; color: var(--ink-2); }
 .home .well { padding-left: 120px; }
 .home .stratum .depth { left: -124px; width: 74px; }
 .home .stratum .depth b { white-space: nowrap; font-size: 0.82rem; }
@@ -892,3 +893,65 @@ body.quarto-dark .pg { --q0: #2F5C99; --q1: #5B8FCF; --q2: #A5CDF7; --q3: #FFFFF
   .pg-bom th, .pg-bom td { padding: 0.38rem 0.5rem; }
 }
 @media print { .cs-tools, .pg-test, .pg-controls { display: none; } }
+
+/* =========================================================
+   Forecast replay tool (CS-01)
+   ========================================================= */
+.rf { margin: 1rem 0 0.9rem; --rf-mark: #2B5FA8; }
+body.quarto-dark .rf { --rf-mark: #7DB8F5; }
+.rf-presets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.rf-presets .label { margin-right: 4px; }
+.rf-presets button, .rf-row button { font-family: "Space Mono", monospace; font-size: 0.7rem; letter-spacing: 0.03em; text-transform: uppercase; background: transparent; color: var(--ink); border: 1px solid var(--orange); border-radius: 2px; padding: 0.3rem 0.6rem; min-height: 34px; cursor: pointer; }
+.rf-presets button:hover, .rf-row button:hover:not(:disabled) { color: var(--orange-ink); }
+.rf-row button:disabled { border-color: var(--grid-strong); color: var(--ink-3); cursor: default; }
+.rf-chart { margin: 0; border: 1px solid var(--grid-strong); background: var(--paper); padding: 0.5rem 0.5rem 0.3rem; }
+.rf-chart svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+.rf-t { font-family: "Space Mono", monospace; font-size: 11px; fill: var(--ink-2); }
+.rf-t-end { text-anchor: end; }
+.rf-t-mid { text-anchor: middle; }
+.rf-t-strong { fill: var(--ink); }
+.rf-t-halo { paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
+.rf-grid { stroke: var(--grid-strong); stroke-width: 0.6; opacity: 0.7; }
+.rf-axis { stroke: var(--ink-3); stroke-width: 1; }
+.rf-future { fill: var(--shade); }
+.rf-today { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 4; }
+.rf-band { fill: var(--rf-mark); fill-opacity: 0.2; stroke: none; }
+.rf-fc { fill: none; stroke: var(--rf-mark); stroke-width: 2; stroke-dasharray: 6 4; }
+.rf-hist { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.rf-now { stroke: var(--ink); stroke-width: 1; }
+.rf-dot { fill: var(--ink); stroke: var(--paper); stroke-width: 1.5; }
+.rf-actual { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: rf-draw 900ms ease-out forwards; }
+.rf-actual-dot { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+@keyframes rf-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .rf-actual { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; } }
+.rf-need { stroke: var(--orange); stroke-width: 2; }
+.rf-need-range { stroke: var(--orange); stroke-width: 6; stroke-linecap: round; opacity: 0.45; }
+.rf-need-dot { fill: var(--orange); stroke: var(--paper); stroke-width: 1.5; }
+.rf-grip rect { fill: var(--orange); }
+.rf-grip path { fill: var(--on-orange); }
+.rf-hit { fill: transparent; cursor: ew-resize; touch-action: pan-y; }
+
+.rf-controls { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 12px 20px; margin: 12px 0; }
+.rf-ctl > .label { display: block; margin-bottom: 0.3rem; }
+.rf-ctl > .label span { color: var(--ink); }
+.rf-row { display: grid; grid-template-columns: 38px 1fr 38px; gap: 8px; align-items: center; }
+.rf-row button { padding: 0; font-size: 0.95rem; }
+.rf input[type="range"] { width: 100%; accent-color: var(--orange); }
+.rf-readout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--ink); }
+.rf-readout > div { padding: 0.55rem 0.8rem; border-right: 1px solid var(--grid-strong); }
+.rf-readout > div:last-child { border-right: 0; }
+.rf-readout output { display: block; font-family: "Space Grotesk", sans-serif; font-size: 1.35rem; line-height: 1.25; font-variant-numeric: tabular-nums; margin-top: 0.1rem; }
+.rf-readout p { margin: 0.2rem 0 0; font-size: 0.84rem; line-height: 1.45; color: var(--ink-2); }
+.rf-reveal { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; margin-top: 12px; }
+.rf-reveal .bp-btn:disabled { background: transparent; border-color: var(--grid-strong); color: var(--ink-3); cursor: default; transform: none; }
+.rf-check { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; margin: 0; }
+.rf-check input { accent-color: var(--orange); }
+.rf-check .mono { color: var(--ink-2); }
+.rf-reveal p { flex-basis: 100%; margin: 0.1rem 0 0; min-height: 1.6em; font-size: 0.95rem; font-weight: 500; }
+@media (max-width: 767.98px) {
+  .rf-controls { grid-template-columns: 1fr; }
+  .rf-readout { grid-template-columns: 1fr; }
+  .rf-readout > div { border-right: 0; border-bottom: 1px solid var(--grid-strong); }
+  .rf-readout > div:last-child { border-bottom: 0; }
+}
+@media print { .rf-presets, .rf-controls, .rf-reveal { display: none; } }

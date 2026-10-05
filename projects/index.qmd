@@ -10,7 +10,7 @@ pagetitle: "Core samples · Duc (Bill) Le"
 <div class="cores">
   <a class="core" href="rig-count.html">
     <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>
-    <div><span class="label">CS-01 · 2,600 ft</span><h3>Rig count forecast</h3><p>How many rigs will be running in six months, and what does that mean for long-lead parts?</p><span class="status">Logging · Oct 2026</span></div>
+    <div><span class="label">CS-01 · 2,600 ft</span><h3>Rig count forecast</h3><p>How far ahead can the rig count be forecast well enough to act on?</p><span class="status">Logged · Oct 2026</span></div>
   </a>
   <a class="core" href="late-delivery.html">
     <div class="tube" aria-hidden="true"><i class="litho sand"></i><i class="litho shale"></i><i class="litho lime"></i></div>

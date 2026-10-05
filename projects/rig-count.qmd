@@ -1,18 +1,27 @@
 ---
 title: "Rig count forecast"
 pagetitle: "CS-01 Rig count forecast · Duc (Bill) Le"
+description-meta: "How far ahead can the US rig count be forecast well enough for a buyer to act on? ARIMA and ETS in R, tested by replaying sixteen years of forecasts."
+code-fold: true
+code-summary: "Show the R code"
+fig-width: 8
+fig-height: 4.4
+execute:
+  warning: false
+  message: false
 ---
 
 ```{=html}
 <div id="sheet-meta" data-sheet="04" data-title="CS-01" data-top="2600" data-bottom="2850" hidden></div>
 <span class="label">Core sample CS-01 · 2,600 to 2,850 ft</span>
-<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">How many rigs will be running in six months, and what does that mean for long-lead parts?</p>
+<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">Contracts come with short notice and the longest parts take months. How far ahead can the rig count be forecast well enough to act on?</p>
 <div class="sample-head">
-  <div><span class="label">Method</span><div class="v">Time-series forecasting</div></div>
-  <div><span class="label">Data</span><div class="v">US rig count, weekly (Baker Hughes, public)</div></div>
-  <div><span class="label">R packages</span><div class="v">tidyverse, fable, ggplot2</div></div>
-  <div><span class="label">Status</span><div class="v"><span class="status">Logging · Oct 2026</span></div></div>
+  <div><span class="label">Method</span><div class="v">Time-series forecasting (ARIMA, ETS)</div></div>
+  <div><span class="label">Data</span><div class="v">US rotary rig count, monthly (EIA, from Baker Hughes)</div></div>
+  <div><span class="label">R packages</span><div class="v">forecast, tidyverse, readxl</div></div>
+  <div><span class="label">Status</span><div class="v"><span class="status">Logged · Oct 2026</span></div></div>
 </div>
+<div class="cs-tools"><button type="button" class="bp-btn-ghost" id="code-toggle" aria-pressed="false">Show all code</button><a class="bp-btn-ghost" href="#try-it">Skip to the forecast replay ↓</a></div>
 ```
 
 ::::: {.cs-sec}
@@ -22,9 +31,11 @@ pagetitle: "CS-01 Rig count forecast · Duc (Bill) Le"
 :::: {}
 ## Project overview
 
-::: {.pending data-tag="To log"}
-Summary to come once the analysis is done.
-:::
+Work in downhole tools can arrive with little notice, while the longest parts take months to come in. I tested how far ahead the US rig count, the most watched measure of drilling activity, can be forecast well enough to act on.
+
+The answer is about one quarter. Out to three months, an ARIMA model misses by about a third less than simply assuming no change. By six months most of that edge is gone, and past eight months the model does no better than assuming no change at all. It also missed both big turns, in late 2014 and early 2020.
+
+So I'd use the forecast as a monthly check on whether to get ready, by refreshing quotes and asking shops about capacity. I would not use it to decide how much to buy. The bill of materials does that.
 ::::
 :::::
 
@@ -35,7 +46,13 @@ Summary to come once the analysis is done.
 :::: {}
 ## Problem statement
 
-A company that builds downhole tools has to order some parts long before it needs them. Machined housings and specialty alloys can take months to arrive. How many tools customers want depends on how much drilling is going on, so a buyer planning those orders wants to know: **how many rigs will be running six months from now, and how sure can we be?**
+In the build-to-order work I've done, parts are bought off the bill of materials once a contract is signed. A forecast can't tell a buyer how many parts to order, and I wouldn't use one for that.
+
+The trouble is timing. A contract can land with days or weeks of notice, and the longest parts take months to arrive. Any early sign that work is picking up is worth having, because it tells a buyer when to refresh quotes and ask shops about capacity before the rush.
+
+The rig count is the most watched measure of drilling activity. So the question is: **how far ahead can the rig count be forecast well enough to act on, and how would a buyer know when to trust it?**
+
+One limit up front. Whether more rigs means more tool orders, and how soon, is an assumption here. I have no public data that ties the two together.
 ::::
 :::::
 
@@ -46,17 +63,300 @@ A company that builds downhole tools has to order some parts long before it need
 :::: {}
 ## Approach
 
-::: {.pending data-tag="Planned"}
-Planned steps:
+### Step 1 · Get the data and look at all of it
 
-1. Pull the weekly US rig count and roll it up to monthly
-2. Plot the trend and look for seasonal patterns with ggplot2
-3. Fit and compare ETS and ARIMA models with the fable package
-4. Test accuracy on a held-back year of data
-5. Turn the forecast range into an ordering rule for long-lead parts
+Baker Hughes counts the rotary rigs drilling in the US every week. The Energy Information Administration republishes that count as a monthly average going back to 1973, in one file with a fixed address. I used the EIA file so anyone can rerun this.
 
-The R code, with comments, will sit under each step.
-:::
+```{r setup}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(readxl)
+library(forecast)
+library(knitr)
+
+# The site's chart style. bp_both() draws each chart twice:
+# once for the light sheet and once for the dark print.
+source("_blueprint.R")
+bp_device()
+
+# One workbook, one sheet per breakdown. The first two rows are EIA's own labels.
+eia  <- "data/NG_ENR_DRILL_S1_M.xls"
+rigs <- read_excel(eia, sheet = "Data 1", skip = 2)
+names(rigs) <- c("date", "rigs")
+type <- read_excel(eia, sheet = "Data 3", skip = 2)
+names(type) <- c("date", "Oil", "Gas")
+rigs$date <- as.Date(rigs$date)
+type$date <- as.Date(type$date)
+
+peak   <- rigs[which.max(rigs$rigs), ]
+trough <- rigs[which.min(rigs$rigs), ]
+latest <- rigs[nrow(rigs), ]
+```
+
+```{r chart-history}
+#| renderings: [light, dark]
+#| fig-cap: "Fig. 1 · US rotary rigs in operation, monthly average, 1973 to 2026. The shaded span is the part the models learn from."
+#| fig-alt: "Line chart of the US rig count since 1973. It peaks above 4,500 in late 1981, falls for two decades, swings between 400 and 2,000 after 2000, and hits its low of 250 in August 2020."
+# Three points worth naming, each with a spot for its label that is clear of the line
+marks <- bind_rows(
+  data.frame(peak,   label = paste0(format(peak$date, "%b %Y"), ": ", comma(peak$rigs)),
+             lx = peak$date + 400,     ly = peak$rigs,  hjust = 0),
+  data.frame(trough, label = paste0(format(trough$date, "%b %Y"), ": ", trough$rigs),
+             lx = trough$date - 400,   ly = 120,        hjust = 1),
+  data.frame(latest, label = paste0(format(latest$date, "%b %Y"), ": ", latest$rigs),
+             lx = latest$date,         ly = 1150,       hjust = 1))
+
+bp_both(function(k) {
+  ggplot(rigs, aes(date, rigs)) +
+    annotate("rect", xmin = as.Date("2000-01-01"), xmax = max(rigs$date),
+             ymin = 0, ymax = Inf, fill = k$mark, alpha = 0.08) +
+    geom_line(linewidth = 0.7, colour = k$mark) +
+    geom_segment(data = marks[3, ], aes(xend = date, y = rigs + 60, yend = ly - 90),
+                 linewidth = 0.3, colour = k$ink) +
+    geom_point(data = marks, size = 2.2, colour = k$ink) +
+    geom_text(data = marks, aes(x = lx, y = ly, label = label, hjust = hjust), size = 3.4, colour = k$ink) +
+    annotate("text", x = as.Date("2000-06-01"), y = 4350, label = "Modeled from 2000",
+             hjust = 0, size = 3.2, colour = k$ink3) +
+    scale_y_continuous(labels = comma, limits = c(0, 4700), expand = c(0, 0)) +
+    scale_x_date(date_breaks = "10 years", date_labels = "%Y") +
+    labs(title = "The rig count has no normal level. It moves in long, steep swings.",
+         subtitle = paste0("The ", format(peak$date, "%Y"), " peak was ", round(peak$rigs / trough$rigs),
+                           " times the ", format(trough$date, "%Y"), " low."),
+         x = NULL, y = "Rigs in operation")
+})
+```
+
+The count has been as high as `r comma(peak$rigs)` and as low as `r trough$rigs`. The 1970s and 1980s were a different industry, so I modeled from 2000 on.
+
+```{r chart-type}
+#| renderings: [light, dark]
+#| fig-height: 3.9
+#| fig-cap: "Fig. 2 · Rigs drilling for oil and for natural gas, monthly, since the split was first reported in 1987"
+#| fig-alt: "Two lines. Gas rigs outnumber oil rigs from the mid 1990s until 2011. After that oil rigs lead by a wide margin."
+by_type <- type %>% filter(!is.na(Oil)) %>%
+  pivot_longer(c(Oil, Gas), names_to = "target", values_to = "rigs") %>%
+  mutate(target = factor(target, levels = c("Oil", "Gas")))
+crossover <- max(type$date[which(type$Gas > type$Oil)])   # last month gas rigs led
+ends <- by_type %>% filter(date == max(date))
+
+bp_both(function(k) {
+  ggplot(by_type, aes(date, rigs, colour = target)) +
+    geom_line(linewidth = 0.7) +
+    geom_text(data = ends, aes(label = paste0(target, " ", rigs)), hjust = -0.12, size = 3.4, colour = k$ink) +
+    scale_colour_manual(values = setNames(k$series[1:2], c("Oil", "Gas"))) +
+    scale_y_continuous(labels = comma) +
+    scale_x_date(date_breaks = "5 years", date_labels = "%Y", expand = expansion(mult = c(0.02, 0.16))) +
+    labs(title = "Gas rigs led until 2011. Oil has led ever since.",
+         subtitle = "What the rigs drill for changed, which is one more reason to model recent years only.",
+         x = NULL, y = "Rigs in operation") +
+    theme(legend.position = "none")
+})
+```
+
+### Step 2 · Check for a season
+
+A forecast usually starts by pulling out the season. Before modeling one, I checked whether there is one.
+
+```{r chart-season}
+#| renderings: [light, dark]
+#| fig-height: 3.9
+#| fig-cap: "Fig. 3 · Month-to-month change in the rig count, by calendar month, 2000 to 2026. The few changes beyond 12% are cut off."
+#| fig-alt: "Twelve box plots, one per calendar month. All twelve boxes sit close to zero and overlap heavily."
+recent <- rigs %>% filter(date >= as.Date("2000-01-01"))
+change <- recent %>%
+  mutate(pct = (rigs / lag(rigs) - 1) * 100,
+         last_pct = lag(pct),
+         month = factor(format(date, "%b"), levels = month.abb)) %>%
+  filter(!is.na(last_pct))
+
+season_test <- kruskal.test(pct ~ month, data = change)
+
+bp_both(function(k) {
+  ggplot(change, aes(month, pct)) +
+    geom_hline(yintercept = 0, linewidth = 0.4, colour = k$ink) +
+    geom_boxplot(outlier.size = 0.6, outlier.alpha = 0.4, linewidth = 0.5,
+                 colour = k$mark, fill = NA, width = 0.6) +
+    coord_cartesian(ylim = c(-12, 12)) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    labs(title = "No calendar month stands out, so there is no season to model",
+         x = NULL, y = "Change from the month before") +
+    theme(panel.grid.major.x = element_blank())
+})
+```
+
+A Kruskal-Wallis test finds no difference between calendar months (p = `r round(season_test$p.value, 2)`). US drilling doesn't stop for winter, so I left the season out of both models.
+
+### Step 3 · Find what a model can use
+
+With no season, the question is what pattern is left. The answer is momentum.
+
+```{r chart-momentum}
+#| renderings: [light, dark]
+#| fig-height: 4.6
+#| fig-cap: "Fig. 4 · Each month's change in the rig count against the change the month before, 2000 to 2026"
+#| fig-alt: "Scatter plot. Points run from lower left to upper right along a clear line: a month that follows a rise tends to rise, and a month that follows a fall tends to fall."
+momentum <- cor(change$pct, change$last_pct)
+
+bp_both(function(k) {
+  ggplot(change, aes(last_pct, pct)) +
+    geom_hline(yintercept = 0, linewidth = 0.3, colour = k$axis) +
+    geom_vline(xintercept = 0, linewidth = 0.3, colour = k$axis) +
+    geom_point(alpha = 0.55, size = 1.5, stroke = 0) +
+    geom_smooth(method = "lm", se = FALSE, linewidth = 0.8, colour = k$ink) +
+    coord_cartesian(xlim = c(-20, 15), ylim = c(-20, 15)) +
+    scale_x_continuous(labels = function(x) paste0(x, "%")) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    labs(title = "A rising count tends to keep rising, and a falling one keeps falling",
+         subtitle = "Each dot is one month. Three months in 2020 fell further than the chart shows.",
+         x = "Change the month before", y = "Change this month")
+})
+```
+
+The correlation is `r round(momentum, 2)`. Rigs are contracted and moved over months, so a turn takes time to play out. That lag is the one thing a model of the count alone can learn.
+
+### Step 4 · Fit the models and hold back a year
+
+I fit two standard models and one yardstick to the data through `r format(rigs$date[nrow(rigs) - 12], "%B %Y")`, then forecast the twelve months they had not seen.
+
+- **ARIMA.** Predicts next month's change from this month's change and last month's miss. It is built for momentum.
+- **ETS** (exponential smoothing). Tracks a level and a trend, and weights recent months most.
+- **No change.** Next month equals this month. Any model has to beat this to be worth running.
+
+Both models work on the log of the count. That keeps their ranges above zero and makes a miss of 50 rigs count for more at 500 rigs than at 2,000.
+
+```{r models}
+dates <- recent$date
+y     <- ts(recent$rigs, start = c(2000, 1), frequency = 12)
+h     <- 12                                   # forecast twelve months ahead
+train <- head(y, length(y) - h)
+test  <- tail(y, h)
+
+fit_arima <- auto.arima(train, lambda = 0, seasonal = FALSE)   # lambda = 0 models the log
+fit_ets   <- ets(train, lambda = 0)
+
+held <- list(`No change` = naive(train, h = h, lambda = 0),
+             ETS         = forecast(fit_ets, h = h),
+             ARIMA       = forecast(fit_arima, h = h))
+
+held_scores <- bind_rows(lapply(names(held), function(m) {
+  a <- accuracy(held[[m]], test)["Test set", ]
+  data.frame(Model = m, `Average miss` = paste0(round(a["MAPE"], 1), "%"),
+             `Average miss, rigs` = round(a["MAE"]), check.names = FALSE)
+}))
+kable(held_scores, align = "lrr", row.names = FALSE,
+      caption = "Accuracy on the twelve held-back months")
+```
+
+```{r chart-held}
+#| renderings: [light, dark]
+#| fig-height: 4.2
+#| fig-cap: "Fig. 5 · The held-back year: what each method forecast, and what the rig count did"
+#| fig-alt: "Line chart. The actual count stays near 545 for most of the year and rises to 589 at the end. The ARIMA and no-change forecasts are flat at 538. The ETS forecast drifts down to about 500."
+test_dates <- tail(dates, h)
+held_lines <- bind_rows(lapply(names(held), function(m)
+  data.frame(method = m, date = test_dates, rigs = as.numeric(held[[m]]$mean)))) %>%
+  mutate(method = factor(method, levels = c("ARIMA", "ETS", "No change")))
+context <- recent %>% filter(date >= as.Date("2024-01-01"))
+
+bp_both(function(k) {
+  ggplot(held_lines, aes(date, rigs)) +
+    annotate("rect", xmin = min(test_dates) - 15, xmax = max(test_dates) + 15,
+             ymin = -Inf, ymax = Inf, fill = k$mark, alpha = 0.08) +
+    geom_line(data = context, linewidth = 0.9, colour = k$ink) +
+    geom_line(aes(colour = method, linetype = method), linewidth = 0.9) +
+    annotate("text", x = min(test_dates), y = 632, label = "Held back", hjust = 0,
+             size = 3.2, colour = k$ink3) +
+    scale_colour_manual(values = c(ARIMA = k$series[1], ETS = k$series[2], `No change` = k$ink3)) +
+    scale_linetype_manual(values = c(ARIMA = "solid", ETS = "solid", `No change` = "22")) +
+    scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+    coord_cartesian(ylim = c(480, 640)) +
+    labs(title = "On a quiet year, assuming no change was as good as anything",
+         subtitle = "The solid dark line is the actual count.",
+         x = NULL, y = "Rigs in operation") +
+    theme(legend.key.width = unit(1.4, "cm"))
+})
+```
+
+The model R chose is `r gsub(" +$", "", capture.output(fit_arima)[2])`, a plain momentum model. On this one year it tied with assuming no change, and ETS did worse because it carried an old downward trend forward.
+
+One quiet year proves little, though. It says nothing about the years that hurt.
+
+### Step 5 · Replay sixteen years of forecasts
+
+So I replayed history. For every month from December 2009 on, I gave each method only the data known that month, had it forecast the next twelve, and scored it against what came after. That is `r length(y) - which(dates == as.Date("2009-12-15"))` forecasts per method, through booms, two crashes, and long flat spells.
+
+```{r replay}
+replay_one <- function(o) {
+  known <- ts(y[1:o], start = start(y), frequency = 12)
+  f <- list(`No change` = naive(known, h = h, lambda = 0, level = 80),
+            ETS         = forecast(ets(known, lambda = 0), h = h, level = 80),
+            ARIMA       = forecast(auto.arima(known, lambda = 0, seasonal = FALSE), h = h, level = 80))
+  bind_rows(lapply(names(f), function(m) data.frame(
+    origin = o, method = m, ahead = 1:h, today = y[o],
+    forecast = as.numeric(f[[m]]$mean),
+    low  = as.numeric(f[[m]]$lower),          # the 80% range
+    high = as.numeric(f[[m]]$upper),
+    actual = as.numeric(y[o + 1:h]))))        # NA where the future isn't known yet
+}
+first_origin <- which(dates == as.Date("2009-12-15"))
+replay <- bind_rows(lapply(first_origin:length(y), replay_one))
+
+scored <- replay %>% filter(!is.na(actual)) %>%
+  mutate(miss = abs(forecast - actual) / actual * 100,
+         inside = actual >= low & actual <= high)
+
+by_ahead <- scored %>% group_by(method, ahead) %>%
+  summarise(typical_miss = median(miss), average_miss = mean(miss),
+            range_held = mean(inside) * 100, .groups = "drop")
+
+# The model's edge: how much smaller its typical miss is than "no change"
+edge <- by_ahead %>% select(method, ahead, typical_miss) %>%
+  pivot_wider(names_from = method, values_from = typical_miss) %>%
+  mutate(arima_edge = (1 - ARIMA / `No change`) * 100,
+         ets_edge   = (1 - ETS / `No change`) * 100)
+```
+
+```{r chart-ahead}
+#| renderings: [light, dark]
+#| fig-height: 4.4
+#| fig-cap: "Fig. 6 · Typical miss by how far ahead the forecast looks, from the sixteen-year replay. The typical miss is the median: half of forecasts did better, half did worse."
+#| fig-alt: "Three rising lines. ARIMA and ETS sit well below the no-change line for the first five months, close the gap by month seven, and cross above it after month eight."
+by_ahead <- by_ahead %>% mutate(method = factor(method, levels = c("ARIMA", "ETS", "No change")))
+
+bp_both(function(k) {
+  ggplot(by_ahead, aes(ahead, typical_miss, colour = method, linetype = method)) +
+    geom_line(linewidth = 0.9) +
+    geom_point(size = 1.6) +
+    scale_colour_manual(values = c(ARIMA = k$series[1], ETS = k$series[2], `No change` = k$ink3)) +
+    scale_linetype_manual(values = c(ARIMA = "solid", ETS = "solid", `No change` = "22")) +
+    scale_x_continuous(breaks = 1:12) +
+    scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, NA)) +
+    labs(title = "The models earn their keep for about a quarter, then the edge fades",
+         subtitle = "Below the dashed line, a model beats assuming no change.",
+         x = "Months ahead", y = "Typical miss") +
+    theme(legend.key.width = unit(1.4, "cm"), panel.grid.major.x = element_blank())
+})
+```
+
+```{r table-ahead}
+by_ahead %>% filter(ahead %in% c(1, 3, 6, 9, 12)) %>%
+  select(method, ahead, typical_miss) %>%
+  pivot_wider(names_from = method, values_from = typical_miss) %>%
+  left_join(edge %>% select(ahead, arima_edge), by = "ahead") %>%
+  left_join(by_ahead %>% filter(method == "ARIMA") %>% select(ahead, range_held), by = "ahead") %>%
+  transmute(`Months ahead` = ahead,
+            `No change` = paste0(round(`No change`, 1), "%"),
+            ETS = paste0(round(ETS, 1), "%"),
+            ARIMA = paste0(round(ARIMA, 1), "%"),
+            `ARIMA's edge` = ifelse(arima_edge > 0, paste0(round(arima_edge), "% smaller"),
+                                    paste0(round(-arima_edge), "% larger")),
+            `ARIMA's 80% range held` = paste0(round(range_held), "%")) %>%
+  kable(align = "rrrrrr", caption = "Typical miss by distance, and how often the forecast range held")
+```
+
+Two things stand out. The first is how fast the edge fades. The second is the gap between the typical miss and the average miss: at six months ARIMA's typical miss is `r round(edge$ARIMA[6], 1)`%, but its average miss is `r round(by_ahead$average_miss[by_ahead$method == "ARIMA" & by_ahead$ahead == 6], 1)`%. A few huge misses pull the average up, and they all sit at the turns. The forecast made in February 2020 for six months later was `r round(replay$forecast[replay$method == "ARIMA" & replay$ahead == 6 & replay$origin == which(dates == as.Date("2020-02-15"))])` rigs. The count came in at `r trough$rigs`.
 ::::
 :::::
 
@@ -67,17 +367,184 @@ The R code, with comments, will sit under each step.
 :::: {}
 ## Results and impact
 
-::: {.pending data-tag="To log"}
-The forecast chart with its range, and what it means for when to place long-lead orders. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.
+### When to trust it
+
+A forecast is easier to act on as a call than as a number. So I turned each forecast into one: **up** when the whole 80% range sits above today's count, **down** when the whole range sits below it, and **no call** otherwise. Then I checked the calls against what happened.
+
+```{r calls}
+calls <- scored %>% filter(method != "No change") %>%
+  mutate(call = case_when(low > today ~ "Up", high < today ~ "Down", TRUE ~ "No call"),
+         right = (call == "Up" & actual > today) | (call == "Down" & actual < today))
+
+call_table <- calls %>% filter(ahead %in% c(3, 6, 9, 12)) %>%
+  group_by(method, ahead) %>%
+  summarise(months = n(), made = sum(call != "No call"),
+            right = sum(right[call != "No call"]), .groups = "drop")
+
+call_table %>% arrange(desc(method), ahead) %>%
+  transmute(Model = method, `Months ahead` = ahead,
+            `Calls made` = paste0(made, " of ", months, " months"),
+            `Calls that were right` = paste0(right, " of ", made, " (", round(right / made * 100), "%)")) %>%
+  kable(align = "lrrr", caption = "How often each model made a call, and how often the call was right")
+```
+
+```{r call-numbers}
+#| include: false
+arima3 <- call_table %>% filter(method == "ARIMA", ahead == 3)
+arima6 <- call_table %>% filter(method == "ARIMA", ahead == 6)
+ets3   <- call_table %>% filter(method == "ETS", ahead == 3)
+ets6   <- call_table %>% filter(method == "ETS", ahead == 6)
+```
+
+Both models stay quiet most months, which is honest: most months, the range includes "about the same."
+
+Three months out, the calls hold up. ARIMA was right `r arima3$right` times out of `r arima3$made`, and ETS `r ets3$right` out of `r ets3$made`.
+
+Past a quarter the two models part ways. At six months ARIMA was right `r arima6$right` times out of `r arima6$made`, which is close to a coin toss, while ETS was right `r ets6$right` times out of `r ets6$made`. At most two dozen calls in sixteen years is thin evidence, and the models disagree. So I'd treat a call past a quarter as a hint, not a signal.
+
+### The forecast today
+
+```{r chart-forecast}
+#| renderings: [light, dark]
+#| fig-height: 4.4
+#| fig-cap: "Fig. 7 · The ARIMA forecast from the latest month of data. The darker band is the 80% range and the lighter band the 95% range."
+#| fig-alt: "Line chart of the rig count since 2022 with a forecast for the next twelve months. The forecast line is flat near 580. The range around it widens quickly, from about 560 to 610 next month to about 350 to 950 a year out."
+fit_now <- auto.arima(y, lambda = 0, seasonal = FALSE)
+fc_now  <- forecast(fit_now, h = h, level = c(80, 95))
+future  <- seq(max(dates), by = "month", length.out = h + 1)[-1]
+fan <- data.frame(date = future, forecast = as.numeric(fc_now$mean),
+                  low80 = as.numeric(fc_now$lower[, 1]), high80 = as.numeric(fc_now$upper[, 1]),
+                  low95 = as.numeric(fc_now$lower[, 2]), high95 = as.numeric(fc_now$upper[, 2]))
+# Start the bands at the last known point so the fan opens from it
+anchor <- data.frame(date = max(dates), forecast = latest$rigs, low80 = latest$rigs,
+                     high80 = latest$rigs, low95 = latest$rigs, high95 = latest$rigs)
+fan_plot <- bind_rows(anchor, fan)
+since <- recent %>% filter(date >= as.Date("2022-01-01"))
+
+bp_both(function(k) {
+  ggplot(fan_plot, aes(date)) +
+    geom_ribbon(aes(ymin = low95, ymax = high95), fill = k$mark, alpha = 0.14) +
+    geom_ribbon(aes(ymin = low80, ymax = high80), fill = k$mark, alpha = 0.24) +
+    geom_line(data = since, aes(y = rigs), linewidth = 0.9, colour = k$ink) +
+    geom_line(aes(y = forecast), linewidth = 0.9, linetype = "42", colour = k$mark) +
+    scale_x_date(date_breaks = "1 year", date_labels = "%b %Y") +
+    scale_y_continuous(labels = comma, limits = c(0, NA)) +
+    labs(title = "The range is tight for a month or two, then too wide to act on",
+         x = NULL, y = "Rigs in operation")
+})
+```
+
+```{r now-numbers}
+#| include: false
+q1 <- fan[3, ]; half <- fan[6, ]; year <- fan[12, ]
+call_now <- ifelse(q1$low80 > latest$rigs, "up", ifelse(q1$high80 < latest$rigs, "down", "no call"))
+ets_now  <- forecast(ets(y, lambda = 0), h = h, level = 80)
+```
+
+I use ARIMA here and in the replay tool. The two models were close on typical miss, ARIMA is the simpler one, and its ranges stay narrow enough to read. A year out, its 80% range runs from `r round(year$low80)` to `r round(year$high80)` rigs. The ETS range for the same month runs from `r round(ets_now$lower[12])` to `r comma(round(ets_now$upper[12]))`.
+
+From `r latest$rigs` rigs in `r format(latest$date, "%B %Y")`, the model expects about `r round(q1$forecast)` three months out, with an 80% range of `r round(q1$low80)` to `r round(q1$high80)`. That range includes today's count, so the call is: `r call_now`. Six months out the range is `r round(half$low80)` to `r round(half$high80)`, too wide to act on.
+
+### What I'd tell a buyer
+
+1. **Run it as a monthly check.** It takes a minute once the new count is out, and most months it will say "no call." That is the right answer most months.
+2. **Act on a call only inside a quarter.** A three-month call has been right at least five times in six, whichever model made it. Use it to refresh quotes that are about to expire and to ask shops how full they are, on parts that take a quarter or less.
+3. **Don't lean on it for the longest parts.** A part that takes six months needs a six-month view. At that distance neither model beats "no change" by much, and the two disagree on which way to call it. That gap has to be closed some other way, with stock, reserved shop time, or supplier agreements. Those are business decisions a forecast can't make.
+4. **Never size an order with it.** It says which way activity is heading. The bill of materials says what to buy.
+
+### What this doesn't settle
+
+The model only knows the count's own past, so it will always be late at a turn. Oil prices tend to move before rigs do, and the next thing I'd test is whether adding them stretches the useful range past a quarter. And as said at the start, the step from rig count to tool orders is an assumption I can't check with public data.
+
+::: {#try-it .try-it}
+[Try it · Replay the forecast]{.label .label-orange}
+
+Stand at any month since 2009 and see what the model forecast with only the data it had then. Drag the orange line to set how far ahead you need to see, then reveal what happened.
+
+```{=html}
+<div class="rf" id="rig-replay" hidden>
+  <div class="rf-presets" role="group" aria-label="Jump to a month">
+    <span class="label">Jump to</span>
+    <button type="button" data-jump="2014-10">Oct 2014 · before the crash</button>
+    <button type="button" data-jump="2016-05">May 2016 · the bottom</button>
+    <button type="button" data-jump="2020-02">Feb 2020 · before the pandemic</button>
+    <button type="button" data-jump="2022-03">Mar 2022 · the recovery</button>
+    <button type="button" data-jump="latest">Today</button>
+  </div>
+
+  <figure class="rf-chart">
+    <svg id="rf-svg" role="img" aria-label="Rig count history up to the chosen month, the forecast range for the next twelve months, and, once revealed, what happened"></svg>
+  </figure>
+
+  <div class="rf-controls">
+    <div class="rf-ctl">
+      <label class="label" for="rf-origin">You are standing in · <span id="rf-origin-v"></span></label>
+      <div class="rf-row"><button type="button" id="rf-prev" aria-label="One month earlier">←</button><input type="range" id="rf-origin" min="0" max="1" step="1" value="0"><button type="button" id="rf-next" aria-label="One month later">→</button></div>
+    </div>
+    <div class="rf-ctl">
+      <label class="label" for="rf-ahead">You need to see · <span id="rf-ahead-v"></span></label>
+      <input type="range" id="rf-ahead" min="1" max="12" step="1" value="3">
+    </div>
+  </div>
+
+  <div class="rf-readout">
+    <div><span class="label" id="rf-fc-l">Forecast</span><output id="rf-fc"></output><p id="rf-fc-range"></p></div>
+    <div><span class="label">The call</span><output id="rf-call"></output><p id="rf-call-why"></p></div>
+    <div><span class="label">Track record at this distance</span><output id="rf-track"></output><p id="rf-track-why"></p></div>
+  </div>
+
+  <div class="rf-reveal">
+    <button type="button" class="bp-btn" id="rf-reveal">Reveal what happened</button>
+    <label class="rf-check"><input type="checkbox" id="rf-always"> <span class="mono">Always show what happened</span></label>
+    <p id="rf-result" aria-live="polite"></p>
+  </div>
+</div>
+<noscript><p class="muted">The forecast replay needs JavaScript.</p></noscript>
+```
+
+[Every forecast here is the ARIMA model, refit on the data known that month. The shaded band is its 80% range.]{.muted}
 :::
 
-::: {.try-it}
-[Try it]{.label .label-orange}
+```{r tool-data}
+#| echo: false
+#| output: asis
+# Hand the replay to the tool as JSON: the count since 2008 and every ARIMA forecast.
+start_at <- which(dates == as.Date("2008-01-15"))
+arima_runs <- replay %>% filter(method == "ARIMA") %>% arrange(origin, ahead)
+as_rows <- function(v) unname(split(round(v), arima_runs$origin))
 
-Drag the forecast horizon and watch the range widen the further out you look.
+tool <- list(
+  start = "2008-01", firstOrigin = first_origin - start_at,
+  rigs = as.numeric(y[start_at:length(y)]),
+  forecast = as_rows(arima_runs$forecast), low = as_rows(arima_runs$low), high = as_rows(arima_runs$high),
+  typical = list(arima = round(edge$ARIMA, 1), same = round(edge$`No change`, 1)),
+  held = round(by_ahead$range_held[by_ahead$method == "ARIMA"])
+)
+cat("```{=html}\n<script type=\"application/json\" id=\"rf-data\">",
+    jsonlite::toJSON(tool, auto_unbox = TRUE),
+    "</script>\n```\n", sep = "")
 
-[This panel goes live when the analysis is done.]{.muted}
-:::
+# The home page shows the latest real count beside its rig.
+dir.create("../assets/data", showWarnings = FALSE)
+writeLines(sprintf('window.BL_RIGS = { count: %d, month: "%s", before: %d };',
+                   latest$rigs, format(latest$date, "%b %Y"), rigs$rigs[nrow(rigs) - 1]),
+           "../assets/data/rig-latest.js")
+```
+
+```{r guard}
+#| include: false
+# The words on this page lean on these results. Stop the build if they stop being true.
+stopifnot(
+  season_test$p.value > 0.1,                       # no season
+  momentum > 0.6,                                  # momentum is strong
+  edge$arima_edge[3] > 25, edge$arima_edge[3] < 45, # "about a third" at three months
+  edge$arima_edge[6] < 25,                         # most of the edge gone by six
+  all(edge$arima_edge[9:12] < 5),                  # none left past eight
+  arima3$right / arima3$made > 0.8,                # three-month calls mostly right,
+  ets3$right / ets3$made > 0.8,                    #   for both models
+  arima6$right / arima6$made < 0.7                 # six-month calls are not
+)
+```
 ::::
 :::::
 
@@ -88,12 +555,17 @@ Drag the forecast horizon and watch the range widen the further out you look.
 :::: {}
 ## Code
 
-::: {.pending data-tag="Repo"}
-github.com/ducle26/rig-count-forecast: the R Markdown file, the data source, and comments on each step.
-:::
+Every chart and number on this page comes from the R code folded under each step. Press "Show all code" at the top to open it all at once.
+
+- **This page's source:** [projects/rig-count.qmd](https://github.com/ducle26/bill-portfolio/blob/main/projects/rig-count.qmd) in the site's repo, with the data file beside it.
+- **A version to run on its own:** [github.com/ducle26/rig-count-forecast](https://github.com/ducle26/rig-count-forecast) holds the same analysis as one R Markdown file, the data, and a note on how to run it.
+
+Data: U.S. Energy Information Administration, *Crude Oil and Natural Gas Drilling Activity*, rotary rigs in operation, sourced from Baker Hughes. [eia.gov](https://www.eia.gov/dnav/ng/ng_enr_drill_s1_m.htm). Method: Hyndman, R. J., & Athanasopoulos, G. (2018). *Forecasting: Principles and Practice* (2nd ed.). [otexts.com/fpp2](https://otexts.com/fpp2/).
 ::::
 :::::
 
 ```{=html}
 <nav class="sample-nav"><a href="index.html">← All core samples</a><a href="late-delivery.html">CS-02 · Late delivery risk →</a></nav>
+<script src="../assets/js/casestudy.js"></script>
+<script src="../assets/js/rigreplay.js"></script>
 ```

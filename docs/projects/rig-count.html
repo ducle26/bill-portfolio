@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="description" content="How far ahead can the US rig count be forecast well enough for a buyer to act on? ARIMA and ETS in R, tested by replaying sixteen years of forecasts.">
 
 <title>CS-01 Rig count forecast · Duc (Bill) Le – Duc (Bill) Le</title>
 <style>
@@ -25,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -345,22 +381,23 @@ ul.task-list li input[type="checkbox"] {
 
 <div id="sheet-meta" data-sheet="04" data-title="CS-01" data-top="2600" data-bottom="2850" hidden=""></div>
 <span class="label">Core sample CS-01 · 2,600 to 2,850 ft</span>
-<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">How many rigs will be running in six months, and what does that mean for long-lead parts?</p>
+<p class="lede muted" style="font-size:1.15rem;margin-top:0.75rem">Contracts come with short notice and the longest parts take months. How far ahead can the rig count be forecast well enough to act on?</p>
 <div class="sample-head">
-  <div><span class="label">Method</span><div class="v">Time-series forecasting</div></div>
-  <div><span class="label">Data</span><div class="v">US rig count, weekly (Baker Hughes, public)</div></div>
-  <div><span class="label">R packages</span><div class="v">tidyverse, fable, ggplot2</div></div>
-  <div><span class="label">Status</span><div class="v"><span class="status">Logging · Oct 2026</span></div></div>
+  <div><span class="label">Method</span><div class="v">Time-series forecasting (ARIMA, ETS)</div></div>
+  <div><span class="label">Data</span><div class="v">US rotary rig count, monthly (EIA, from Baker Hughes)</div></div>
+  <div><span class="label">R packages</span><div class="v">forecast, tidyverse, readxl</div></div>
+  <div><span class="label">Status</span><div class="v"><span class="status">Logged · Oct 2026</span></div></div>
 </div>
+<div class="cs-tools"><button type="button" class="bp-btn-ghost" id="code-toggle" aria-pressed="false">Show all code</button><a class="bp-btn-ghost" href="#try-it">Skip to the forecast replay ↓</a></div>
 <div class="cs-sec">
 <div class="num">
 <p>01</p>
 </div>
 <section id="project-overview" class="level2">
 <h2 data-anchor-id="project-overview">Project overview</h2>
-<div class="pending" data-tag="To log">
-<p>Summary to come once the analysis is done.</p>
-</div>
+<p>Work in downhole tools can arrive with little notice, while the longest parts take months to come in. I tested how far ahead the US rig count, the most watched measure of drilling activity, can be forecast well enough to act on.</p>
+<p>The answer is about one quarter. Out to three months, an ARIMA model misses by about a third less than simply assuming no change. By six months most of that edge is gone, and past eight months the model does no better than assuming no change at all. It also missed both big turns, in late 2014 and early 2020.</p>
+<p>So I’d use the forecast as a monthly check on whether to get ready, by refreshing quotes and asking shops about capacity. I would not use it to decide how much to buy. The bill of materials does that.</p>
 </section>
 </div>
 <div class="cs-sec">
@@ -369,7 +406,10 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="problem-statement" class="level2">
 <h2 data-anchor-id="problem-statement">Problem statement</h2>
-<p>A company that builds downhole tools has to order some parts long before it needs them. Machined housings and specialty alloys can take months to arrive. How many tools customers want depends on how much drilling is going on, so a buyer planning those orders wants to know: <strong>how many rigs will be running six months from now, and how sure can we be?</strong></p>
+<p>In the build-to-order work I’ve done, parts are bought off the bill of materials once a contract is signed. A forecast can’t tell a buyer how many parts to order, and I wouldn’t use one for that.</p>
+<p>The trouble is timing. A contract can land with days or weeks of notice, and the longest parts take months to arrive. Any early sign that work is picking up is worth having, because it tells a buyer when to refresh quotes and ask shops about capacity before the rush.</p>
+<p>The rig count is the most watched measure of drilling activity. So the question is: <strong>how far ahead can the rig count be forecast well enough to act on, and how would a buyer know when to trust it?</strong></p>
+<p>One limit up front. Whether more rigs means more tool orders, and how soon, is an assumption here. I have no public data that ties the two together.</p>
 </section>
 </div>
 <div class="cs-sec">
@@ -378,17 +418,482 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="approach" class="level2">
 <h2 data-anchor-id="approach">Approach</h2>
-<div class="pending" data-tag="Planned">
-<p>Planned steps:</p>
-<ol type="1">
-<li>Pull the weekly US rig count and roll it up to monthly</li>
-<li>Plot the trend and look for seasonal patterns with ggplot2</li>
-<li>Fit and compare ETS and ARIMA models with the fable package</li>
-<li>Test accuracy on a held-back year of data</li>
-<li>Turn the forecast range into an ordering rule for long-lead parts</li>
-</ol>
-<p>The R code, with comments, will sit under each step.</p>
+<section id="step-1-get-the-data-and-look-at-all-of-it" class="level3">
+<h3 data-anchor-id="step-1-get-the-data-and-look-at-all-of-it">Step 1 · Get the data and look at all of it</h3>
+<p>Baker Hughes counts the rotary rigs drilling in the US every week. The Energy Information Administration republishes that count as a monthly average going back to 1973, in one file with a fixed address. I used the EIA file so anyone can rerun this.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forecast)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># The site's chart style. bp_both() draws each chart twice:</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># once for the light sheet and once for the dark print.</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"_blueprint.R"</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_device</span>()</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># One workbook, one sheet per breakdown. The first two rows are EIA's own labels.</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>eia  <span class="ot">&lt;-</span> <span class="st">"data/NG_ENR_DRILL_S1_M.xls"</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>rigs <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(eia, <span class="at">sheet =</span> <span class="st">"Data 1"</span>, <span class="at">skip =</span> <span class="dv">2</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(rigs) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"date"</span>, <span class="st">"rigs"</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>type <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(eia, <span class="at">sheet =</span> <span class="st">"Data 3"</span>, <span class="at">skip =</span> <span class="dv">2</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(type) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"date"</span>, <span class="st">"Oil"</span>, <span class="st">"Gas"</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>rigs<span class="sc">$</span>date <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(rigs<span class="sc">$</span>date)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>type<span class="sc">$</span>date <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(type<span class="sc">$</span>date)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>peak   <span class="ot">&lt;-</span> rigs[<span class="fu">which.max</span>(rigs<span class="sc">$</span>rigs), ]</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>trough <span class="ot">&lt;-</span> rigs[<span class="fu">which.min</span>(rigs<span class="sc">$</span>rigs), ]</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>latest <span class="ot">&lt;-</span> rigs[<span class="fu">nrow</span>(rigs), ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Three points worth naming, each with a spot for its label that is clear of the line</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>marks <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(peak,   <span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">format</span>(peak<span class="sc">$</span>date, <span class="st">"%b %Y"</span>), <span class="st">": "</span>, <span class="fu">comma</span>(peak<span class="sc">$</span>rigs)),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">lx =</span> peak<span class="sc">$</span>date <span class="sc">+</span> <span class="dv">400</span>,     <span class="at">ly =</span> peak<span class="sc">$</span>rigs,  <span class="at">hjust =</span> <span class="dv">0</span>),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(trough, <span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">format</span>(trough<span class="sc">$</span>date, <span class="st">"%b %Y"</span>), <span class="st">": "</span>, trough<span class="sc">$</span>rigs),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">lx =</span> trough<span class="sc">$</span>date <span class="sc">-</span> <span class="dv">400</span>,   <span class="at">ly =</span> <span class="dv">120</span>,        <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(latest, <span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">format</span>(latest<span class="sc">$</span>date, <span class="st">"%b %Y"</span>), <span class="st">": "</span>, latest<span class="sc">$</span>rigs),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">lx =</span> latest<span class="sc">$</span>date,         <span class="at">ly =</span> <span class="dv">1150</span>,       <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(rigs, <span class="fu">aes</span>(date, rigs)) <span class="sc">+</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fu">as.Date</span>(<span class="st">"2000-01-01"</span>), <span class="at">xmax =</span> <span class="fu">max</span>(rigs<span class="sc">$</span>date),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> <span class="cn">Inf</span>, <span class="at">fill =</span> k<span class="sc">$</span>mark, <span class="at">alpha =</span> <span class="fl">0.08</span>) <span class="sc">+</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> k<span class="sc">$</span>mark) <span class="sc">+</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_segment</span>(<span class="at">data =</span> marks[<span class="dv">3</span>, ], <span class="fu">aes</span>(<span class="at">xend =</span> date, <span class="at">y =</span> rigs <span class="sc">+</span> <span class="dv">60</span>, <span class="at">yend =</span> ly <span class="sc">-</span> <span class="dv">90</span>),</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linewidth =</span> <span class="fl">0.3</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> marks, <span class="at">size =</span> <span class="fl">2.2</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> marks, <span class="fu">aes</span>(<span class="at">x =</span> lx, <span class="at">y =</span> ly, <span class="at">label =</span> label, <span class="at">hjust =</span> hjust), <span class="at">size =</span> <span class="fl">3.4</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">as.Date</span>(<span class="st">"2000-06-01"</span>), <span class="at">y =</span> <span class="dv">4350</span>, <span class="at">label =</span> <span class="st">"Modeled from 2000"</span>,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>             <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">size =</span> <span class="fl">3.2</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink3) <span class="sc">+</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">4700</span>), <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"10 years"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>) <span class="sc">+</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The rig count has no normal level. It moves in long, steep swings."</span>,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"The "</span>, <span class="fu">format</span>(peak<span class="sc">$</span>date, <span class="st">"%Y"</span>), <span class="st">" peak was "</span>, <span class="fu">round</span>(peak<span class="sc">$</span>rigs <span class="sc">/</span> trough<span class="sc">$</span>rigs),</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>                           <span class="st">" times the "</span>, <span class="fu">format</span>(trough<span class="sc">$</span>date, <span class="st">"%Y"</span>), <span class="st">" low."</span>),</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Rigs in operation"</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-history-1.png" class="img-fluid figure-img" loading="lazy" alt="Line chart of the US rig count since 1973. It peaks above 4,500 in late 1981, falls for two decades, swings between 400 and 2,000 after 2000, and hits its low of 250 in August 2020." width="768"></p>
+<figcaption>Fig. 1 · US rotary rigs in operation, monthly average, 1973 to 2026. The shaded span is the part the models learn from.</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-history-2.png" class="img-fluid figure-img" loading="lazy" alt="Line chart of the US rig count since 1973. It peaks above 4,500 in late 1981, falls for two decades, swings between 400 and 2,000 after 2000, and hits its low of 250 in August 2020." width="768"></p>
+<figcaption>Fig. 1 · US rotary rigs in operation, monthly average, 1973 to 2026. The shaded span is the part the models learn from.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The count has been as high as 4,521 and as low as 250. The 1970s and 1980s were a different industry, so I modeled from 2000 on.</p>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>by_type <span class="ot">&lt;-</span> type <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Oil)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(Oil, Gas), <span class="at">names_to =</span> <span class="st">"target"</span>, <span class="at">values_to =</span> <span class="st">"rigs"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">target =</span> <span class="fu">factor</span>(target, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Oil"</span>, <span class="st">"Gas"</span>)))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>crossover <span class="ot">&lt;-</span> <span class="fu">max</span>(type<span class="sc">$</span>date[<span class="fu">which</span>(type<span class="sc">$</span>Gas <span class="sc">&gt;</span> type<span class="sc">$</span>Oil)])   <span class="co"># last month gas rigs led</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>ends <span class="ot">&lt;-</span> by_type <span class="sc">%&gt;%</span> <span class="fu">filter</span>(date <span class="sc">==</span> <span class="fu">max</span>(date))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(by_type, <span class="fu">aes</span>(date, rigs, <span class="at">colour =</span> target)) <span class="sc">+</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> ends, <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(target, <span class="st">" "</span>, rigs)), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.12</span>, <span class="at">size =</span> <span class="fl">3.4</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">setNames</span>(k<span class="sc">$</span>series[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="fu">c</span>(<span class="st">"Oil"</span>, <span class="st">"Gas"</span>))) <span class="sc">+</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"5 years"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>, <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.16</span>))) <span class="sc">+</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Gas rigs led until 2011. Oil has led ever since."</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"What the rigs drill for changed, which is one more reason to model recent years only."</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Rigs in operation"</span>) <span class="sc">+</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-type-1.png" class="img-fluid figure-img" loading="lazy" alt="Two lines. Gas rigs outnumber oil rigs from the mid 1990s until 2011. After that oil rigs lead by a wide margin." width="768"></p>
+<figcaption>Fig. 2 · Rigs drilling for oil and for natural gas, monthly, since the split was first reported in 1987</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-type-2.png" class="img-fluid figure-img" loading="lazy" alt="Two lines. Gas rigs outnumber oil rigs from the mid 1990s until 2011. After that oil rigs lead by a wide margin." width="768"></p>
+<figcaption>Fig. 2 · Rigs drilling for oil and for natural gas, monthly, since the split was first reported in 1987</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="step-2-check-for-a-season" class="level3">
+<h3 data-anchor-id="step-2-check-for-a-season">Step 2 · Check for a season</h3>
+<p>A forecast usually starts by pulling out the season. Before modeling one, I checked whether there is one.</p>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>recent <span class="ot">&lt;-</span> rigs <span class="sc">%&gt;%</span> <span class="fu">filter</span>(date <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">"2000-01-01"</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>change <span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> (rigs <span class="sc">/</span> <span class="fu">lag</span>(rigs) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">last_pct =</span> <span class="fu">lag</span>(pct),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">month =</span> <span class="fu">factor</span>(<span class="fu">format</span>(date, <span class="st">"%b"</span>), <span class="at">levels =</span> month.abb)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(last_pct))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>season_test <span class="ot">&lt;-</span> <span class="fu">kruskal.test</span>(pct <span class="sc">~</span> month, <span class="at">data =</span> change)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(change, <span class="fu">aes</span>(month, pct)) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.4</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_boxplot</span>(<span class="at">outlier.size =</span> <span class="fl">0.6</span>, <span class="at">outlier.alpha =</span> <span class="fl">0.4</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                 <span class="at">colour =</span> k<span class="sc">$</span>mark, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">12</span>, <span class="dv">12</span>)) <span class="sc">+</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(x, <span class="st">"%"</span>)) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"No calendar month stands out, so there is no season to model"</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Change from the month before"</span>) <span class="sc">+</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-season-1.png" class="img-fluid figure-img" loading="lazy" alt="Twelve box plots, one per calendar month. All twelve boxes sit close to zero and overlap heavily." width="768"></p>
+<figcaption>Fig. 3 · Month-to-month change in the rig count, by calendar month, 2000 to 2026. The few changes beyond 12% are cut off.</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-season-2.png" class="img-fluid figure-img" loading="lazy" alt="Twelve box plots, one per calendar month. All twelve boxes sit close to zero and overlap heavily." width="768"></p>
+<figcaption>Fig. 3 · Month-to-month change in the rig count, by calendar month, 2000 to 2026. The few changes beyond 12% are cut off.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>A Kruskal-Wallis test finds no difference between calendar months (p = 0.65). US drilling doesn’t stop for winter, so I left the season out of both models.</p>
+</section>
+<section id="step-3-find-what-a-model-can-use" class="level3">
+<h3 data-anchor-id="step-3-find-what-a-model-can-use">Step 3 · Find what a model can use</h3>
+<p>With no season, the question is what pattern is left. The answer is momentum.</p>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>momentum <span class="ot">&lt;-</span> <span class="fu">cor</span>(change<span class="sc">$</span>pct, change<span class="sc">$</span>last_pct)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(change, <span class="fu">aes</span>(last_pct, pct)) <span class="sc">+</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>, <span class="at">colour =</span> k<span class="sc">$</span>axis) <span class="sc">+</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>, <span class="at">colour =</span> k<span class="sc">$</span>axis) <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.55</span>, <span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">stroke =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">20</span>, <span class="dv">15</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">20</span>, <span class="dv">15</span>)) <span class="sc">+</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(x, <span class="st">"%"</span>)) <span class="sc">+</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(x, <span class="st">"%"</span>)) <span class="sc">+</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"A rising count tends to keep rising, and a falling one keeps falling"</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"Each dot is one month. Three months in 2020 fell further than the chart shows."</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Change the month before"</span>, <span class="at">y =</span> <span class="st">"Change this month"</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-momentum-1.png" class="img-fluid figure-img" loading="lazy" alt="Scatter plot. Points run from lower left to upper right along a clear line: a month that follows a rise tends to rise, and a month that follows a fall tends to fall." width="768"></p>
+<figcaption>Fig. 4 · Each month’s change in the rig count against the change the month before, 2000 to 2026</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-momentum-2.png" class="img-fluid figure-img" loading="lazy" alt="Scatter plot. Points run from lower left to upper right along a clear line: a month that follows a rise tends to rise, and a month that follows a fall tends to fall." width="768"></p>
+<figcaption>Fig. 4 · Each month’s change in the rig count against the change the month before, 2000 to 2026</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The correlation is 0.81. Rigs are contracted and moved over months, so a turn takes time to play out. That lag is the one thing a model of the count alone can learn.</p>
+</section>
+<section id="step-4-fit-the-models-and-hold-back-a-year" class="level3">
+<h3 data-anchor-id="step-4-fit-the-models-and-hold-back-a-year">Step 4 · Fit the models and hold back a year</h3>
+<p>I fit two standard models and one yardstick to the data through August 2025, then forecast the twelve months they had not seen.</p>
+<ul>
+<li><strong>ARIMA.</strong> Predicts next month’s change from this month’s change and last month’s miss. It is built for momentum.</li>
+<li><strong>ETS</strong> (exponential smoothing). Tracks a level and a trend, and weights recent months most.</li>
+<li><strong>No change.</strong> Next month equals this month. Any model has to beat this to be worth running.</li>
+</ul>
+<p>Both models work on the log of the count. That keeps their ranges above zero and makes a miss of 50 rigs count for more at 500 rigs than at 2,000.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dates <span class="ot">&lt;-</span> recent<span class="sc">$</span>date</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>y     <span class="ot">&lt;-</span> <span class="fu">ts</span>(recent<span class="sc">$</span>rigs, <span class="at">start =</span> <span class="fu">c</span>(<span class="dv">2000</span>, <span class="dv">1</span>), <span class="at">frequency =</span> <span class="dv">12</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>h     <span class="ot">&lt;-</span> <span class="dv">12</span>                                   <span class="co"># forecast twelve months ahead</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> <span class="fu">head</span>(y, <span class="fu">length</span>(y) <span class="sc">-</span> h)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>test  <span class="ot">&lt;-</span> <span class="fu">tail</span>(y, h)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>fit_arima <span class="ot">&lt;-</span> <span class="fu">auto.arima</span>(train, <span class="at">lambda =</span> <span class="dv">0</span>, <span class="at">seasonal =</span> <span class="cn">FALSE</span>)   <span class="co"># lambda = 0 models the log</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>fit_ets   <span class="ot">&lt;-</span> <span class="fu">ets</span>(train, <span class="at">lambda =</span> <span class="dv">0</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>held <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">`</span><span class="at">No change</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">naive</span>(train, <span class="at">h =</span> h, <span class="at">lambda =</span> <span class="dv">0</span>),</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">ETS         =</span> <span class="fu">forecast</span>(fit_ets, <span class="at">h =</span> h),</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">ARIMA       =</span> <span class="fu">forecast</span>(fit_arima, <span class="at">h =</span> h))</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>held_scores <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(<span class="fu">names</span>(held), <span class="cf">function</span>(m) {</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> <span class="fu">accuracy</span>(held[[m]], test)[<span class="st">"Test set"</span>, ]</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">Model =</span> m, <span class="st">`</span><span class="at">Average miss</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="fu">round</span>(a[<span class="st">"MAPE"</span>], <span class="dv">1</span>), <span class="st">"%"</span>),</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>             <span class="st">`</span><span class="at">Average miss, rigs</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(a[<span class="st">"MAE"</span>]), <span class="at">check.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(held_scores, <span class="at">align =</span> <span class="st">"lrr"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Accuracy on the twelve held-back months"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Accuracy on the twelve held-back months</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">Average miss</th>
+<th style="text-align: right;">Average miss, rigs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">No change</td>
+<td style="text-align: right;">3.1%</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ETS</td>
+<td style="text-align: right;">6.5%</td>
+<td style="text-align: right;">37</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ARIMA</td>
+<td style="text-align: right;">3.1%</td>
+<td style="text-align: right;">18</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>test_dates <span class="ot">&lt;-</span> <span class="fu">tail</span>(dates, h)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>held_lines <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(<span class="fu">names</span>(held), <span class="cf">function</span>(m)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">method =</span> m, <span class="at">date =</span> test_dates, <span class="at">rigs =</span> <span class="fu">as.numeric</span>(held[[m]]<span class="sc">$</span>mean)))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">method =</span> <span class="fu">factor</span>(method, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"ARIMA"</span>, <span class="st">"ETS"</span>, <span class="st">"No change"</span>)))</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>context <span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span> <span class="fu">filter</span>(date <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">"2024-01-01"</span>))</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(held_lines, <span class="fu">aes</span>(date, rigs)) <span class="sc">+</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fu">min</span>(test_dates) <span class="sc">-</span> <span class="dv">15</span>, <span class="at">xmax =</span> <span class="fu">max</span>(test_dates) <span class="sc">+</span> <span class="dv">15</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">ymin =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">ymax =</span> <span class="cn">Inf</span>, <span class="at">fill =</span> k<span class="sc">$</span>mark, <span class="at">alpha =</span> <span class="fl">0.08</span>) <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">data =</span> context, <span class="at">linewidth =</span> <span class="fl">0.9</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">colour =</span> method, <span class="at">linetype =</span> method), <span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">min</span>(test_dates), <span class="at">y =</span> <span class="dv">632</span>, <span class="at">label =</span> <span class="st">"Held back"</span>, <span class="at">hjust =</span> <span class="dv">0</span>,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">size =</span> <span class="fl">3.2</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink3) <span class="sc">+</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">ARIMA =</span> k<span class="sc">$</span>series[<span class="dv">1</span>], <span class="at">ETS =</span> k<span class="sc">$</span>series[<span class="dv">2</span>], <span class="st">`</span><span class="at">No change</span><span class="st">`</span> <span class="ot">=</span> k<span class="sc">$</span>ink3)) <span class="sc">+</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_linetype_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">ARIMA =</span> <span class="st">"solid"</span>, <span class="at">ETS =</span> <span class="st">"solid"</span>, <span class="st">`</span><span class="at">No change</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"22"</span>)) <span class="sc">+</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"6 months"</span>, <span class="at">date_labels =</span> <span class="st">"%b %Y"</span>) <span class="sc">+</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">480</span>, <span class="dv">640</span>)) <span class="sc">+</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"On a quiet year, assuming no change was as good as anything"</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"The solid dark line is the actual count."</span>,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Rigs in operation"</span>) <span class="sc">+</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.key.width =</span> <span class="fu">unit</span>(<span class="fl">1.4</span>, <span class="st">"cm"</span>))</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-held-1.png" class="img-fluid figure-img" loading="lazy" alt="Line chart. The actual count stays near 545 for most of the year and rises to 589 at the end. The ARIMA and no-change forecasts are flat at 538. The ETS forecast drifts down to about 500." width="768"></p>
+<figcaption>Fig. 5 · The held-back year: what each method forecast, and what the rig count did</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-held-2.png" class="img-fluid figure-img" loading="lazy" alt="Line chart. The actual count stays near 545 for most of the year and rises to 589 at the end. The ARIMA and no-change forecasts are flat at 538. The ETS forecast drifts down to about 500." width="768"></p>
+<figcaption>Fig. 5 · The held-back year: what each method forecast, and what the rig count did</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The model R chose is ARIMA(1,1,1), a plain momentum model. On this one year it tied with assuming no change, and ETS did worse because it carried an old downward trend forward.</p>
+<p>One quiet year proves little, though. It says nothing about the years that hurt.</p>
+</section>
+<section id="step-5-replay-sixteen-years-of-forecasts" class="level3">
+<h3 data-anchor-id="step-5-replay-sixteen-years-of-forecasts">Step 5 · Replay sixteen years of forecasts</h3>
+<p>So I replayed history. For every month from December 2009 on, I gave each method only the data known that month, had it forecast the next twelve, and scored it against what came after. That is 200 forecasts per method, through booms, two crashes, and long flat spells.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>replay_one <span class="ot">&lt;-</span> <span class="cf">function</span>(o) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  known <span class="ot">&lt;-</span> <span class="fu">ts</span>(y[<span class="dv">1</span><span class="sc">:</span>o], <span class="at">start =</span> <span class="fu">start</span>(y), <span class="at">frequency =</span> <span class="dv">12</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">`</span><span class="at">No change</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">naive</span>(known, <span class="at">h =</span> h, <span class="at">lambda =</span> <span class="dv">0</span>, <span class="at">level =</span> <span class="dv">80</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">ETS         =</span> <span class="fu">forecast</span>(<span class="fu">ets</span>(known, <span class="at">lambda =</span> <span class="dv">0</span>), <span class="at">h =</span> h, <span class="at">level =</span> <span class="dv">80</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">ARIMA       =</span> <span class="fu">forecast</span>(<span class="fu">auto.arima</span>(known, <span class="at">lambda =</span> <span class="dv">0</span>, <span class="at">seasonal =</span> <span class="cn">FALSE</span>), <span class="at">h =</span> h, <span class="at">level =</span> <span class="dv">80</span>))</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(<span class="fu">names</span>(f), <span class="cf">function</span>(m) <span class="fu">data.frame</span>(</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">origin =</span> o, <span class="at">method =</span> m, <span class="at">ahead =</span> <span class="dv">1</span><span class="sc">:</span>h, <span class="at">today =</span> y[o],</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">forecast =</span> <span class="fu">as.numeric</span>(f[[m]]<span class="sc">$</span>mean),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">low  =</span> <span class="fu">as.numeric</span>(f[[m]]<span class="sc">$</span>lower),          <span class="co"># the 80% range</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="fu">as.numeric</span>(f[[m]]<span class="sc">$</span>upper),</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">actual =</span> <span class="fu">as.numeric</span>(y[o <span class="sc">+</span> <span class="dv">1</span><span class="sc">:</span>h]))))        <span class="co"># NA where the future isn't known yet</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>first_origin <span class="ot">&lt;-</span> <span class="fu">which</span>(dates <span class="sc">==</span> <span class="fu">as.Date</span>(<span class="st">"2009-12-15"</span>))</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>replay <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(<span class="fu">lapply</span>(first_origin<span class="sc">:</span><span class="fu">length</span>(y), replay_one))</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>scored <span class="ot">&lt;-</span> replay <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(actual)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">miss =</span> <span class="fu">abs</span>(forecast <span class="sc">-</span> actual) <span class="sc">/</span> actual <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">inside =</span> actual <span class="sc">&gt;=</span> low <span class="sc">&amp;</span> actual <span class="sc">&lt;=</span> high)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>by_ahead <span class="ot">&lt;-</span> scored <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(method, ahead) <span class="sc">%&gt;%</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">typical_miss =</span> <span class="fu">median</span>(miss), <span class="at">average_miss =</span> <span class="fu">mean</span>(miss),</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">range_held =</span> <span class="fu">mean</span>(inside) <span class="sc">*</span> <span class="dv">100</span>, <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="co"># The model's edge: how much smaller its typical miss is than "no change"</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>edge <span class="ot">&lt;-</span> by_ahead <span class="sc">%&gt;%</span> <span class="fu">select</span>(method, ahead, typical_miss) <span class="sc">%&gt;%</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> method, <span class="at">values_from =</span> typical_miss) <span class="sc">%&gt;%</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">arima_edge =</span> (<span class="dv">1</span> <span class="sc">-</span> ARIMA <span class="sc">/</span> <span class="st">`</span><span class="at">No change</span><span class="st">`</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>         <span class="at">ets_edge   =</span> (<span class="dv">1</span> <span class="sc">-</span> ETS <span class="sc">/</span> <span class="st">`</span><span class="at">No change</span><span class="st">`</span>) <span class="sc">*</span> <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>by_ahead <span class="ot">&lt;-</span> by_ahead <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">method =</span> <span class="fu">factor</span>(method, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"ARIMA"</span>, <span class="st">"ETS"</span>, <span class="st">"No change"</span>)))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(by_ahead, <span class="fu">aes</span>(ahead, typical_miss, <span class="at">colour =</span> method, <span class="at">linetype =</span> method)) <span class="sc">+</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">1.6</span>) <span class="sc">+</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">ARIMA =</span> k<span class="sc">$</span>series[<span class="dv">1</span>], <span class="at">ETS =</span> k<span class="sc">$</span>series[<span class="dv">2</span>], <span class="st">`</span><span class="at">No change</span><span class="st">`</span> <span class="ot">=</span> k<span class="sc">$</span>ink3)) <span class="sc">+</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_linetype_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">ARIMA =</span> <span class="st">"solid"</span>, <span class="at">ETS =</span> <span class="st">"solid"</span>, <span class="st">`</span><span class="at">No change</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"22"</span>)) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(x, <span class="st">"%"</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The models earn their keep for about a quarter, then the edge fades"</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"Below the dashed line, a model beats assuming no change."</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Months ahead"</span>, <span class="at">y =</span> <span class="st">"Typical miss"</span>) <span class="sc">+</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.key.width =</span> <span class="fu">unit</span>(<span class="fl">1.4</span>, <span class="st">"cm"</span>), <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-ahead-1.png" class="img-fluid figure-img" loading="lazy" alt="Three rising lines. ARIMA and ETS sit well below the no-change line for the first five months, close the gap by month seven, and cross above it after month eight." width="768"></p>
+<figcaption>Fig. 6 · Typical miss by how far ahead the forecast looks, from the sixteen-year replay. The typical miss is the median: half of forecasts did better, half did worse.</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-ahead-2.png" class="img-fluid figure-img" loading="lazy" alt="Three rising lines. ARIMA and ETS sit well below the no-change line for the first five months, close the gap by month seven, and cross above it after month eight." width="768"></p>
+<figcaption>Fig. 6 · Typical miss by how far ahead the forecast looks, from the sixteen-year replay. The typical miss is the median: half of forecasts did better, half did worse.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>by_ahead <span class="sc">%&gt;%</span> <span class="fu">filter</span>(ahead <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">9</span>, <span class="dv">12</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(method, ahead, typical_miss) <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> method, <span class="at">values_from =</span> typical_miss) <span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(edge <span class="sc">%&gt;%</span> <span class="fu">select</span>(ahead, arima_edge), <span class="at">by =</span> <span class="st">"ahead"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(by_ahead <span class="sc">%&gt;%</span> <span class="fu">filter</span>(method <span class="sc">==</span> <span class="st">"ARIMA"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(ahead, range_held), <span class="at">by =</span> <span class="st">"ahead"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="st">`</span><span class="at">Months ahead</span><span class="st">`</span> <span class="ot">=</span> ahead,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">No change</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="st">`</span><span class="at">No change</span><span class="st">`</span>, <span class="dv">1</span>), <span class="st">"%"</span>),</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">ETS =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(ETS, <span class="dv">1</span>), <span class="st">"%"</span>),</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">ARIMA =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(ARIMA, <span class="dv">1</span>), <span class="st">"%"</span>),</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">ARIMA's edge</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">ifelse</span>(arima_edge <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="fu">paste0</span>(<span class="fu">round</span>(arima_edge), <span class="st">"% smaller"</span>),</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>                                    <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="sc">-</span>arima_edge), <span class="st">"% larger"</span>)),</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">ARIMA's 80% range held</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="fu">round</span>(range_held), <span class="st">"%"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">align =</span> <span class="st">"rrrrrr"</span>, <span class="at">caption =</span> <span class="st">"Typical miss by distance, and how often the forecast range held"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Typical miss by distance, and how often the forecast range held</caption>
+<colgroup>
+<col style="width: 18%">
+<col style="width: 14%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 18%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Months ahead</th>
+<th style="text-align: right;">No change</th>
+<th style="text-align: right;">ETS</th>
+<th style="text-align: right;">ARIMA</th>
+<th style="text-align: right;">ARIMA’s edge</th>
+<th style="text-align: right;">ARIMA’s 80% range held</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.6%</td>
+<td style="text-align: right;">1.2%</td>
+<td style="text-align: right;">1.1%</td>
+<td style="text-align: right;">33% smaller</td>
+<td style="text-align: right;">90%</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5.6%</td>
+<td style="text-align: right;">3.3%</td>
+<td style="text-align: right;">3.5%</td>
+<td style="text-align: right;">38% smaller</td>
+<td style="text-align: right;">88%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">9.3%</td>
+<td style="text-align: right;">7.9%</td>
+<td style="text-align: right;">7.8%</td>
+<td style="text-align: right;">16% smaller</td>
+<td style="text-align: right;">83%</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">12.2%</td>
+<td style="text-align: right;">13.1%</td>
+<td style="text-align: right;">12.9%</td>
+<td style="text-align: right;">6% larger</td>
+<td style="text-align: right;">78%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">17.3%</td>
+<td style="text-align: right;">19.4%</td>
+<td style="text-align: right;">19.1%</td>
+<td style="text-align: right;">11% larger</td>
+<td style="text-align: right;">75%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Two things stand out. The first is how fast the edge fades. The second is the gap between the typical miss and the average miss: at six months ARIMA’s typical miss is 7.8%, but its average miss is 19.1%. A few huge misses pull the average up, and they all sit at the turns. The forecast made in February 2020 for six months later was 821 rigs. The count came in at 250.</p>
+</section>
 </section>
 </div>
 <div class="cs-sec">
@@ -397,14 +902,201 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="results-and-impact" class="level2">
 <h2 data-anchor-id="results-and-impact">Results and impact</h2>
-<div class="pending" data-tag="To log">
-<p>The forecast chart with its range, and what it means for when to place long-lead orders. Charts made with ggplot2 (with hover, using ggiraph), each with a line on what it means for the business.</p>
+<section id="when-to-trust-it" class="level3">
+<h3 data-anchor-id="when-to-trust-it">When to trust it</h3>
+<p>A forecast is easier to act on as a call than as a number. So I turned each forecast into one: <strong>up</strong> when the whole 80% range sits above today’s count, <strong>down</strong> when the whole range sits below it, and <strong>no call</strong> otherwise. Then I checked the calls against what happened.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>calls <span class="ot">&lt;-</span> scored <span class="sc">%&gt;%</span> <span class="fu">filter</span>(method <span class="sc">!=</span> <span class="st">"No change"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">call =</span> <span class="fu">case_when</span>(low <span class="sc">&gt;</span> today <span class="sc">~</span> <span class="st">"Up"</span>, high <span class="sc">&lt;</span> today <span class="sc">~</span> <span class="st">"Down"</span>, <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"No call"</span>),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">right =</span> (call <span class="sc">==</span> <span class="st">"Up"</span> <span class="sc">&amp;</span> actual <span class="sc">&gt;</span> today) <span class="sc">|</span> (call <span class="sc">==</span> <span class="st">"Down"</span> <span class="sc">&amp;</span> actual <span class="sc">&lt;</span> today))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>call_table <span class="ot">&lt;-</span> calls <span class="sc">%&gt;%</span> <span class="fu">filter</span>(ahead <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">9</span>, <span class="dv">12</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(method, ahead) <span class="sc">%&gt;%</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">months =</span> <span class="fu">n</span>(), <span class="at">made =</span> <span class="fu">sum</span>(call <span class="sc">!=</span> <span class="st">"No call"</span>),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">right =</span> <span class="fu">sum</span>(right[call <span class="sc">!=</span> <span class="st">"No call"</span>]), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>call_table <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(method), ahead) <span class="sc">%&gt;%</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">Model =</span> method, <span class="st">`</span><span class="at">Months ahead</span><span class="st">`</span> <span class="ot">=</span> ahead,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">Calls made</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(made, <span class="st">" of "</span>, months, <span class="st">" months"</span>),</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">`</span><span class="at">Calls that were right</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(right, <span class="st">" of "</span>, made, <span class="st">" ("</span>, <span class="fu">round</span>(right <span class="sc">/</span> made <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%)"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">align =</span> <span class="st">"lrrr"</span>, <span class="at">caption =</span> <span class="st">"How often each model made a call, and how often the call was right"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>How often each model made a call, and how often the call was right</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">Months ahead</th>
+<th style="text-align: right;">Calls made</th>
+<th style="text-align: right;">Calls that were right</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">ETS</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">32 of 198 months</td>
+<td style="text-align: right;">29 of 32 (91%)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ETS</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">24 of 195 months</td>
+<td style="text-align: right;">20 of 24 (83%)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ETS</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">16 of 192 months</td>
+<td style="text-align: right;">11 of 16 (69%)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ETS</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">11 of 189 months</td>
+<td style="text-align: right;">7 of 11 (64%)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ARIMA</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">26 of 198 months</td>
+<td style="text-align: right;">22 of 26 (85%)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ARIMA</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">14 of 195 months</td>
+<td style="text-align: right;">8 of 14 (57%)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ARIMA</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">12 of 192 months</td>
+<td style="text-align: right;">4 of 12 (33%)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ARIMA</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">9 of 189 months</td>
+<td style="text-align: right;">1 of 9 (11%)</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="try-it">
-<p><span class="label label-orange">Try it</span></p>
-<p>Drag the forecast horizon and watch the range widen the further out you look.</p>
-<p><span class="muted">This panel goes live when the analysis is done.</span></p>
 </div>
+<p>Both models stay quiet most months, which is honest: most months, the range includes “about the same.”</p>
+<p>Three months out, the calls hold up. ARIMA was right 22 times out of 26, and ETS 29 out of 32.</p>
+<p>Past a quarter the two models part ways. At six months ARIMA was right 8 times out of 14, which is close to a coin toss, while ETS was right 20 times out of 24. At most two dozen calls in sixteen years is thin evidence, and the models disagree. So I’d treat a call past a quarter as a hint, not a signal.</p>
+</section>
+<section id="the-forecast-today" class="level3">
+<h3 data-anchor-id="the-forecast-today">The forecast today</h3>
+<div class="cell" data-renderings="[&quot;light&quot;,&quot;dark&quot;]">
+<details class="code-fold">
+<summary>Show the R code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fit_now <span class="ot">&lt;-</span> <span class="fu">auto.arima</span>(y, <span class="at">lambda =</span> <span class="dv">0</span>, <span class="at">seasonal =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>fc_now  <span class="ot">&lt;-</span> <span class="fu">forecast</span>(fit_now, <span class="at">h =</span> h, <span class="at">level =</span> <span class="fu">c</span>(<span class="dv">80</span>, <span class="dv">95</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>future  <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">max</span>(dates), <span class="at">by =</span> <span class="st">"month"</span>, <span class="at">length.out =</span> h <span class="sc">+</span> <span class="dv">1</span>)[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>fan <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">date =</span> future, <span class="at">forecast =</span> <span class="fu">as.numeric</span>(fc_now<span class="sc">$</span>mean),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">low80 =</span> <span class="fu">as.numeric</span>(fc_now<span class="sc">$</span>lower[, <span class="dv">1</span>]), <span class="at">high80 =</span> <span class="fu">as.numeric</span>(fc_now<span class="sc">$</span>upper[, <span class="dv">1</span>]),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">low95 =</span> <span class="fu">as.numeric</span>(fc_now<span class="sc">$</span>lower[, <span class="dv">2</span>]), <span class="at">high95 =</span> <span class="fu">as.numeric</span>(fc_now<span class="sc">$</span>upper[, <span class="dv">2</span>]))</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Start the bands at the last known point so the fan opens from it</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>anchor <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">date =</span> <span class="fu">max</span>(dates), <span class="at">forecast =</span> latest<span class="sc">$</span>rigs, <span class="at">low80 =</span> latest<span class="sc">$</span>rigs,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">high80 =</span> latest<span class="sc">$</span>rigs, <span class="at">low95 =</span> latest<span class="sc">$</span>rigs, <span class="at">high95 =</span> latest<span class="sc">$</span>rigs)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>fan_plot <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(anchor, fan)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>since <span class="ot">&lt;-</span> recent <span class="sc">%&gt;%</span> <span class="fu">filter</span>(date <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">"2022-01-01"</span>))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="fu">bp_both</span>(<span class="cf">function</span>(k) {</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(fan_plot, <span class="fu">aes</span>(date)) <span class="sc">+</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> low95, <span class="at">ymax =</span> high95), <span class="at">fill =</span> k<span class="sc">$</span>mark, <span class="at">alpha =</span> <span class="fl">0.14</span>) <span class="sc">+</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> low80, <span class="at">ymax =</span> high80), <span class="at">fill =</span> k<span class="sc">$</span>mark, <span class="at">alpha =</span> <span class="fl">0.24</span>) <span class="sc">+</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">data =</span> since, <span class="fu">aes</span>(<span class="at">y =</span> rigs), <span class="at">linewidth =</span> <span class="fl">0.9</span>, <span class="at">colour =</span> k<span class="sc">$</span>ink) <span class="sc">+</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> forecast), <span class="at">linewidth =</span> <span class="fl">0.9</span>, <span class="at">linetype =</span> <span class="st">"42"</span>, <span class="at">colour =</span> k<span class="sc">$</span>mark) <span class="sc">+</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"1 year"</span>, <span class="at">date_labels =</span> <span class="st">"%b %Y"</span>) <span class="sc">+</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The range is tight for a month or two, then too wide to act on"</span>,</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Rigs in operation"</span>)</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display light-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-forecast-1.png" class="img-fluid figure-img" loading="lazy" alt="Line chart of the rig count since 2022 with a forecast for the next twelve months. The forecast line is flat near 580. The range around it widens quickly, from about 560 to 610 next month to about 350 to 950 a year out." width="768"></p>
+<figcaption>Fig. 7 · The ARIMA forecast from the latest month of data. The darker band is the 80% range and the lighter band the 95% range.</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display dark-content">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="rig-count_files/figure-html/chart-forecast-2.png" class="img-fluid figure-img" loading="lazy" alt="Line chart of the rig count since 2022 with a forecast for the next twelve months. The forecast line is flat near 580. The range around it widens quickly, from about 560 to 610 next month to about 350 to 950 a year out." width="768"></p>
+<figcaption>Fig. 7 · The ARIMA forecast from the latest month of data. The darker band is the 80% range and the lighter band the 95% range.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>I use ARIMA here and in the replay tool. The two models were close on typical miss, ARIMA is the simpler one, and its ranges stay narrow enough to read. A year out, its 80% range runs from 351 to 953 rigs. The ETS range for the same month runs from 200 to 2,044.</p>
+<p>From 589 rigs in August 2026, the model expects about 581 three months out, with an 80% range of 501 to 674. That range includes today’s count, so the call is: no call. Six months out the range is 433 to 775, too wide to act on.</p>
+</section>
+<section id="what-id-tell-a-buyer" class="level3">
+<h3 data-anchor-id="what-id-tell-a-buyer">What I’d tell a buyer</h3>
+<ol type="1">
+<li><strong>Run it as a monthly check.</strong> It takes a minute once the new count is out, and most months it will say “no call.” That is the right answer most months.</li>
+<li><strong>Act on a call only inside a quarter.</strong> A three-month call has been right at least five times in six, whichever model made it. Use it to refresh quotes that are about to expire and to ask shops how full they are, on parts that take a quarter or less.</li>
+<li><strong>Don’t lean on it for the longest parts.</strong> A part that takes six months needs a six-month view. At that distance neither model beats “no change” by much, and the two disagree on which way to call it. That gap has to be closed some other way, with stock, reserved shop time, or supplier agreements. Those are business decisions a forecast can’t make.</li>
+<li><strong>Never size an order with it.</strong> It says which way activity is heading. The bill of materials says what to buy.</li>
+</ol>
+</section>
+<section id="what-this-doesnt-settle" class="level3">
+<h3 data-anchor-id="what-this-doesnt-settle">What this doesn’t settle</h3>
+<p>The model only knows the count’s own past, so it will always be late at a turn. Oil prices tend to move before rigs do, and the next thing I’d test is whether adding them stretches the useful range past a quarter. And as said at the start, the step from rig count to tool orders is an assumption I can’t check with public data.</p>
+<div id="try-it" class="try-it">
+<p><span class="label label-orange">Try it · Replay the forecast</span></p>
+<p>Stand at any month since 2009 and see what the model forecast with only the data it had then. Drag the orange line to set how far ahead you need to see, then reveal what happened.</p>
+<div class="rf" id="rig-replay" hidden="">
+  <div class="rf-presets" role="group" aria-label="Jump to a month">
+    <span class="label">Jump to</span>
+    <button type="button" data-jump="2014-10">Oct 2014 · before the crash</button>
+    <button type="button" data-jump="2016-05">May 2016 · the bottom</button>
+    <button type="button" data-jump="2020-02">Feb 2020 · before the pandemic</button>
+    <button type="button" data-jump="2022-03">Mar 2022 · the recovery</button>
+    <button type="button" data-jump="latest">Today</button>
+  </div>
+
+  <figure class="rf-chart figure">
+    <svg id="rf-svg" role="img" aria-label="Rig count history up to the chosen month, the forecast range for the next twelve months, and, once revealed, what happened"></svg>
+  </figure>
+
+  <div class="rf-controls">
+    <div class="rf-ctl">
+      <label class="label" for="rf-origin">You are standing in · <span id="rf-origin-v"></span></label>
+      <div class="rf-row"><button type="button" id="rf-prev" aria-label="One month earlier">←</button><input type="range" id="rf-origin" min="0" max="1" step="1" value="0"><button type="button" id="rf-next" aria-label="One month later">→</button></div>
+    </div>
+    <div class="rf-ctl">
+      <label class="label" for="rf-ahead">You need to see · <span id="rf-ahead-v"></span></label>
+      <input type="range" id="rf-ahead" min="1" max="12" step="1" value="3">
+    </div>
+  </div>
+
+  <div class="rf-readout">
+    <div><span class="label" id="rf-fc-l">Forecast</span><output id="rf-fc"></output><p id="rf-fc-range"></p></div>
+    <div><span class="label">The call</span><output id="rf-call"></output><p id="rf-call-why"></p></div>
+    <div><span class="label">Track record at this distance</span><output id="rf-track"></output><p id="rf-track-why"></p></div>
+  </div>
+
+  <div class="rf-reveal">
+    <button type="button" class="bp-btn" id="rf-reveal">Reveal what happened</button>
+    <label class="rf-check"><input type="checkbox" id="rf-always"> <span class="mono">Always show what happened</span></label>
+    <p id="rf-result" aria-live="polite"></p>
+  </div>
+</div>
+<noscript><p class="muted">The forecast replay needs JavaScript.</p></noscript>
+<p><span class="muted">Every forecast here is the ARIMA model, refit on the data known that month. The shaded band is its 80% range.</span></p>
+</div>
+<script type="application/json" id="rf-data">{"start":"2008-01","firstOrigin":23,"rigs":[1749,1765,1797,1829,1863,1902,1932,1987,2014,1976,1935,1782,1553,1320,1105,995,918,895,931,980,1009,1044,1107,1172,1267,1350,1419,1479,1513,1531,1573,1638,1655,1668,1683,1711,1711,1718,1720,1790,1836,1863,1900,1957,1978,2017,2011,2003,2003,1990,1979,1962,1977,1972,1944,1913,1859,1834,1809,1784,1756,1762,1756,1755,1767,1761,1766,1781,1760,1744,1756,1771,1769,1769,1803,1835,1859,1861,1876,1904,1930,1925,1925,1868,1651,1348,1109,976,889,861,866,883,848,791,760,711,643,532,477,437,407,417,449,481,509,543,580,634,683,744,789,853,893,931,953,947,940,922,911,930,937,969,989,1011,1046,1056,1050,1050,1053,1063,1077,1077,1065,1048,1023,1013,986,970,955,926,878,848,810,804,791,790,771,565,348,274,255,250,257,280,311,341,374,397,408,436,453,464,483,501,508,538,560,579,601,636,662,690,719,738,757,764,762,768,779,780,772,758,752,752,728,687,672,647,631,623,619,623,620,622,625,617,602,588,586,586,587,585,584,589,582,590,592,586,573,554,541,538,542,548,549,546,544,551,550,545,553,565,585,589],"forecast":[[1218,1266,1314,1343,1352,1352,1352,1352,1352,1352,1352,1352],[1356,1435,1500,1547,1578,1592,1592,1580,1561,1536,1508,1481],[1422,1481,1524,1551,1562,1561,1550,1531,1508,1483,1457,1433],[1471,1499,1502,1494,1492,1492,1492,1492,1492,1492,1492,1492],[1515,1523,1520,1523,1525,1525,1525,1525,1525,1525,1525,1525],[1520,1516,1517,1518,1518,1518,1518,1518,1518,1518,1518,1518],[1536,1545,1554,1560,1562,1562,1562,1562,1562,1562,1562,1562],[1600,1612,1611,1601,1584,1562,1537,1513,1489,1468,1449,1434],[1685,1713,1724,1721,1707,1684,1656,1626,1596,1568,1541,1519],[1657,1648,1629,1605,1578,1550,1522,1497,1475,1457,1442,1431],[1668,1656,1637,1613,1587,1559,1533,1510,1489,1472,1458,1448],[1685,1676,1659,1638,1613,1587,1562,1539,1518,1501,1487,1476],[1724,1725,1716,1699,1678,1653,1628,1604,1581,1561,1544,1530],[1701,1683,1659,1634,1607,1582,1558,1538,1520,1506,1496,1488],[1714,1703,1685,1664,1641,1618,1596,1576,1559,1544,1532,1524],[1713,1699,1680,1659,1637,1615,1594,1576,1561,1548,1538,1531],[1842,1877,1895,1898,1890,1874,1851,1824,1797,1770,1744,1721],[1865,1879,1879,1869,1851,1828,1802,1775,1749,1725,1703,1685],[1875,1874,1862,1844,1820,1794,1768,1742,1718,1697,1679,1664],[1920,1926,1920,1905,1883,1858,1830,1803,1778,1755,1734,1717],[1995,2014,2018,2009,1990,1965,1937,1907,1877,1850,1825,1803],[1983,1976,1958,1934,1906,1877,1847,1820,1795,1773,1755,1740],[2038,2044,2037,2020,1997,1970,1941,1912,1885,1861,1839,1821],[1994,1969,1939,1907,1875,1844,1816,1792,1771,1755,1742,1733],[1986,1962,1934,1905,1876,1848,1824,1802,1784,1770,1759,1751],[1994,1977,1956,1933,1909,1885,1863,1844,1827,1813,1802,1794],[1971,1947,1922,1897,1873,1851,1831,1814,1801,1791,1783,1778],[1963,1943,1922,1900,1880,1861,1844,1830,1818,1810,1803,1799],[1942,1920,1898,1877,1858,1842,1827,1816,1807,1801,1797,1795],[1985,1987,1984,1978,1969,1958,1947,1936,1925,1916,1907,1900],[1963,1951,1938,1924,1911,1898,1887,1877,1869,1862,1858,1855],[1917,1891,1868,1848,1831,1818,1808,1801,1797,1795,1795,1797],[1884,1859,1837,1820,1806,1796,1789,1785,1783,1784,1786,1789],[1813,1776,1746,1724,1709,1699,1695,1695,1698,1704,1712,1721],[1813,1797,1785,1777,1772,1770,1770,1772,1775,1780,1785,1790],[1789,1774,1764,1757,1754,1754,1756,1759,1764,1770,1776,1782],[1765,1751,1742,1737,1735,1737,1740,1746,1752,1758,1765,1772],[1735,1720,1711,1706,1706,1708,1713,1720,1728,1736,1744,1752],[1770,1779,1788,1798,1807,1815,1822,1828,1833,1836,1839,1840],[1753,1753,1755,1759,1764,1769,1775,1781,1786,1791,1796,1799],[1756,1760,1764,1770,1776,1782,1787,1793,1797,1801,1805,1807],[1779,1791,1802,1812,1820,1827,1832,1836,1839,1840,1841,1840],[1758,1756,1757,1758,1761,1765,1769,1773,1777,1780,1784,1786],[1772,1778,1784,1790,1795,1800,1804,1807,1809,1811,1812,1813],[1795,1807,1818,1827,1833,1838,1841,1843,1843,1843,1841,1839],[1743,1731,1722,1717,1715,1715,1717,1720,1725,1730,1735,1740],[1732,1724,1719,1717,1717,1719,1722,1727,1731,1736,1741,1746],[1768,1779,1788,1797,1804,1809,1814,1816,1818,1819,1818,1817],[1785,1797,1807,1815,1821,1826,1829,1830,1830,1829,1828,1825],[1768,1768,1768,1769,1770,1771,1773,1774,1776,1777,1778,1779],[1770,1771,1772,1774,1775,1777,1778,1780,1781,1782,1783,1783],[1832,1856,1875,1889,1897,1902,1903,1901,1896,1891,1884,1877],[1861,1882,1897,1907,1912,1913,1911,1906,1900,1893,1885,1878],[1878,1891,1899,1904,1904,1902,1898,1892,1885,1878,1871,1864],[1860,1858,1854,1849,1844,1838,1833,1828,1823,1819,1816,1813],[1886,1893,1895,1895,1893,1888,1883,1877,1870,1864,1858,1853],[1925,1940,1948,1952,1951,1946,1940,1932,1923,1913,1904,1896],[1949,1961,1966,1967,1964,1958,1949,1940,1930,1920,1910,1901],[1917,1908,1897,1886,1875,1866,1857,1849,1843,1838,1834,1831],[1922,1916,1909,1901,1892,1884,1876,1869,1863,1858,1853,1850],[1819,1779,1747,1723,1706,1695,1689,1688,1690,1696,1703,1711],[1486,1365,1280,1224,1191,1177,1179,1193,1217,1248,1283,1320],[1125,967,860,793,757,745,754,779,817,865,919,976],[939,824,750,709,694,699,721,758,805,859,917,973],[890,841,821,825,847,884,932,986,1044,1099,1149,1191],[839,818,821,842,878,925,980,1037,1093,1143,1185,1217],[862,886,928,984,1048,1115,1180,1236,1281,1312,1329,1332],[894,941,1002,1070,1140,1207,1265,1309,1339,1353,1354,1343],[917,965,1020,1079,1136,1187,1228,1258,1276,1281,1277,1266],[822,805,795,791,791,794,800,806,812,817,821,824],[744,708,684,669,661,659,661,664,668,673,676,679],[739,727,721,720,723,727,732,736,740,743,746,747],[673,647,630,621,617,617,620,624,629,633,636,639],[587,543,510,485,467,453,442,433,424,416,407,397],[445,383,338,303,276,254,236,221,207,196,186,176],[428,383,344,308,276,248,222,199,179,160,144,129],[400,367,336,308,282,258,237,217,199,182,167,153],[379,353,329,306,285,266,247,230,215,200,186,173],[433,452,468,479,485,485,479,471,459,447,435,423],[486,521,549,569,578,578,571,559,545,530,516,503],[511,534,548,554,551,543,531,517,503,490,478,467],[530,543,547,544,535,522,509,495,482,470,459,450],[572,594,608,616,617,615,611,606,600,596,592,589],[611,633,646,653,653,649,644,638,632,626,622,620],[682,720,745,760,765,762,755,746,737,729,721,716],[722,749,765,770,768,761,752,743,734,727,721,718],[795,833,857,868,869,864,855,844,833,823,816,810],[820,838,845,843,835,825,814,803,795,788,783,781],[906,944,969,981,982,977,968,958,947,938,930,925],[918,930,932,926,917,905,894,884,876,870,866,863],[956,969,973,970,963,954,944,936,928,923,919,916],[963,964,959,950,940,930,921,914,909,905,903,902],[932,914,895,877,862,851,843,839,836,836,837,839],[929,915,903,891,882,876,871,869,868,868,869,870],[903,885,869,857,849,843,840,839,840,842,844,846],[901,892,885,880,877,876,876,876,877,878,879,880],[950,969,985,997,1006,1011,1013,1014,1012,1010,1008,1006],[943,947,950,952,953,953,952,951,950,950,949,948],[1000,1026,1047,1062,1071,1075,1076,1074,1071,1067,1064,1060],[1005,1016,1023,1027,1028,1027,1024,1022,1019,1016,1014,1012],[1028,1041,1049,1053,1054,1052,1050,1047,1044,1041,1039,1037],[1076,1100,1117,1127,1132,1132,1130,1126,1122,1117,1113,1110],[1060,1059,1055,1050,1044,1039,1034,1031,1028,1026,1025,1025],[1040,1028,1017,1007,999,993,989,986,985,986,986,987],[1048,1045,1041,1038,1034,1032,1030,1029,1028,1028,1028,1028],[1055,1055,1055,1054,1053,1052,1052,1051,1050,1050,1049,1049],[1072,1079,1084,1087,1088,1089,1089,1088,1087,1086,1084,1084],[1089,1099,1106,1110,1112,1113,1112,1111,1109,1108,1106,1105],[1075,1072,1068,1064,1061,1058,1057,1055,1055,1055,1055,1055],[1052,1041,1031,1023,1018,1014,1013,1012,1013,1014,1015,1016],[1032,1019,1009,1001,997,994,994,994,996,997,999,1001],[1001,984,971,962,957,955,955,957,959,961,964,966],[1007,1003,1002,1003,1004,1006,1009,1011,1012,1014,1015,1015],[963,946,933,926,921,920,921,923,926,929,931,934],[959,952,948,947,948,950,952,955,957,959,961,962],[944,938,934,933,934,936,938,941,943,945,947,948],[902,884,872,864,861,860,861,864,867,870,873,875],[838,808,786,772,765,762,763,766,770,775,779,783],[826,812,804,801,801,804,808,812,816,820,822,825],[781,760,747,740,738,738,741,745,749,754,757,760],[805,811,819,828,837,844,851,855,858,860,860,860],[783,779,779,780,783,786,790,793,795,797,799,799],[793,798,804,810,816,821,825,827,829,829,829,829],[756,744,736,731,729,728,729,731,732,734,736,738],[417,320,260,223,202,190,185,184,185,187,190,193],[216,145,106,84,71,63,58,55,53,52,51,50],[250,235,226,220,217,214,212,211,211,210,210,210],[246,240,235,230,226,223,219,216,212,209,206,203],[250,250,250,248,245,241,237,234,230,226,222,219],[271,284,294,301,305,307,307,307,306,305,305,305],[303,320,331,338,343,346,348,350,351,351,352,352],[337,355,367,376,381,385,387,389,390,391,391,391],[364,380,391,399,404,407,409,410,411,412,412,413],[402,422,436,445,451,455,458,460,461,462,462,463],[410,420,426,430,432,434,435,436,437,437,437,437],[414,418,421,423,424,425,426,426,426,426,426,426],[466,487,502,511,518,522,525,527,528,529,530,530],[459,462,465,466,467,468,468,469,469,469,469,469],[474,479,480,480,479,477,476,475,474,474,474,474],[500,512,520,525,528,531,532,533,534,534,534,535],[514,522,528,531,534,535,537,537,538,538,538,538],[510,512,512,513,513,514,514,514,514,514,514,514],[572,596,612,623,631,635,639,641,642,643,644,644],[569,576,580,583,584,586,586,587,587,587,588,588],[596,608,616,621,624,627,628,629,630,630,631,631],[618,630,637,643,646,648,650,651,651,652,652,652],[669,691,707,717,724,728,731,733,735,736,736,737],[677,687,693,698,701,703,704,705,705,706,706,706],[715,733,744,752,757,761,763,765,766,766,767,767],[741,755,765,772,776,779,781,782,783,784,784,784],[750,758,763,766,769,770,771,772,772,773,773,773],[773,784,791,796,800,802,803,804,805,805,805,806],[765,765,765,765,766,766,766,766,766,766,766,766],[760,758,757,756,756,755,755,755,755,755,755,755],[776,781,785,787,788,789,790,790,791,791,791,791],[788,794,798,800,802,803,804,804,805,805,805,805],[777,775,774,773,773,772,772,772,772,772,772,772],[764,760,756,754,753,752,751,751,750,750,750,750],[746,738,733,730,728,726,725,724,724,724,724,723],[751,750,749,749,749,748,748,748,748,748,748,748],[753,753,753,753,753,754,754,754,754,754,754,754],[702,685,675,668,663,660,658,657,656,655,655,655],[655,634,621,612,607,603,601,599,598,597,597,597],[670,669,668,667,667,667,666,666,666,666,666,666],[621,605,594,587,583,580,578,577,576,575,575,574],[625,621,618,617,615,615,614,614,614,613,613,613],[617,613,610,609,607,607,606,606,606,606,605,605],[617,616,615,615,615,614,614,614,614,614,614,614],[628,632,634,636,637,637,638,638,638,638,638,638],[614,611,608,607,606,605,605,604,604,604,604,604],[627,630,632,633,634,635,635,635,636,636,636,636],[626,627,628,628,628,628,628,629,629,629,629,629],[608,602,598,595,593,592,592,591,591,591,590,590],[590,582,577,573,571,570,569,568,568,567,567,567],[578,572,568,565,563,562,561,560,560,560,560,560],[588,590,591,591,592,592,592,592,592,592,592,592],[585,584,584,584,584,583,583,583,583,583,583,583],[589,590,590,591,591,591,591,591,591,591,591,592],[582,580,579,578,578,577,577,577,577,577,577,577],[584,584,584,584,584,584,584,584,584,584,584,584],[594,598,601,602,603,604,604,605,605,605,605,605],[572,566,561,558,557,555,555,554,554,554,553,553],[604,613,619,623,625,627,628,629,630,630,630,630],[588,586,584,583,583,582,582,582,582,581,581,581],[581,578,576,574,573,573,572,572,572,572,572,572],[561,553,548,545,543,541,541,540,540,539,539,539],[539,529,523,518,516,514,513,512,511,511,511,511],[534,529,525,523,522,521,521,520,520,520,520,519],[538,538,538,538,538,538,538,538,538,538,538,538],[546,549,551,553,554,554,554,555,555,555,555,555],[553,556,558,559,560,561,561,561,562,562,562,562],[548,547,547,547,547,546,546,546,546,546,546,546],[543,541,540,539,539,538,538,538,538,538,538,538],[543,542,542,542,542,541,541,541,541,541,541,541],[559,565,568,571,572,573,574,575,575,575,575,575],[545,542,540,539,538,538,537,537,537,537,537,536],[542,539,538,537,536,536,536,535,535,535,535,535],[563,571,575,578,580,582,583,583,584,584,584,584],[574,580,583,586,588,589,590,590,590,591,591,591],[604,616,625,631,634,637,639,640,640,641,641,641],[585,583,581,580,579,579,579,579,578,578,578,578]],"low":[[1179,1186,1186,1167,1127,1084,1050,1020,993,970,948,929],[1313,1340,1347,1337,1314,1282,1245,1205,1164,1125,1089,1057],[1377,1383,1369,1341,1303,1259,1214,1169,1127,1089,1055,1026],[1424,1404,1355,1296,1241,1194,1156,1123,1094,1068,1044,1022],[1467,1426,1373,1322,1270,1222,1183,1150,1120,1093,1069,1047],[1472,1420,1371,1319,1265,1218,1179,1146,1116,1090,1066,1043],[1489,1448,1404,1355,1303,1254,1215,1181,1150,1123,1099,1076],[1549,1507,1451,1389,1325,1265,1210,1161,1119,1083,1054,1031],[1631,1602,1553,1493,1428,1364,1303,1247,1198,1155,1119,1090],[1605,1541,1468,1393,1322,1256,1199,1150,1110,1077,1051,1031],[1615,1550,1476,1401,1330,1265,1209,1161,1121,1089,1063,1043],[1632,1569,1496,1423,1353,1289,1232,1184,1144,1111,1085,1064],[1671,1615,1548,1477,1408,1343,1285,1234,1191,1155,1126,1102],[1648,1575,1497,1421,1350,1286,1231,1185,1147,1117,1093,1074],[1661,1594,1521,1448,1379,1317,1262,1216,1177,1145,1120,1101],[1660,1591,1517,1444,1376,1315,1262,1217,1180,1149,1125,1107],[1785,1757,1710,1651,1587,1523,1461,1404,1353,1308,1270,1237],[1807,1759,1696,1626,1555,1487,1424,1368,1319,1277,1242,1213],[1817,1755,1682,1605,1531,1461,1399,1344,1297,1258,1226,1200],[1861,1804,1734,1659,1584,1513,1449,1391,1342,1300,1265,1237],[1933,1887,1822,1749,1674,1600,1531,1469,1415,1368,1328,1295],[1922,1851,1770,1685,1604,1530,1463,1405,1355,1314,1281,1254],[1976,1915,1841,1760,1681,1605,1536,1475,1422,1377,1340,1309],[1933,1845,1753,1663,1579,1505,1440,1385,1340,1303,1273,1250],[1925,1839,1749,1661,1581,1509,1447,1394,1350,1315,1286,1264],[1933,1854,1770,1687,1609,1540,1479,1427,1383,1347,1318,1295],[1911,1827,1740,1656,1580,1513,1454,1405,1365,1332,1306,1285],[1904,1823,1740,1660,1587,1522,1466,1418,1379,1347,1322,1301],[1883,1802,1719,1641,1570,1507,1454,1409,1372,1342,1318,1300],[1925,1865,1797,1728,1663,1602,1548,1501,1461,1427,1398,1375],[1904,1831,1756,1683,1615,1555,1502,1458,1420,1390,1365,1344],[1859,1775,1693,1617,1549,1491,1441,1401,1368,1341,1321,1305],[1828,1746,1666,1593,1528,1473,1427,1389,1358,1334,1315,1301],[1759,1667,1583,1509,1447,1395,1353,1320,1295,1276,1262,1252],[1760,1688,1619,1556,1501,1453,1414,1381,1355,1333,1317,1304],[1736,1667,1600,1540,1487,1441,1403,1372,1347,1327,1312,1299],[1713,1645,1581,1523,1472,1428,1392,1363,1339,1320,1305,1294],[1684,1617,1553,1497,1447,1406,1372,1344,1322,1304,1291,1280],[1718,1672,1624,1577,1533,1494,1459,1429,1403,1381,1362,1346],[1702,1648,1595,1544,1498,1458,1423,1394,1369,1348,1332,1318],[1705,1655,1603,1554,1509,1469,1434,1404,1379,1357,1340,1325],[1728,1685,1638,1591,1547,1507,1471,1439,1411,1387,1367,1350],[1707,1652,1597,1545,1498,1457,1421,1390,1365,1344,1326,1312],[1721,1673,1622,1573,1528,1486,1450,1418,1391,1368,1349,1333],[1743,1701,1654,1606,1561,1519,1481,1447,1418,1393,1372,1353],[1693,1629,1567,1511,1461,1418,1382,1352,1328,1309,1293,1281],[1683,1623,1564,1511,1463,1422,1387,1358,1334,1315,1300,1287],[1717,1674,1628,1582,1538,1498,1462,1430,1402,1378,1358,1341],[1734,1692,1645,1598,1554,1512,1474,1441,1412,1387,1366,1348],[1718,1665,1610,1558,1510,1468,1431,1399,1372,1349,1331,1316],[1720,1668,1614,1563,1516,1473,1436,1404,1377,1354,1335,1320],[1780,1749,1708,1664,1620,1577,1536,1500,1466,1437,1411,1389],[1809,1773,1729,1681,1633,1587,1544,1505,1470,1440,1413,1391],[1825,1782,1732,1679,1627,1579,1534,1495,1460,1429,1404,1382],[1808,1751,1691,1632,1576,1527,1483,1445,1413,1386,1364,1346],[1834,1784,1729,1673,1619,1569,1524,1485,1451,1421,1397,1376],[1871,1828,1777,1723,1669,1618,1571,1529,1492,1459,1432,1409],[1894,1848,1794,1737,1681,1628,1580,1536,1498,1465,1437,1414],[1864,1799,1731,1666,1606,1552,1506,1466,1432,1404,1382,1364],[1869,1807,1743,1680,1621,1569,1522,1482,1449,1421,1397,1379],[1769,1678,1595,1522,1461,1410,1370,1338,1314,1296,1284,1275],[1443,1283,1161,1072,1008,966,940,928,927,933,945,961],[1091,904,772,683,625,592,578,578,590,610,636,665],[911,770,673,609,571,553,549,558,576,600,628,656],[863,787,738,711,701,705,718,738,761,785,807,824],[814,765,738,726,727,738,756,776,797,817,832,842],[836,829,834,849,869,890,911,928,939,943,940,931],[867,881,900,923,945,964,977,984,983,974,960,940],[890,903,917,931,942,949,950,946,936,922,905,885],[797,751,712,679,652,630,613,599,588,578,569,561],[721,661,611,573,543,520,503,490,480,471,463,456],[716,678,645,618,594,575,559,546,534,524,514,505],[653,604,563,532,507,488,473,461,451,443,435,428],[568,506,454,413,379,353,330,312,295,280,266,253],[430,355,299,256,222,194,172,153,138,124,112,102],[413,354,301,254,213,177,146,120,98,80,65,52],[386,339,294,254,217,184,156,131,109,91,75,62],[366,326,288,252,220,190,163,139,118,100,84,71],[419,419,414,404,390,373,355,335,317,299,283,268],[469,482,485,479,464,443,420,397,374,354,336,320],[493,495,485,466,443,417,392,368,347,328,311,297],[513,504,484,458,430,402,376,352,332,315,300,287],[553,551,539,521,499,477,456,437,421,407,395,385],[590,587,573,552,528,503,480,460,442,427,415,404],[659,668,661,642,617,589,561,536,513,493,477,464],[698,696,678,651,620,589,560,533,511,493,477,465],[769,773,760,734,701,667,634,604,577,555,536,521],[793,778,749,713,674,637,604,576,552,532,516,503],[876,877,859,829,792,754,717,684,654,629,608,590],[888,864,827,783,740,699,663,632,607,585,568,554],[925,900,863,821,777,737,701,669,643,621,602,587],[931,896,851,804,759,719,684,654,630,610,593,579],[902,849,794,742,697,658,627,601,580,564,551,539],[898,851,801,755,713,678,648,623,603,586,572,560],[873,822,772,726,686,653,625,602,584,569,556,545],[871,829,786,746,710,679,652,629,610,594,580,568],[919,900,875,845,814,783,755,728,705,683,665,649],[912,880,844,807,771,739,710,684,662,643,627,612],[967,954,930,900,867,834,802,773,746,723,702,684],[972,945,909,871,833,797,764,735,711,689,671,655],[995,968,932,893,854,817,784,754,728,706,687,671],[1041,1023,993,956,917,879,843,811,783,758,736,718],[1025,985,938,891,847,807,773,743,718,697,680,664],[1006,956,904,855,810,772,739,712,689,670,654,641],[1014,972,926,881,840,803,771,743,720,700,683,668],[1021,982,939,896,856,819,787,760,736,715,697,682],[1037,1004,964,924,885,848,816,787,762,740,721,705],[1054,1022,984,944,904,867,834,804,778,756,736,719],[1040,997,951,905,863,825,793,764,741,720,703,687],[1019,969,918,871,828,791,760,734,712,693,677,663],[999,949,899,852,811,776,746,721,700,682,667,653],[969,916,865,819,779,746,717,694,674,658,644,631],[975,934,893,854,818,786,758,734,713,694,678,664],[933,881,832,788,751,719,693,670,652,636,623,611],[928,886,845,807,773,743,716,694,675,658,643,630],[914,874,833,796,762,732,707,684,665,649,634,621],[874,824,778,737,702,673,648,628,611,597,584,573],[812,752,701,658,623,596,574,556,542,530,520,511],[800,757,717,683,654,629,608,590,575,562,550,540],[756,708,667,631,602,577,558,542,528,516,506,497],[780,755,731,706,683,661,641,623,606,591,577,564],[758,726,695,666,639,616,595,577,562,548,535,524],[768,744,718,692,667,643,622,603,586,570,557,544],[732,693,657,624,595,571,550,532,518,505,494,484],[400,293,225,182,156,139,129,122,118,115,113,111],[207,131,89,66,52,43,37,33,30,27,25,24],[239,212,192,177,165,155,147,141,135,130,125,121],[236,216,199,184,172,161,151,143,135,128,122,116],[239,226,211,198,185,174,164,156,148,141,134,128],[259,256,250,242,232,223,214,206,199,193,187,182],[290,288,281,272,262,252,242,233,225,218,211,204],[322,320,312,302,291,279,269,259,250,241,233,226],[349,343,333,320,308,295,284,273,263,254,246,238],[385,381,370,357,344,330,317,305,294,284,275,266],[393,378,362,345,330,315,302,290,279,270,261,252],[396,378,358,340,324,309,296,284,273,263,255,246],[446,440,426,411,395,379,364,350,338,326,315,305],[439,417,395,375,356,340,325,312,301,290,280,271],[453,432,408,385,364,346,331,318,308,298,290,283],[479,462,442,422,403,386,370,355,342,330,319,309],[492,471,449,428,408,390,373,359,345,333,322,312],[488,462,436,413,392,374,358,343,330,319,308,298],[548,538,521,501,481,462,444,427,412,398,385,373],[545,520,494,469,447,426,408,392,378,364,352,341],[571,549,524,500,477,457,438,421,405,391,378,366],[592,569,543,518,494,472,453,435,419,404,391,379],[640,624,602,577,553,531,509,490,472,456,441,427],[648,620,591,562,536,512,491,471,454,438,423,410],[685,662,634,606,579,555,532,511,493,476,460,445],[709,682,652,622,594,568,545,523,504,487,470,456],[718,685,650,618,589,562,538,517,498,480,464,450],[740,709,675,643,613,585,561,539,519,501,484,469],[732,692,653,618,587,559,535,514,494,477,461,446],[727,685,646,611,580,552,528,507,488,470,455,440],[743,706,670,636,605,577,553,531,511,493,477,462],[755,718,681,647,616,588,563,541,521,502,486,471],[745,702,661,625,594,566,541,519,500,482,466,452],[732,687,646,610,578,551,527,505,486,469,454,439],[715,668,627,590,559,532,509,488,469,453,438,424],[719,679,641,606,576,549,525,504,486,469,453,439],[721,682,644,610,580,553,529,508,489,472,457,443],[673,621,577,541,510,484,462,443,426,411,397,385],[627,574,531,496,467,443,422,404,388,374,362,350],[642,606,571,541,514,490,469,450,433,418,405,392],[595,548,508,476,449,426,406,389,374,361,349,338],[599,562,529,500,474,452,432,415,399,386,373,361],[591,555,522,494,468,446,427,410,395,381,368,357],[592,558,527,499,474,452,433,416,400,387,374,362],[602,572,543,516,491,469,450,432,416,402,389,377],[589,554,521,493,468,446,427,410,394,381,368,357],[601,571,541,514,490,468,448,431,415,401,388,376],[600,569,538,510,485,463,444,427,411,397,384,372],[583,546,512,484,459,437,418,401,387,373,361,350],[566,528,494,466,441,420,402,386,372,359,347,336],[554,519,487,459,435,415,397,381,367,354,343,332],[564,535,507,481,458,437,419,403,388,375,363,352],[561,530,501,475,452,431,413,397,383,370,358,347],[565,535,507,481,458,437,419,403,388,375,363,352],[558,527,497,471,448,427,409,393,379,366,354,344],[560,530,502,476,453,433,415,399,384,371,360,349],[570,543,516,491,468,447,429,413,398,385,373,361],[549,514,482,455,432,412,394,378,365,352,341,331],[579,556,532,508,485,465,447,430,415,401,389,377],[565,532,502,476,452,432,414,398,383,371,359,348],[558,525,495,468,445,425,407,391,377,365,353,343],[538,503,472,445,422,402,385,370,356,344,333,323],[517,481,449,423,401,382,365,350,338,326,316,306],[512,480,452,427,406,387,371,356,344,332,321,312],[516,489,463,439,418,400,384,369,356,344,333,323],[524,499,475,451,431,412,395,381,367,355,344,334],[531,505,480,457,436,417,400,385,372,360,348,338],[526,498,471,447,426,407,390,375,362,350,339,329],[521,492,465,441,420,401,384,370,357,345,334,324],[521,493,467,443,422,403,387,372,359,347,336,327],[537,514,490,467,446,428,411,395,382,369,358,347],[524,493,466,441,420,401,384,370,357,345,334,324],[520,491,464,440,418,400,383,369,356,344,333,324],[541,519,496,474,453,434,417,402,388,376,364,354],[551,527,503,480,459,440,423,407,393,380,369,358],[580,561,539,517,495,476,458,441,426,413,400,388],[562,531,501,475,453,433,415,399,385,373,361,351]],"high":[[1257,1352,1455,1546,1622,1685,1741,1792,1839,1884,1927,1968],[1401,1537,1670,1791,1894,1976,2036,2074,2092,2096,2088,2074],[1470,1586,1696,1793,1874,1936,1979,2006,2018,2019,2014,2003],[1518,1602,1664,1723,1794,1864,1926,1982,2035,2084,2132,2178],[1564,1626,1684,1755,1832,1903,1966,2023,2077,2127,2175,2222],[1569,1618,1680,1748,1822,1892,1954,2011,2064,2114,2162,2208],[1586,1649,1719,1795,1874,1946,2010,2068,2122,2173,2222,2269],[1652,1724,1789,1846,1892,1928,1954,1971,1982,1988,1992,1994],[1739,1831,1914,1984,2039,2079,2106,2121,2127,2127,2123,2117],[1711,1762,1809,1849,1884,1911,1932,1949,1961,1971,1979,1987],[1721,1770,1817,1858,1893,1922,1945,1963,1978,1990,2000,2009],[1739,1791,1840,1885,1923,1954,1980,2000,2016,2028,2039,2048],[1780,1843,1903,1955,1999,2035,2063,2083,2098,2109,2117,2123],[1755,1797,1839,1879,1914,1945,1972,1995,2015,2032,2047,2061],[1769,1818,1867,1912,1953,1988,2018,2043,2064,2081,2096,2109],[1767,1814,1861,1905,1946,1983,2014,2042,2065,2085,2102,2117],[1901,2005,2100,2183,2251,2305,2344,2370,2386,2394,2396,2395],[1925,2006,2081,2147,2202,2246,2279,2303,2319,2329,2335,2339],[1935,2000,2062,2118,2165,2203,2234,2257,2275,2289,2299,2308],[1981,2056,2126,2187,2239,2281,2313,2338,2355,2368,2377,2384],[2058,2150,2234,2307,2367,2414,2450,2475,2491,2501,2507,2510],[2046,2108,2167,2220,2265,2303,2333,2357,2377,2392,2405,2416],[2102,2181,2254,2318,2373,2417,2452,2479,2499,2513,2524,2533],[2056,2100,2144,2187,2225,2260,2291,2318,2343,2364,2384,2402],[2048,2092,2138,2183,2225,2264,2299,2330,2358,2383,2405,2426],[2056,2108,2162,2215,2264,2308,2348,2383,2413,2440,2464,2485],[2032,2076,2124,2173,2220,2264,2305,2343,2376,2407,2435,2460],[2024,2071,2123,2175,2226,2275,2320,2361,2398,2431,2460,2487],[2002,2046,2096,2148,2200,2250,2297,2341,2381,2417,2449,2478],[2046,2117,2191,2263,2331,2393,2448,2496,2537,2572,2601,2626],[2023,2079,2139,2201,2260,2317,2369,2417,2459,2496,2529,2558],[1975,2014,2061,2112,2165,2218,2269,2317,2362,2403,2440,2474],[1942,1980,2027,2079,2134,2189,2242,2293,2341,2385,2425,2461],[1868,1891,1925,1969,2018,2070,2124,2177,2228,2277,2322,2364],[1869,1913,1968,2028,2091,2154,2215,2273,2327,2375,2418,2456],[1843,1888,1944,2005,2069,2133,2196,2255,2310,2359,2404,2442],[1818,1863,1919,1981,2046,2112,2175,2236,2292,2342,2387,2427],[1787,1830,1884,1945,2010,2076,2140,2201,2258,2310,2356,2397],[1823,1892,1969,2049,2129,2204,2275,2338,2394,2442,2482,2516],[1806,1865,1932,2004,2077,2148,2214,2276,2331,2379,2421,2457],[1809,1871,1942,2015,2090,2161,2228,2289,2343,2391,2431,2465],[1832,1904,1983,2063,2141,2215,2283,2343,2396,2441,2478,2508],[1810,1867,1932,2001,2071,2138,2202,2260,2312,2358,2398,2432],[1824,1890,1962,2036,2109,2179,2244,2302,2353,2397,2435,2466],[1848,1921,1998,2077,2153,2225,2289,2347,2396,2437,2472,2500],[1795,1839,1893,1952,2013,2074,2133,2189,2240,2286,2326,2362],[1783,1831,1889,1951,2015,2078,2138,2195,2247,2293,2333,2368],[1820,1889,1965,2041,2116,2186,2251,2308,2357,2399,2434,2463],[1837,1908,1984,2061,2136,2205,2268,2323,2371,2411,2445,2472],[1820,1877,1941,2008,2074,2138,2197,2251,2299,2341,2376,2407],[1821,1880,1945,2012,2079,2143,2202,2256,2303,2345,2380,2410],[1886,1971,2058,2143,2222,2293,2356,2409,2452,2487,2515,2536],[1915,1998,2081,2162,2238,2306,2365,2415,2456,2489,2515,2535],[1932,2007,2083,2158,2228,2291,2347,2394,2434,2466,2493,2514],[1914,1971,2033,2096,2156,2213,2265,2311,2352,2387,2417,2442],[1941,2008,2078,2147,2212,2272,2325,2372,2411,2444,2472,2494],[1980,2058,2136,2210,2280,2342,2395,2441,2478,2508,2532,2551],[2004,2079,2155,2227,2294,2354,2406,2449,2485,2515,2538,2557],[1972,2023,2078,2135,2190,2242,2290,2333,2371,2405,2434,2460],[1977,2032,2091,2151,2209,2263,2312,2357,2396,2429,2458,2483],[1871,1886,1914,1950,1991,2036,2082,2129,2174,2218,2258,2296],[1531,1453,1411,1397,1406,1434,1478,1533,1597,1667,1741,1814],[1160,1033,957,921,916,939,984,1050,1132,1226,1329,1433],[968,881,836,825,842,884,947,1029,1124,1230,1339,1445],[918,899,914,956,1023,1108,1209,1319,1431,1539,1638,1720],[865,874,913,976,1060,1160,1271,1385,1497,1600,1688,1757],[889,947,1033,1142,1266,1397,1527,1646,1747,1825,1877,1905],[922,1006,1115,1241,1376,1511,1636,1742,1824,1879,1909,1917],[946,1031,1135,1250,1370,1485,1588,1673,1737,1780,1803,1810],[848,862,887,920,959,1001,1043,1084,1121,1155,1185,1211],[768,759,765,782,806,835,867,899,931,960,987,1012],[763,779,806,840,879,918,957,993,1026,1056,1082,1105],[695,693,704,725,752,782,814,846,876,904,930,952],[606,583,572,571,575,583,592,602,610,617,622,624],[460,414,382,360,344,332,324,317,313,309,306,304],[443,415,392,374,359,347,338,330,324,321,318,317],[415,397,384,374,366,362,360,359,361,364,369,376],[393,382,375,371,370,372,375,381,389,399,411,426],[449,487,528,568,602,629,649,660,666,668,668,666],[502,562,621,676,720,754,775,788,793,794,794,793],[528,576,620,657,686,707,719,727,730,732,733,734],[549,586,618,645,665,679,688,694,698,701,703,706],[592,640,686,727,763,794,818,839,857,873,887,902],[631,681,729,771,808,838,863,884,902,919,934,949],[705,775,841,899,947,986,1016,1040,1059,1076,1091,1106],[747,807,862,910,951,984,1012,1035,1054,1073,1090,1108],[822,897,966,1027,1078,1119,1152,1179,1202,1222,1241,1261],[848,903,952,996,1034,1067,1095,1121,1144,1167,1189,1211],[937,1017,1093,1160,1218,1267,1308,1342,1371,1398,1423,1448],[950,1002,1051,1095,1136,1172,1205,1235,1264,1292,1319,1345],[989,1044,1097,1147,1193,1234,1273,1308,1341,1372,1402,1431],[996,1038,1081,1123,1164,1203,1241,1277,1311,1344,1376,1406],[964,984,1008,1036,1067,1100,1135,1170,1205,1239,1272,1304],[960,985,1017,1053,1091,1131,1171,1211,1249,1285,1319,1352],[933,952,979,1012,1049,1089,1129,1169,1208,1245,1280,1312],[931,960,997,1039,1084,1130,1176,1219,1260,1298,1333,1365],[982,1043,1109,1177,1243,1305,1361,1411,1455,1494,1528,1560],[975,1019,1069,1123,1176,1228,1277,1322,1364,1402,1436,1468],[1033,1104,1179,1253,1323,1387,1444,1494,1538,1577,1611,1643],[1039,1093,1152,1211,1268,1323,1373,1419,1460,1498,1533,1566],[1063,1120,1180,1241,1300,1355,1407,1453,1496,1534,1570,1603],[1112,1183,1256,1328,1396,1458,1514,1564,1608,1647,1683,1717],[1095,1139,1187,1237,1287,1337,1384,1429,1471,1510,1547,1582],[1075,1106,1143,1186,1231,1277,1322,1367,1409,1449,1487,1522],[1083,1123,1170,1221,1274,1326,1377,1424,1469,1510,1548,1583],[1090,1134,1186,1241,1297,1352,1404,1454,1499,1541,1579,1614],[1107,1159,1217,1278,1339,1398,1453,1504,1550,1592,1631,1666],[1125,1181,1242,1305,1368,1428,1484,1535,1582,1624,1662,1698],[1110,1151,1199,1251,1305,1358,1409,1457,1502,1544,1583,1619],[1087,1118,1157,1202,1251,1300,1350,1397,1442,1483,1522,1558],[1066,1094,1132,1176,1224,1274,1323,1371,1416,1458,1497,1533],[1034,1056,1089,1130,1175,1223,1272,1319,1363,1405,1444,1479],[1040,1077,1124,1177,1233,1288,1342,1392,1438,1480,1518,1552],[995,1016,1047,1087,1131,1178,1225,1271,1315,1356,1393,1428],[990,1022,1063,1111,1163,1215,1265,1314,1358,1399,1436,1469],[975,1007,1048,1095,1146,1197,1247,1294,1337,1377,1413,1446],[932,949,978,1014,1055,1099,1144,1188,1229,1268,1304,1336],[866,867,882,906,939,976,1015,1055,1095,1132,1167,1199],[853,872,902,939,982,1028,1073,1116,1157,1195,1229,1259],[806,816,838,868,904,944,985,1025,1064,1100,1133,1163],[831,870,918,971,1025,1079,1129,1174,1215,1251,1283,1311],[809,836,873,915,959,1004,1047,1088,1126,1160,1191,1219],[819,856,901,950,999,1047,1093,1135,1172,1206,1236,1262],[780,798,824,856,892,929,966,1002,1036,1068,1098,1124],[434,350,300,273,261,260,266,277,290,305,321,336],[225,160,126,107,98,94,93,93,96,99,103,107],[261,261,266,274,284,295,306,318,329,341,352,363],[258,266,277,288,298,308,318,326,334,342,349,356],[261,277,294,310,323,334,343,350,357,363,369,374],[283,315,346,375,401,423,441,457,471,484,497,509],[317,354,389,421,450,476,501,524,546,567,587,607],[352,394,432,468,500,530,558,584,609,632,655,677],[381,422,460,496,530,560,589,617,643,668,691,715],[420,468,513,554,592,628,661,692,722,750,778,804],[429,465,501,535,567,598,627,655,682,708,733,758],[433,464,495,526,556,585,613,639,665,690,714,738],[487,540,590,637,680,720,757,793,826,859,890,920],[479,512,546,580,612,644,674,703,731,759,785,811],[495,531,565,597,629,658,684,709,731,753,773,793],[523,567,611,653,692,730,765,799,832,864,894,924],[537,578,620,660,699,736,771,805,838,869,900,929],[533,567,602,637,672,706,738,769,800,829,858,886],[598,660,720,775,826,874,918,961,1001,1039,1077,1113],[595,638,681,723,765,804,842,878,913,947,980,1012],[623,673,723,771,817,860,902,941,980,1016,1052,1087],[646,697,748,798,845,889,932,973,1012,1050,1087,1123],[699,765,829,890,947,1000,1050,1098,1143,1187,1229,1270],[707,760,814,866,916,964,1009,1053,1096,1137,1176,1215],[747,811,873,933,990,1043,1094,1143,1190,1235,1279,1321],[773,836,897,957,1014,1068,1119,1169,1216,1262,1306,1350],[783,838,895,950,1004,1055,1105,1152,1198,1243,1286,1329],[807,867,928,987,1043,1098,1150,1200,1248,1295,1340,1384],[798,846,897,948,999,1048,1095,1142,1186,1230,1272,1314],[793,838,887,936,985,1033,1080,1125,1169,1211,1253,1293],[810,864,919,974,1027,1079,1129,1177,1223,1268,1312,1355],[822,877,934,990,1045,1097,1148,1197,1244,1289,1334,1377],[811,857,906,957,1006,1055,1102,1148,1192,1235,1278,1319],[798,839,885,932,980,1026,1071,1115,1158,1200,1241,1280],[779,816,858,902,946,990,1034,1076,1117,1157,1196,1234],[783,828,876,925,973,1020,1066,1110,1153,1195,1235,1275],[785,832,881,930,979,1027,1073,1117,1160,1202,1243,1283],[733,757,789,825,862,899,937,973,1010,1045,1080,1114],[683,700,726,756,789,822,855,888,921,953,985,1016],[699,738,781,824,866,907,948,986,1024,1061,1097,1132],[648,668,695,725,757,789,822,854,885,916,947,977],[652,685,723,761,799,836,872,908,942,976,1009,1041],[644,677,713,751,788,825,861,896,930,963,995,1027],[644,680,719,758,797,835,872,907,942,975,1008,1040],[655,697,740,783,825,865,904,942,978,1013,1047,1081],[641,674,710,748,785,821,857,892,925,958,990,1021],[654,695,737,780,821,861,900,937,973,1007,1041,1074],[653,692,732,773,813,852,890,926,961,995,1029,1061],[634,664,697,733,768,803,837,870,903,934,965,996],[615,642,673,705,739,772,804,836,867,897,927,956],[603,630,662,695,728,761,793,824,855,885,914,942],[613,650,688,727,765,801,836,870,903,935,966,996],[610,644,681,717,754,789,823,857,889,920,950,980],[614,650,688,726,763,799,834,868,901,932,963,993],[607,639,674,710,746,780,814,846,878,908,938,967],[609,644,680,718,754,789,824,857,889,920,950,980],[620,659,699,739,778,815,851,886,919,952,983,1014],[596,623,653,685,718,750,781,811,841,870,898,926],[629,675,720,764,806,846,884,921,956,989,1022,1054],[613,645,680,715,750,785,818,851,882,912,942,971],[606,636,670,704,738,772,804,836,867,897,926,954],[585,609,638,668,699,729,759,789,817,845,873,899],[561,582,608,635,663,692,720,747,774,801,826,852],[556,582,611,641,671,701,731,759,787,814,840,866],[561,592,625,659,692,724,755,785,813,842,869,895],[569,604,641,677,711,745,777,808,838,868,896,923],[576,611,648,684,720,754,786,818,848,877,906,934],[571,602,635,669,702,734,765,795,824,853,880,907],[566,595,627,659,691,723,753,783,811,839,866,892],[566,596,629,662,695,727,757,787,816,844,871,897],[582,621,660,698,734,769,803,835,866,896,925,953],[568,596,627,659,690,721,751,780,808,835,862,888],[564,593,624,656,687,718,748,777,805,832,859,885],[587,627,667,706,744,779,813,846,877,908,937,965],[597,637,677,715,753,789,823,855,887,917,947,976],[629,677,725,770,813,853,891,927,962,996,1028,1059],[609,640,674,708,742,775,807,838,868,897,926,953]],"typical":{"arima":[1.1,2.3,3.5,4.9,6.4,7.8,9.1,10.9,12.9,15.8,16.7,19.1],"same":[1.6,3.3,5.6,6.5,8.5,9.3,10.8,11.5,12.2,14.2,15.5,17.3]},"held":[90,90,88,85,84,83,81,80,78,78,76,75]}</script>
+</section>
 </section>
 </div>
 <div class="cs-sec">
@@ -413,12 +1105,17 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="code" class="level2">
 <h2 data-anchor-id="code">Code</h2>
-<div class="pending" data-tag="Repo">
-<p>github.com/ducle26/rig-count-forecast: the R Markdown file, the data source, and comments on each step.</p>
-</div>
+<p>Every chart and number on this page comes from the R code folded under each step. Press “Show all code” at the top to open it all at once.</p>
+<ul>
+<li><strong>This page’s source:</strong> <a href="https://github.com/ducle26/bill-portfolio/blob/main/projects/rig-count.qmd">projects/rig-count.qmd</a> in the site’s repo, with the data file beside it.</li>
+<li><strong>A version to run on its own:</strong> <a href="https://github.com/ducle26/rig-count-forecast">github.com/ducle26/rig-count-forecast</a> holds the same analysis as one R Markdown file, the data, and a note on how to run it.</li>
+</ul>
+<p>Data: U.S. Energy Information Administration, <em>Crude Oil and Natural Gas Drilling Activity</em>, rotary rigs in operation, sourced from Baker Hughes. <a href="https://www.eia.gov/dnav/ng/ng_enr_drill_s1_m.htm">eia.gov</a>. Method: Hyndman, R. J., &amp; Athanasopoulos, G. (2018). <em>Forecasting: Principles and Practice</em> (2nd ed.). <a href="https://otexts.com/fpp2/">otexts.com/fpp2</a>.</p>
 </section>
 </div>
 <nav class="sample-nav"><a href="index.html">← All core samples</a><a href="late-delivery.html">CS-02 · Late delivery risk →</a></nav>
+<script src="../assets/js/casestudy.js"></script>
+<script src="../assets/js/rigreplay.js"></script>
 
 
 

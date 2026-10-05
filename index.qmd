@@ -150,7 +150,7 @@ body-classes: home
       <h2>Core samples</h2>
       <p style="max-width:680px">Each project is a core pulled from a different depth: a business question, the data, the R work, and what the results mean. Logging is in progress.</p>
       <div class="card-grid">
-        <a class="card-bp" href="projects/rig-count.html"><span class="go">→</span><span class="label">CS-01 · Forecasting</span><h3>Rig count forecast</h3><p>How many rigs will be running in six months, and what that means for long-lead parts.</p></a>
+        <a class="card-bp" href="projects/rig-count.html"><span class="go">→</span><span class="label">CS-01 · Forecasting</span><h3>Rig count forecast</h3><p>How far ahead the rig count can be forecast well enough to act on, with sixteen years of forecasts to replay.</p></a>
         <a class="card-bp" href="projects/late-delivery.html"><span class="go">→</span><span class="label">CS-02 · Classification</span><h3>Late delivery risk</h3><p>Which orders will ship late, and what drives it.</p></a>
         <a class="card-bp" href="projects/ofs-financials.html"><span class="go">→</span><span class="label">CS-03 · Financial analysis</span><h3>Oilfield services health check</h3><p>How SLB, Halliburton, and Baker Hughes move with oil prices.</p></a>
         <a class="card-bp" href="projects/melbourne-housing.html"><span class="go">→</span><span class="label">CS-04 · Regression and trees</span><h3>Melbourne housing</h3><p>What drives house prices across Melbourne's suburbs, with a price guide you can try.</p></a>
@@ -259,6 +259,23 @@ body-classes: home
     <div class="dv-readout mono" id="drill-readout"></div>
   </div>
   <p class="dv-hint mono">Drag the bit to scroll. Press a layer or a sidetrack to jump there.</p>
+  <p class="dv-hint dv-rigs mono" id="dv-rigs" hidden></p>
 </div>
 </div><!-- /descent -->
+<script src="assets/data/rig-latest.js"></script>
+<script>
+  // The real US rig count beside the drawn rig. The number comes from the CS-01 data.
+  (function () {
+    var r = window.BL_RIGS, p = document.getElementById("dv-rigs");
+    if (!r || !p) return;
+    var d = r.count - r.before;
+    var a = document.createElement("a");
+    a.href = "projects/rig-count.html";
+    a.textContent = r.count + " in " + r.month;
+    p.appendChild(document.createTextNode("Real rigs drilling in the US: "));
+    p.appendChild(a);
+    p.appendChild(document.createTextNode(d === 0 ? ", flat on the month." : ", " + (d > 0 ? "up " : "down ") + Math.abs(d) + " on the month."));
+    p.hidden = false;
+  })();
+</script>
 ```
