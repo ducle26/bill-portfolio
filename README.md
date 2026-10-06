@@ -22,7 +22,7 @@ A Quarto website, built in R. The finished site lives in the `docs/` folder, whi
 | Music engine | `assets/js/field.js` (tracks, chords, tempo at the top) |
 | Record player | `assets/js/site.js` (the corner player) and `radio/index.html` (the pop-out) |
 | Journey map (home) | `assets/js/journeymap.js` (the route and the small plane) |
-| Mini Bill, the guide (home) | `assets/js/minime.js` (his lines are in `STOPS` at the top; the song is in `TUNE` and `WORDS`) |
+| Mini Bill, the guide (every page) | `assets/js/minime.js` (home page lines are in `STOPS`, other pages in `pageLine`, the song in `TUNE` and `WORDS`, the game console under "The driller's seat") |
 | Resume download | `assets/resume/Duc_Le_Resume.pdf` (the public copy: no phone, no email, no Oliden figures) |
 | Career log (resume) | `assets/js/careerlog.js` |
 | Colors | `styles/light.scss` and `styles/dark.scss` |
@@ -32,7 +32,7 @@ A Quarto website, built in R. The finished site lives in the `docs/` folder, whi
 ## To-do list for Bill
 
 - **B-side songs:** the YouTube video ids are in two places, `PICKS` in `assets/js/site.js` and `youtubeVideos` in `radio/index.html`. Keep them the same.
-- **Music:** the A-side plays the tracks listed in `assets/audio/playlist.js`. Put the mp3 files in `assets/audio/` and add one line per track there. While the list is empty, the site plays its built-in music. Music starts at 35% volume from the entrance choice on the home page, or on the visitor's first click elsewhere. Pausing lasts for that visit only.
+- **Music:** the A-side plays the tracks listed in `assets/audio/playlist.js`. Put the mp3 files in `assets/audio/` and add one line per track there. While the list is empty, the site plays its built-in music. Music starts at 38% volume from the entrance choice on the home page, or on the visitor's first click elsewhere. Pausing lasts for that visit only.
 - **Personal page:** photos and a line for each place, plus hobbies.
 - **Notes:** the three note titles are placeholders.
 - **Projects:** each project page links to `github.com/ducle26/<repo>`. Create those repos as you finish each one.

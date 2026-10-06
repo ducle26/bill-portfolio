@@ -169,7 +169,7 @@
   // A-side: tracks listed in assets/audio/playlist.js, or the built-in music
   // (assets/js/field.js) when that list is empty. B-side: Bill's picks on YouTube.
   var PICKS = ["XutKfAL7wx8", "IuyJKdTCrE4", "kldpcaGtnb8", "T-U3jBF-Fac", "9FMFzHt5v6s", "FpAItpyVLUg"]; // YouTube video ids, in play order
-  var DEFAULT_VOL = 35;
+  var DEFAULT_VOL = 38;
   var music = { backend: null, on: false, armed: false, saveTimer: null, side: "a", loading: null };
   var bc = null, myId = Math.random().toString(36).slice(2);
   try { bc = new BroadcastChannel("bill-radio"); } catch (e) {}
@@ -501,9 +501,9 @@
     });
   });
 
-  /* ---------- Page extras: live well view, journey map, career log, mini Bill ---------- */
-  [["drill-canvas", "drillview.js"], ["journey-map", "journeymap.js"], ["career-log", "careerlog.js"], ["picker", "minime.js"]].forEach(function (pair) {
-    if (!document.getElementById(pair[0])) return;
+  /* ---------- Page extras: live well view, journey map, career log, and mini Bill on every page ---------- */
+  [["drill-canvas", "drillview.js"], ["journey-map", "journeymap.js"], ["career-log", "careerlog.js"], [null, "minime.js"]].forEach(function (pair) {
+    if (pair[0] && !document.getElementById(pair[0])) return;
     var s = document.createElement("script");
     s.src = ROOT + "assets/js/" + pair[1]; document.body.appendChild(s);
   });

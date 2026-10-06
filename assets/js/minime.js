@@ -1,6 +1,10 @@
-/* Mini Bill: a small guide who hops between the sections of the home page.
-   - He stands on each section heading as it comes into view, with one short line.
-   - When the heading scrolls away he sits on the record player, so he is always in reach.
+/* Mini Bill: a small guide who lives on every page.
+   - Home page: he hops to each section heading as it comes into view, with one short line.
+     When the heading scrolls away he goes back to the record player.
+   - Other pages: he stays on the record player and says one line per page, once.
+   - Game page: when a game starts he hops up to the driller's seat on top of the game
+     frame and works the lever as you steer.
+   - Point at him with a mouse and he sits down and grins.
    - Press him and he sings a short tune. The tune and words are written for this site;
      the first line is a nod to the 1923 song "Yes! We Have No Bananas".
    - With "reduce motion" on, he stays on the record player and does not hop. */
@@ -8,9 +12,9 @@
   "use strict";
   var BL = window.BL || {};
   if (document.getElementById("mini-me")) return;
-  var hero = document.querySelector(".hero .greet");
+  var hero = document.querySelector(".hero .greet"), home = !!hero;
   var player = document.querySelector(".record-player");
-  if (!hero || !player) return;
+  if (!player) return;
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var store = BL.store || { get: function () { return null; }, set: function () {} };
   var ROOT = BL.root || "./";
@@ -27,7 +31,20 @@
     '.mm-eye.l{transform-origin:45px 58px}.mm-eye.r{transform-origin:75px 58px}' +
     '.mm-arm-r{transform-origin:79px 97px;transition:transform 260ms ease}' +
     '.mm-arm-l{transform-origin:42px 98px;transition:transform 320ms ease}' +
-    '.mm-hat,.mm-o,.mm-note{opacity:0}' +
+    '.mm-hat,.mm-o,.mm-note,.mm-happy,.mm-grin{opacity:0}' +
+    // sitting down with a grin (mouse over him)
+    '.mm-sitg{transform-origin:60px 146px;transition:transform 240ms cubic-bezier(.3,1.5,.5,1)}' +
+    '.mm-legs{transform-origin:60px 144px;transition:transform 240ms ease}' +
+    '.sit .mm-sitg{transform:translateY(15px)}' +
+    '.sit .mm-legs{transform:scaleY(.3)}' +
+    '.sit .mm-happy,.sit .mm-grin{opacity:1}.sit .mm-eye,.sit .mm-smile{opacity:0}' +
+    '.sit .mm-blush{opacity:1}' +
+    '.sit.sing .mm-grin{opacity:0}' +
+    // at the driller's seat (game page)
+    '[data-pose="drive"] .mm-hat{opacity:1}' +
+    '[data-pose="drive"] .mm-arm-r{transform:rotate(-64deg)}' +
+    '.steer[data-pose="drive"] .mm-arm-r{transform:rotate(-70deg)}' +
+    '.steer[data-pose="drive"] .mm-sitg{transform:rotate(5deg)}' +
     '.mm-hat{transition:opacity 200ms ease}' +
     '[data-pose="hat"] .mm-hat{opacity:1}' +
     '[data-pose="call"] .mm-arm-l{transform:rotate(26deg) translate(7px,-9px)}' +
@@ -46,13 +63,15 @@
     '@keyframes mm-float{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}' +
   '</style>' +
   // legs and shoes
-  '<g class="mm-l">' +
+  '<g class="mm-l mm-legs">' +
     '<path d="M47 118h12v20a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z" fill="#2c2c35"/>' +
     '<path d="M61 118h12v20a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z" fill="#2c2c35"/>' +
+  '</g>' +
+  '<g class="mm-l">' +
     '<path d="M42 146c0-4 4-6 9-6s8 2 8 6z" fill="#17171c"/>' +
     '<path d="M61 146c0-4 3-6 8-6s9 2 9 6z" fill="#17171c"/>' +
   '</g>' +
-  '<g class="mm-up">' +
+  '<g class="mm-sitg"><g class="mm-up">' +
     // his left arm (on the viewer's right): the one that waves
     '<g class="mm-arm-r mm-l"><path d="M79 97q9 8 11 22" fill="none" stroke-width="12.5" stroke="#3a2a2a"/><path d="M79 97q9 8 11 22" fill="none" stroke-width="8" stroke="#34343f"/><circle cx="90.500" cy="122" r="5.4" fill="#fbd9b8"/></g>' +
     // jacket, shirt, tie
@@ -82,18 +101,20 @@
         '<path d="M63 13q5-9 11-1" fill="none"/>' +
       '</g>' +
       '<g class="mm-n" fill="#57515f"><ellipse cx="42" cy="24" rx="6.500" ry="2.800" transform="rotate(-28 42 24)"/><ellipse cx="76" cy="22" rx="4.500" ry="2.200" transform="rotate(22 76 22)"/><circle cx="53" cy="18.500" r="1.800"/></g>' +
-      '<g class="mm-n" fill="#f6a7a7" opacity=".85"><ellipse cx="35.500" cy="70" rx="5.500" ry="3.200"/><ellipse cx="84.500" cy="70" rx="5.500" ry="3.200"/></g>' +
+      '<g class="mm-n mm-blush" fill="#f6a7a7" opacity=".85"><ellipse cx="35.500" cy="70" rx="5.500" ry="3.200"/><ellipse cx="84.500" cy="70" rx="5.500" ry="3.200"/></g>' +
       '<path class="mm-l" d="M38 46.500q6-3.500 12-1M70 45.500q6-2.500 12 1" fill="none" stroke-width="2"/>' +
       '<g class="mm-eye l mm-n"><ellipse cx="45" cy="59" rx="5.800" ry="7.200" fill="#3a2a2a"/><ellipse cx="45" cy="60.500" rx="3.600" ry="4.600" fill="#6b4a3a"/><circle cx="43" cy="56" r="2.300" fill="#fff"/><circle cx="47.200" cy="62.500" r="1.100" fill="#fff"/></g>' +
       '<g class="mm-eye r mm-n"><ellipse cx="75" cy="59" rx="5.800" ry="7.200" fill="#3a2a2a"/><ellipse cx="75" cy="60.500" rx="3.600" ry="4.600" fill="#6b4a3a"/><circle cx="73" cy="56" r="2.300" fill="#fff"/><circle cx="77.200" cy="62.500" r="1.100" fill="#fff"/></g>' +
       // glasses
       '<g class="mm-l" fill="none" stroke-width="2.200"><rect x="32.500" y="49" width="25" height="19.500" rx="6.500"/><rect x="62.500" y="49" width="25" height="19.500" rx="6.500"/><path d="M57.500 57q2.500-1.500 5 0M32.500 55l-6-1M87.500 55l6-1"/></g>' +
       '<path class="mm-smile mm-l" d="M53.500 75.500q6.500 5.500 13 0" fill="none" stroke-width="2.200"/>' +
+      '<path class="mm-happy mm-l" d="M39.500 62q5.500-8.500 11 0M69.500 62q5.500-8.500 11 0" fill="none" stroke-width="2.800"/>' +
+      '<path class="mm-grin mm-l" d="M51.500 73.500q8.500 11.500 17 0z" fill="#8a3038" stroke-width="2"/>' +
       '<ellipse class="mm-o mm-l" cx="60" cy="77.500" rx="4.200" ry="4.800" fill="#8a3038" stroke-width="2"/>' +
       // hard hat for the toolkit stop
       '<g class="mm-hat mm-l"><path d="M27 37c0-18 14-30 33-30s33 12 33 30z" fill="#F25C1F"/><path d="M21 37h78v3a3 3 0 0 1-3 3H24a3 3 0 0 1-3-3z" fill="#F25C1F"/><path d="M55 8v29M65 8v29" fill="none" stroke-width="1.600"/></g>' +
     '</g>' +
-  '</g>' +
+  '</g></g>' +
   '<g class="mm-n" font-family="serif" font-size="17"><text class="mm-note" x="98" y="34" fill="#F25C1F">♪</text><text class="mm-note n2" x="6" y="40" fill="#F25C1F">♫</text><text class="mm-note n3" x="104" y="58" fill="#F25C1F">♪</text></g>' +
 '</svg>';
 
@@ -120,7 +141,20 @@
       go: { explorer: ["Play", "play.html"] } }
   ];
   STOPS.forEach(function (s) { s.el = s.id === "hero" ? hero : document.getElementById(s.id); s.said = false; });
-  STOPS = STOPS.filter(function (s) { return s.el; });
+  STOPS = home ? STOPS.filter(function (s) { return s.el; }) : [];
+
+  // Every other page: one line, said once from the record player. No line means he just sits there.
+  function pageLine() {
+    var path = location.pathname.replace(/index\.html$/, "");
+    function is(name) { return path.slice(-name.length) === name; }
+    if (is("resume.html")) return ["Need a copy? The PDF button is up top."];
+    if (is("play.html")) return ["Press Start. I'll take the driller's seat."];
+    if (is("about.html")) return ["The longer story, in my own words."];
+    if (is("projects/")) return ["Four cores. Each has something to try."];
+    if (document.getElementById("try-it")) return ["Scroll to 'Try it' for the hands-on part.", ["Jump there", "#try-it"]];
+    if (is("404.html") || document.title.indexOf("404") === 0) return ["Wrong turn. The surface is this way.", ["Surface", "index.html"]];
+    return null;
+  }
 
   /* ---------- Build ---------- */
   var mm = document.createElement("div");
@@ -151,6 +185,7 @@
     return rects.some(function (b) { return b.right > left && b.left < right && b.bottom > top && b.top < bottom; });
   }
   function stopPoint(s) {
+    if (s.point) return s.point();
     var sz = size(), half = sz.w / 2;
     if (s.id === "hero") {
       var name = s.el.querySelector(".name") || s.el, rs = name.getClientRects(), r = rs[rs.length - 1];
@@ -210,7 +245,7 @@
     var hops = Math.max(1, Math.min(3, Math.round(dist / 300)));
     var dur = Math.max(480, Math.min(1150, 360 + dist * 0.75)), t0 = performance.now();
     var lift = Math.min(64, 26 + dist * 0.07) * (sz.h / 76);
-    state.hopping = true; mm.classList.add("hop"); hideBubble();
+    state.hopping = true; mm.classList.add("hop"); svg.classList.remove("sit"); hideBubble();
     (function step(t) {
       var p = Math.min(1, (t - t0) / dur), to = targetPoint() || first;
       var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;   // ease along the line
@@ -230,11 +265,22 @@
   /* ---------- Speech bubble ---------- */
   function placeBubble() {
     if (!bubble.classList.contains("show")) return;
-    var r = mm.getBoundingClientRect(), bw = bubble.offsetWidth, bh = bubble.offsetHeight, vw = document.documentElement.clientWidth;
+    var r = mm.getBoundingClientRect(), vw = document.documentElement.clientWidth;
+    // On the record player he is in the left margin: keep the bubble out of the page's text
+    // when the margin is wide enough to hold it.
+    // Beside him if it fits, else above him, else (narrow screens) beside him over the page.
+    var main = document.querySelector("main"), edge = main ? main.getBoundingClientRect().left : 0;
+    var beside = edge - (r.right + 10) - 12, over = edge - r.left - 12, above = false, cap = "";
+    if (state.mode === "perch") {
+      if (beside >= 150) cap = Math.min(230, beside).toFixed(0) + "px";
+      else if (over >= 150) { cap = Math.min(230, over).toFixed(0) + "px"; above = true; }
+    }
+    bubble.style.maxWidth = cap;
+    var bw = bubble.offsetWidth, bh = bubble.offsetHeight;
     var left, top, side;
     if (state.mode === "perch") {
       side = "left"; left = r.right + 10; top = r.top + r.height * 0.3 - bh / 2;
-      if (left + bw > vw - 8) { side = "down"; left = Math.max(8, Math.min(vw - bw - 8, r.left)); top = r.top - bh - 10; }
+      if (above || left + bw > vw - 8) { side = "down"; left = Math.max(8, Math.min(vw - bw - 8, r.left)); top = r.top - bh - 10; }
     } else {
       side = "down"; top = r.top - bh - 10;
       // Beside a heading he is at the right edge, so the bubble opens to his left.
@@ -248,7 +294,10 @@
         if (lab && hits(textRects(lab), left - 6, lifted - 4, left + bw + 6, lifted + bh + 4)) lifted = Math.min(lifted, lab.getBoundingClientRect().top - bh - 8);
       });
       if (lifted >= navBottom() + 6) top = lifted;
-      if (top < navBottom() + 6) { side = "up"; left = Math.max(8, Math.min(vw - bw - 8, r.right - bw)); top = r.bottom + 10; }
+      if (top < navBottom() + 6) {
+        if (r.left - bw - 10 >= 8) { side = "right"; left = r.left - bw - 10; top = r.top + r.height * 0.3 - bh / 2; }
+        else { side = "up"; left = Math.max(8, Math.min(vw - bw - 8, r.right - bw)); top = r.bottom + 10; }
+      }
     }
     bubble.setAttribute("data-tail", side);
     var tail = Math.max(14, Math.min(bw - 14, r.left + r.width / 2 - left));
@@ -292,16 +341,22 @@
     }
     return found;
   }
+  function wanted() {
+    var still = quiet || reduceMotion;                      // tour stopped, or motion turned off
+    if (station && driving && !reduceMotion) return { stop: station, mode: "anchor" };
+    if (!home) return { stop: null, mode: "perch" };
+    var s = activeStop();
+    return { stop: s, mode: !still && onScreen(stopPoint(s)) ? "anchor" : "perch" };
+  }
   function update(force) {
     if (!state.ready) return;
-    var s = activeStop(), p = stopPoint(s);
-    var mode = !quiet && !reduceMotion && onScreen(p) ? "anchor" : "perch";
+    var w = wanted(), s = w.stop, mode = w.mode;
     var moved = force || s !== state.at || mode !== state.mode;
     if (!moved) { if (!state.hopping) settle(); return; }
     var arrived = s !== state.at;
     state.at = s; state.mode = mode;
-    svg.setAttribute("data-pose", mode === "anchor" && s.pose ? s.pose : "");
-    hopTo(function () { if (arrived || !s.said) speak(s); });
+    svg.setAttribute("data-pose", mode === "anchor" && s && s.pose ? s.pose : "");
+    hopTo(function () { if (s && (arrived || !s.said)) speak(s); });
   }
   var ticking = false;
   function onScroll() {
@@ -317,6 +372,55 @@
   if (panel && "MutationObserver" in window) {
     new MutationObserver(function () { mm.classList.toggle("aside", !panel.hidden && state.mode === "perch"); })
       .observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+  }
+
+  /* ---------- Mouse over him: he sits down and grins ---------- */
+  btn.addEventListener("pointerenter", function (e) {
+    if (e.pointerType === "mouse" && !state.hopping && state.at !== station) svg.classList.add("sit");
+  });
+  btn.addEventListener("pointerleave", function () { svg.classList.remove("sit"); });
+
+  /* ---------- The driller's seat (game page) ---------- */
+  // A small console sits on top of the game frame. When a game starts he hops up to it,
+  // and the lever follows the same keys and touches that steer the bit.
+  var game = document.getElementById("game"), station = null, driving = false;
+  if (game) {
+    var desk = document.createElement("div");
+    desk.className = "mm-station"; desk.setAttribute("aria-hidden", "true");
+    desk.innerHTML = '<svg viewBox="0 0 56 44">' +
+      '<path class="st-stick" d="M39 22v4"/><rect class="st-screen" x="27" y="6.500" width="24" height="15.500" rx="1.500"/>' +
+      '<path class="st-trace" d="M30 17l5-4.500 4 3 4.500-5.500 4.500 3.500"/>' +
+      '<g class="st-lever"><path class="st-stick" d="M12 26V14"/><circle class="st-knob" cx="12" cy="13" r="3.400"/></g>' +
+      '<path class="st-body" d="M3 43.200V28a3 3 0 0 1 3-3h44a3 3 0 0 1 3 3v15.200z"/>' +
+      '<circle class="st-dial" cx="40" cy="34" r="3.500"/><path class="st-stick" d="M20 31h10M20 36h7" stroke-width="1.200"/>' +
+      "</svg>";
+    game.appendChild(desk);
+    station = { id: "station", pose: "drive", el: desk, said: true, say: {},
+      point: function () { var d = desk.getBoundingClientRect(), sz = size(); return { x: d.left + d.width * 0.158 - sz.w * 0.3875 + 1, y: d.bottom }; } };
+    var canvas = document.getElementById("game-canvas"), wasPlaying = false;
+    var playing = function () { return document.body.classList.contains("playing"); };
+    var steer = function (on) { on = on && playing(); svg.classList.toggle("steer", on); desk.classList.toggle("hold", on); };
+    var steerKey = function (e) { return e.code === "Space" || e.code === "ArrowRight" || e.code === "ArrowUp" || e.code === "KeyD" || e.code === "KeyW"; };
+    window.addEventListener("keydown", function (e) { if (steerKey(e)) steer(true); });
+    window.addEventListener("keyup", function (e) { if (steerKey(e)) steer(false); });
+    window.addEventListener("blur", function () { steer(false); });
+    if (canvas) {
+      canvas.addEventListener("pointerdown", function () { steer(true); });
+      ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) { canvas.addEventListener(ev, function () { steer(false); }); });
+    }
+    var gameOver = function () {
+      if (quiet || state.singing) return;
+      var zone = parseInt((document.getElementById("st-zone") || {}).textContent, 10) || 0;
+      if (zone >= 60) { svg.classList.add("wave"); setTimeout(function () { svg.classList.remove("wave"); }, 1500); }
+      showBubble(zone >= 60 ? "Nice steering. That one's a keeper." : "Tough rock. Go again?", null, 6000);
+    };
+    new MutationObserver(function () {
+      var now = playing();
+      if (now === wasPlaying) return;
+      wasPlaying = now;
+      if (now) { driving = true; clearTimeout(state.bubbleTimer); bubble.classList.remove("show"); update(true); }
+      else { steer(false); setTimeout(gameOver, 300); }
+    }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   }
 
   /* ---------- The song ---------- */
@@ -354,14 +458,15 @@
   }
   function sing() {
     if (state.singing) { stopSong(false); return; }
+    if (document.body.classList.contains("playing")) return; // he is busy drilling
     state.singing = true; svg.classList.add("sing"); btn.setAttribute("aria-pressed", "true");
     if (BL.music && BL.music.duck) BL.music.duck(true);
     var AC = window.AudioContext || window.webkitAudioContext, t = 0;
     if (AC) {
       try {
         audio = new AC();
-        var vol = parseInt(store.get("bl-vol"), 10); if (isNaN(vol)) vol = 35;
-        var master = audio.createGain(); master.gain.value = 0.5 * Math.max(0.35, Math.min(1.4, vol / 35));
+        var vol = parseInt(store.get("bl-vol"), 10); if (isNaN(vol)) vol = 38;
+        var master = audio.createGain(); master.gain.value = 0.5 * Math.max(0.35, Math.min(1.4, vol / 38));
         master.connect(audio.destination);
         if (audio.state === "suspended" && audio.resume) audio.resume();
         var start = audio.currentTime + 0.08, at = start;
@@ -396,6 +501,8 @@
     setTimeout(function () {
       state.ready = true; update(true);
       if (!reduceMotion) { svg.classList.add("wave"); setTimeout(function () { svg.classList.remove("wave"); }, 1500); }
+      var line = !home && !quiet && pageLine();
+      if (line) showBubble(line[0], line[1] || null, 6500);
     }, 700);
   })();
 

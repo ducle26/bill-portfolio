@@ -63,7 +63,7 @@
     for (var n = 0; n < nd.length; n++) nd[n] = Math.random() * 2 - 1;
 
     var vinyl = null;
-    var track = 0, step = 0, nextTime = 0, timer = null, playing = false, volume = 0.35, lead = 3;
+    var track = 0, step = 0, nextTime = 0, timer = null, playing = false, volume = 0.38, lead = 3;
     var nodes = []; // things to stop on pause
 
     function keysNote(midi, t, dur, vel, dest) {

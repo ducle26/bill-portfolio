@@ -971,8 +971,6 @@ body.quarto-dark .rf { --rf-mark: #7DB8F5; }
   /* a white edge all round, like a sticker */
   filter: drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff);
 }
-.mm-btn:hover svg { transform: translateY(-2px); }
-.mm-btn svg { transition: transform 150ms ease; }
 .mm-btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; border-radius: 6px; }
 .mm-shadow { position: absolute; left: 22%; right: 22%; bottom: -3px; height: 7px; border-radius: 50%; background: var(--ink); opacity: 0.16; transform-origin: 50% 50%; }
 .mm-bubble {
@@ -997,4 +995,18 @@ body.quarto-dark .rf { --rf-mark: #7DB8F5; }
   .mm { width: 42px; }
   .mm-bubble { max-width: 200px; font-size: 0.68rem; }
 }
-@media print { .mm, .mm-bubble { display: none !important; } }
+@media print { .mm, .mm-bubble, .mm-station { display: none !important; } }
+
+/* The driller's seat: a small console on top of the game frame (game page) */
+.mm-station { position: absolute; right: 12px; bottom: 100%; width: 50px; pointer-events: none; }
+.mm-station svg { display: block; width: 100%; height: auto; overflow: visible; }
+.mm-station * { transform-box: view-box; }
+.mm-station .st-body { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.mm-station .st-screen { fill: var(--paper-2); stroke: var(--ink); stroke-width: 1.2; }
+.mm-station .st-trace { fill: none; stroke: var(--orange); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.mm-station .st-stick { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.mm-station .st-knob { fill: var(--orange); stroke: var(--ink); stroke-width: 1.2; }
+.mm-station .st-dial { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.mm-station .st-lever { transform-origin: 12px 26px; transform: rotate(-14deg); transition: transform 130ms ease; }
+.mm-station.hold .st-lever { transform: rotate(12deg); }
+@media (max-width: 767.98px) { .mm-station { width: 35px; right: 8px; } }
