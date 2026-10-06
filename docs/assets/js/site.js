@@ -401,7 +401,11 @@
   // home page, the entrance choice starts it instead.
   var gate = document.getElementById("picker") && !store.get("bl-visitor", true);
   if (!gate) setTimeout(tryAutoplay, readPos().on ? 150 : 2500);
-  BL.music = { stop: stopMusic, isOn: function () { return music.on; }, prefOn: musicPref };
+  BL.music = {
+    stop: stopMusic, isOn: function () { return music.on; }, prefOn: musicPref,
+    // Turn the music down while mini Bill sings, then back up.
+    duck: function (down) { if (music.backend && music.on) music.backend.setVolume(getVol() / 100 * (down ? 0.15 : 1)); }
+  };
 
   /* ---------- Intro: the drawing sets itself up (home, once per visit) ---------- */
   var intro = document.getElementById("intro");
@@ -497,8 +501,8 @@
     });
   });
 
-  /* ---------- Page extras: live well view, journey map, career log ---------- */
-  [["drill-canvas", "drillview.js"], ["journey-map", "journeymap.js"], ["career-log", "careerlog.js"]].forEach(function (pair) {
+  /* ---------- Page extras: live well view, journey map, career log, mini Bill ---------- */
+  [["drill-canvas", "drillview.js"], ["journey-map", "journeymap.js"], ["career-log", "careerlog.js"], ["picker", "minime.js"]].forEach(function (pair) {
     if (!document.getElementById(pair[0])) return;
     var s = document.createElement("script");
     s.src = ROOT + "assets/js/" + pair[1]; document.body.appendChild(s);

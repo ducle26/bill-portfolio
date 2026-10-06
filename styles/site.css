@@ -614,7 +614,9 @@ body.quarto-dark .headshot .frame:hover img { mix-blend-mode: normal; filter: no
 .jmap .stop.active circle, .jmap .stop:hover circle { fill: var(--orange); stroke: var(--orange); r: 8; }
 .jmap .stop text { font-family: "Space Mono", monospace; font-size: 10.5px; fill: var(--ink); pointer-events: none; }
 .jmap .stop text.n { font-size: 8.5px; fill: var(--ink-3); }
-.jmap .plane { fill: var(--orange); }
+.jmap .plane { pointer-events: none; }
+.jmap .plane-body { fill: var(--orange); stroke: var(--paper); stroke-width: 1.4; stroke-linejoin: round; paint-order: stroke; transform: scale(1.15); transition: transform 500ms ease; }
+.jmap .plane.parked .plane-body { transform: scale(0.85); } /* landed: a little smaller beside the Houston stop */
 .jmap-cap { display: flex; justify-content: space-between; gap: 1rem; padding: 6px 10px; border-top: 1px solid var(--grid-strong); }
 .jmap-cap button { background: none; border: 0; padding: 0; color: var(--orange-ink); font: inherit; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; }
 .log li { transition: background-color 250ms ease; }
@@ -955,3 +957,44 @@ body.quarto-dark .rf { --rf-mark: #7DB8F5; }
   .rf-readout > div:last-child { border-bottom: 0; }
 }
 @media print { .rf-presets, .rf-controls, .rf-reveal { display: none; } }
+
+/* =========================================================
+   Mini Bill: the guide who hops between sections (assets/js/minime.js)
+   ========================================================= */
+.mm { position: fixed; left: 0; top: 0; z-index: 1190; width: 60px; pointer-events: none; opacity: 0; transition: opacity 350ms ease; will-change: transform; }
+.mm.in { opacity: 1; }
+.mm.aside { opacity: 0; }
+.mm.aside .mm-btn { pointer-events: none; }
+.mm-btn {
+  display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; pointer-events: auto; transform-origin: 50% 100%;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  /* a white edge all round, like a sticker */
+  filter: drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff);
+}
+.mm-btn:hover svg { transform: translateY(-2px); }
+.mm-btn svg { transition: transform 150ms ease; }
+.mm-btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; border-radius: 6px; }
+.mm-shadow { position: absolute; left: 22%; right: 22%; bottom: -3px; height: 7px; border-radius: 50%; background: var(--ink); opacity: 0.16; transform-origin: 50% 50%; }
+.mm-bubble {
+  position: fixed; left: 0; top: 0; z-index: 1195; max-width: 230px; display: none; align-items: flex-start; flex-wrap: wrap; gap: 4px 8px;
+  background: var(--paper); color: var(--ink); border: 1px solid var(--ink); border-radius: 2px; padding: 8px 26px 8px 11px;
+  font-family: "Space Mono", monospace; font-size: 0.72rem; line-height: 1.45; letter-spacing: 0.01em;
+}
+.mm-bubble.show { display: flex; animation: mm-pop 220ms ease; }
+.mm-bubble.song { padding-right: 11px; border-color: var(--orange); }
+@keyframes mm-pop { from { opacity: 0; transform: translateY(5px); } }
+.mm-bubble::after { content: ""; position: absolute; width: 9px; height: 9px; background: var(--paper); border: solid var(--ink); border-width: 0 1px 1px 0; }
+.mm-bubble.song::after { border-color: var(--orange); }
+.mm-bubble[data-tail="down"]::after { left: var(--tail, 50%); bottom: -6px; transform: translateX(-50%) rotate(45deg); }
+.mm-bubble[data-tail="up"]::after { left: var(--tail, 50%); top: -6px; transform: translateX(-50%) rotate(225deg); }
+.mm-bubble[data-tail="left"]::after { left: -6px; top: 50%; transform: translateY(-50%) rotate(135deg); }
+.mm-bubble[data-tail="right"]::after { right: -6px; top: 50%; transform: translateY(-50%) rotate(-45deg); }
+.mm-say { flex: 1 1 100%; }
+.mm-go { color: var(--orange-ink); text-transform: uppercase; letter-spacing: 0.05em; text-decoration-thickness: 1px; }
+.mm-x { position: absolute; top: 1px; right: 3px; width: 22px; height: 22px; border: 0; background: none; color: var(--ink-3); font-size: 1rem; line-height: 1; cursor: pointer; padding: 0; }
+.mm-x:hover { color: var(--orange-ink); }
+@media (max-width: 767.98px) {
+  .mm { width: 42px; }
+  .mm-bubble { max-width: 200px; font-size: 0.68rem; }
+}
+@media print { .mm, .mm-bubble { display: none !important; } }

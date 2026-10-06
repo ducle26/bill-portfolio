@@ -1,6 +1,7 @@
 /* Journey map: Vietnam, Florida, Oregon, Houston.
-   The route draws itself when the map scrolls into view. Press a stop to
-   light up the matching entries in the journey list below it. */
+   The route draws itself when the map scrolls into view, with a small plane
+   flying at the front of the line. Press a stop to light up the matching
+   entries in the journey list below it. */
 (function () {
   "use strict";
   var box = document.getElementById("journey-map");
@@ -35,7 +36,9 @@
   }
   mk("path", { class: "arc", d: d }, svg);
   var live = mk("path", { class: "arc-live", d: d }, svg);
-  var plane = mk("circle", { class: "plane", r: 4 }, svg);
+  // The plane: drawn nose-right around (0,0), then moved and turned along the route.
+  var plane = mk("g", { class: "plane" }, svg);
+  mk("path", { class: "plane-body", d: "M13 0 L4 -2.2 L-1 -9.5 L-4.5 -9.5 L-2.2 -2.2 L-8 -2 L-10.5 -5.5 L-12.8 -5.5 L-11.4 0 L-12.8 5.5 L-10.5 5.5 L-8 2 L-2.2 2.2 L-4.5 9.5 L-1 9.5 L4 2.2 Z" }, plane);
 
   var groups = {}, legend = document.getElementById("jmap-legend");
   STOPS.forEach(function (s) {
@@ -69,8 +72,15 @@
   // Draw the route
   var total = live.getTotalLength(), raf = null;
   function place(p) {
-    var pt = live.getPointAtLength(total * p);
-    plane.setAttribute("cx", pt.x); plane.setAttribute("cy", pt.y);
+    var at = total * p;
+    // The plane flies at the front of the line and parks just short of the last stop,
+    // so the Houston marker stays clear.
+    var nose = Math.min(at, total - 15), pt = live.getPointAtLength(nose);
+    // Point the nose along the line: compare a point just behind with one just ahead.
+    var a = live.getPointAtLength(Math.max(0, nose - 2)), b = live.getPointAtLength(Math.min(total, nose + 2));
+    var deg = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+    plane.setAttribute("transform", "translate(" + pt.x.toFixed(1) + " " + pt.y.toFixed(1) + ") rotate(" + deg.toFixed(1) + ")");
+    plane.classList.toggle("parked", p >= 1);
     live.style.strokeDasharray = total; live.style.strokeDashoffset = total * (1 - p);
   }
   function fly() {

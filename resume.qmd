@@ -9,10 +9,11 @@ pagetitle: "Resume · Duc (Bill) Le"
   <div>
     <span class="label">Sheet 03 · 1,200 to 2,400 ft</span>
     <h1>Duc (Bill) Le</h1>
-    <div class="muted">Houston, TX · <a href="mailto:lehuyduc2811@gmail.com">lehuyduc2811@gmail.com</a> · <a href="https://www.linkedin.com/in/duc-huy-le/">linkedin.com/in/duc-huy-le</a></div>
+    <div class="muted">Houston, TX · <a href="https://www.linkedin.com/in/duc-huy-le/">linkedin.com/in/duc-huy-le</a></div>
   </div>
-  <div class="no-print">
-    <button class="bp-btn" data-print>Print or save as PDF</button>
+  <div class="no-print contact-row">
+    <a class="bp-btn" href="assets/resume/Duc_Le_Resume.pdf" download="Duc_Le_Resume.pdf">Download resume (PDF)</a>
+    <button class="bp-btn-ghost" data-print>Print</button>
   </div>
 </div>
 

@@ -21,7 +21,9 @@ A Quarto website, built in R. The finished site lives in the `docs/` folder, whi
 | Live well view (home) | `assets/js/drillview.js` |
 | Music engine | `assets/js/field.js` (tracks, chords, tempo at the top) |
 | Record player | `assets/js/site.js` (the corner player) and `radio/index.html` (the pop-out) |
-| Journey map (home) | `assets/js/journeymap.js` |
+| Journey map (home) | `assets/js/journeymap.js` (the route and the small plane) |
+| Mini Bill, the guide (home) | `assets/js/minime.js` (his lines are in `STOPS` at the top; the song is in `TUNE` and `WORDS`) |
+| Resume download | `assets/resume/Duc_Le_Resume.pdf` (the public copy: no phone, no email, no Oliden figures) |
 | Career log (resume) | `assets/js/careerlog.js` |
 | Colors | `styles/light.scss` and `styles/dark.scss` |
 | Layout and look | `styles/site.css` |
